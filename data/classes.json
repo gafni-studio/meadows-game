@@ -1,0 +1,30 @@
+{
+  "tab": "classes",
+  "note": null,
+  "columns": [
+    "id",
+    "name",
+    "primary_stat",
+    "description"
+  ],
+  "rows": [
+    {
+      "id": "warrior",
+      "name": "Warrior",
+      "primary_stat": "STR",
+      "description": "Melee fighter focused on toughness and heavy close-range attacks. Chosen at character creation; there is no beginner class."
+    },
+    {
+      "id": "mage",
+      "name": "Mage",
+      "primary_stat": "INT",
+      "description": "Caster focused on area damage and magical or elemental effects. Chosen at character creation; there is no beginner class."
+    },
+    {
+      "id": "rogue",
+      "name": "Rogue",
+      "primary_stat": "AGI",
+      "description": "Fast, high-crit fighter with mobility and better drop luck. Chosen at character creation; there is no beginner class."
+    }
+  ]
+}

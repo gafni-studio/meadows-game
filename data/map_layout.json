@@ -1,0 +1,131 @@
+{
+  "tab": "map_layout",
+  "note": "DRAFT — Meadows is a set of connected side-scrolling areas, not one long strip. monster_ids must already exist on the monsters tab; spawn_counts are v0 placeholders (on-map at once, not a daily cap). connections are walking paths / portals to adjacent areas. Town is a safe hub with the NPC shop. Names are plain and low-tier. Only Meadows is laid out in v0; later worlds get their own rows. All values are placeholders.",
+  "columns": [
+    "id",
+    "name",
+    "zone_id",
+    "order",
+    "level_range",
+    "monster_ids",
+    "spawn_counts",
+    "connections",
+    "notes"
+  ],
+  "rows": [
+    {
+      "id": "meadow_town",
+      "name": "Meadow Town",
+      "zone_id": "meadows",
+      "order": 1,
+      "level_range": "safe",
+      "monster_ids": "(none)",
+      "spawn_counts": "—",
+      "connections": "east: sunny_pasture",
+      "notes": "The starting hub. No combat. Mara's shop, Pell at the east gate, Calden the trainer, and Ila at the exchange bench. Players spawn and respawn here. Portals/paths only lead east into Sunny Pasture. Plain wooden houses, a well, a short fence.",
+      "spawns": {},
+      "links": {
+        "east": "sunny_pasture"
+      }
+    },
+    {
+      "id": "sunny_pasture",
+      "name": "Sunny Pasture",
+      "zone_id": "meadows",
+      "order": 2,
+      "level_range": "1-3",
+      "monster_ids": "field_mouse, wool_sheep, crow",
+      "spawn_counts": "field_mouse 8, wool_sheep 5, crow 3",
+      "connections": "west: meadow_town; east: dirt_banks",
+      "notes": "The starter field just outside town. Open grass, a low fence, a few trees. Field Mice and Wool Sheep near the town side; Crows perch farther east toward the dirt path. First-30-minute quests take place here.",
+      "spawns": {
+        "field_mouse": 8,
+        "wool_sheep": 5,
+        "crow": 3
+      },
+      "links": {
+        "west": "meadow_town",
+        "east": "dirt_banks"
+      }
+    },
+    {
+      "id": "dirt_banks",
+      "name": "Dirt Banks",
+      "zone_id": "meadows",
+      "order": 3,
+      "level_range": "3-5",
+      "monster_ids": "burrow_mole, earth_sprite, ember_beetle",
+      "spawn_counts": "burrow_mole 6, earth_sprite 4, ember_beetle 4",
+      "connections": "west: sunny_pasture; east: meadow_shrine",
+      "notes": "A dug-up stretch of bank and loose earth. Burrow Moles turn up stones, Earth Sprites drift in the cuts, and Ember Beetles keep a little warmth in the dirt. Mid-Meadows hunting once the pasture feels easy.",
+      "spawns": {
+        "burrow_mole": 6,
+        "earth_sprite": 4,
+        "ember_beetle": 4
+      },
+      "links": {
+        "west": "sunny_pasture",
+        "east": "meadow_shrine"
+      }
+    },
+    {
+      "id": "meadow_shrine",
+      "name": "Meadow Shrine",
+      "zone_id": "meadows",
+      "order": 4,
+      "level_range": "5-7",
+      "monster_ids": "frost_moth, spark_bug, shrine_wisp",
+      "spawn_counts": "frost_moth 5, spark_bug 4, shrine_wisp 3",
+      "connections": "west: dirt_banks; east: dusk_margin",
+      "notes": "A small old shrine in a quieter part of the meadow. Frost Moths in the morning dew, Spark Bugs along the stones, Shrine Wisps close to the shrine itself. No new shop — return to town through the path.",
+      "spawns": {
+        "frost_moth": 5,
+        "spark_bug": 4,
+        "shrine_wisp": 3
+      },
+      "links": {
+        "west": "dirt_banks",
+        "east": "dusk_margin"
+      }
+    },
+    {
+      "id": "dusk_margin",
+      "name": "Dusk Margin",
+      "zone_id": "meadows",
+      "order": 5,
+      "level_range": "6-8",
+      "monster_ids": "meadow_boar, spark_bug, dusk_wisp",
+      "spawn_counts": "meadow_boar 5, spark_bug 3, dusk_wisp 4",
+      "connections": "west: meadow_shrine; north: stump_hollow",
+      "notes": "The dim eastern edge of the meadow. Meadow Boars root the brush, a few Spark Bugs still snap in the grass, and Dusk Wisps drift as the light falls. The path north leads to the boss clearing. Spark Bugs also appear at Meadow Shrine — overlapping, not the whole zone.",
+      "spawns": {
+        "meadow_boar": 5,
+        "spark_bug": 3,
+        "dusk_wisp": 4
+      },
+      "links": {
+        "west": "meadow_shrine",
+        "north": "stump_hollow"
+      }
+    },
+    {
+      "id": "stump_hollow",
+      "name": "Stump Hollow",
+      "zone_id": "meadows",
+      "order": 6,
+      "level_range": "9-10",
+      "monster_ids": "old_stump, night_stump, meadow_boar",
+      "spawn_counts": "old_stump 1 (day), night_stump 1 (night), meadow_boar 2 (rim only)",
+      "connections": "south: dusk_margin",
+      "notes": "A small clearing with one old stump. Old Stump (nature boss, the only Heartwood source) is here during the day. At night the same stump is the Night Stump (spiritual boss; Cursed Dust once Heartwood is owned). Two Meadow Boars at the rim, not in the boss pit. Bosses cannot be leashed out of this area. Intended for late Meadows.",
+      "spawns": {
+        "old_stump": 1,
+        "night_stump": 1,
+        "meadow_boar": 2
+      },
+      "links": {
+        "south": "dusk_margin"
+      }
+    }
+  ]
+}

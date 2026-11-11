@@ -1,0 +1,83 @@
+{
+  "tab": "prototype_plan",
+  "note": "DRAFT — Prototype plan for building from this sheet. The Game Design DB remains the source of truth; the game consumes exported JSON. v0.1 is a single-player browser slice of Meadows. Multiplayer and a backend come later. Hosting accounts are created by Oded, not by the assistant. Placeholders, to be revised as the prototype starts.",
+  "columns": [
+    "id",
+    "section",
+    "milestone",
+    "recommendation",
+    "notes"
+  ],
+  "rows": [
+    {
+      "id": "stack_client",
+      "section": "stack",
+      "milestone": "all",
+      "recommendation": "Phaser 3 + TypeScript + Vite for the browser client.",
+      "notes": "Phaser 3 is a proven 2D game framework with arcade physics, tilemaps, input, and a simple camera — enough for a side-scroller without a heavier engine. TypeScript keeps sheet ids and combat math typed. Vite gives a fast local dev server and a static production build."
+    },
+    {
+      "id": "stack_save_v01",
+      "section": "stack",
+      "milestone": "v0.1",
+      "recommendation": "Single-player first. Save the character in localStorage (and optionally a downloadable JSON file).",
+      "notes": "No accounts, no server, no concurrency. Enough to close the tab and resume. Document a simple save schema: level, XP, stats, inventory, skill ranks, current area, quest flags."
+    },
+    {
+      "id": "stack_server_later",
+      "section": "stack",
+      "milestone": "v0.3+",
+      "recommendation": "Add a Node.js server and Postgres when multiplayer or shared persistence is needed.",
+      "notes": "Keep the Phaser client. The server owns authoritative character state, drops, and (later) a shared Meadows instance. Postgres stores accounts, characters, and inventories. Not in v0.1."
+    },
+    {
+      "id": "data_approach",
+      "section": "data",
+      "milestone": "all",
+      "recommendation": "Treat the Game Design DB sheet as the source of truth. Export tabs to JSON and load those files in the game.",
+      "notes": "A small export script (Node or Python, run locally) writes one JSON file per tab (items, monsters, drop_tables, npc_shop, skills, skill_costs, classes, gear, exchange, map_layout, starter_quests, controls, combat_formulas, game_rules, etc.) into /data. The client fetches the JSON at boot. Design changes go into the sheet first, then re-export. Do not hard-code stats that already live in the sheet."
+    },
+    {
+      "id": "art_approach",
+      "section": "art",
+      "milestone": "v0.1",
+      "recommendation": "Start with colored shapes (rectangles for the player, monsters, ground, and pickups). Optionally swap in a free CC0 pixel pack.",
+      "notes": "Shapes are enough to prove movement, combat, and UI. Two verified CC0 candidates if pixel art is wanted sooner: (1) Kenney Pixel Platformer, https://kenney.nl/assets/pixel-platformer, CC0 1.0 (tiles, characters, HUD; also listed on Kenney's itch page). (2) Kenney Abstract Platformer, https://kenney.nl/assets/abstract-platformer, a geometric block pack on the same site; Kenney licenses asset-page packs as CC0 (https://kenney.nl/support). Attribution is not required. Custom meadow art can replace these later."
+    },
+    {
+      "id": "hosting",
+      "section": "hosting",
+      "milestone": "v0.1",
+      "recommendation": "Host the static Vite build on Netlify or Vercel, with the repo on GitHub. Oded does the signups.",
+      "notes": "The v0.1 build is static files only (HTML/JS/assets) plus localStorage, so either host works. Create a private GitHub repo, connect it to Netlify or Vercel, and deploy on push to main. Oded creates the GitHub and Netlify/Vercel accounts and any project signups; the assistant does not sign up on his behalf. A custom domain is optional and can wait."
+    },
+    {
+      "id": "ms_v01_scope",
+      "section": "scope",
+      "milestone": "v0.1",
+      "recommendation": "One Meadows map using a subset of areas (Meadow Town + Sunny Pasture). Warrior only. 3-4 monsters: Field Mouse, Wool Sheep, Crow, and optionally Burrow Mole at the east edge. Drops and inventory. Leveling and ability points. Power Strike and Rage. Potions (at least Meadow Dew). Mara's NPC shop.",
+      "notes": "Goal: a playable loop in the browser — walk out of town, fight, loot, sell/buy, drink a potion, level up, spend points, use Power Strike and Rage, and save. No Mage/Rogue, no skill ranking or passive tree yet, no exchange, no bosses, no Dirt Banks / Shrine / Dusk / Stump Hollow, no multiplayer. Placeholder art is fine. Combat math and item/drop/shop numbers come from the exported JSON."
+    },
+    {
+      "id": "ms_v01_out",
+      "section": "scope",
+      "milestone": "v0.1",
+      "recommendation": "Out of scope for v0.1: accounts, server, Mage, Rogue, category skills, skill rank-up, passives, essence exchange, starter quests (can stub a single 'talk to Pell' hint), Old Stump / Night Stump, cloth-gear paper-doll beyond inventory equip if time is short (equip can be a stretch goal), and mobile/touch controls.",
+      "notes": "If a stretch is needed after the loop works: equip the starter cloth set from the shop, and show HP/MP/XP bars plus a 1-4 / 5-6 hotbar."
+    },
+    {
+      "id": "ms_v02",
+      "section": "scope",
+      "milestone": "v0.2",
+      "recommendation": "The rest of Meadows (Dirt Banks, Meadow Shrine, Dusk Margin), more of the monster roster, the starter quest chain, skill ranking with Monster Essence, the 10:1 essence exchange, the first passive-tree point, death and town respawn, and shop cloth gear if it slipped v0.1.",
+      "notes": "Stump Hollow / bosses can wait for v0.3 if v0.2 is already large. Still single-player with localStorage. Re-export the sheet after quest tuning."
+    },
+    {
+      "id": "ms_v03",
+      "section": "scope",
+      "milestone": "v0.3",
+      "recommendation": "Stump Hollow with Old Stump (and Night Stump if the day/night toggle is ready), a second class (Mage or Rogue), and the first server-backed persistence: Node.js + Postgres, with GitHub + a host that can run a Node app (or a separate API host). Optional: very basic multiplayer presence in Meadow Town.",
+      "notes": "Authoritative inventory and character saves move off localStorage. Real-time combat sync can stay later than v0.3 if needed — character login and shared persistence are the milestone. Oded does any new signups (hosting, database)."
+    }
+  ]
+}

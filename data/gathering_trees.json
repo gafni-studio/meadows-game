@@ -1,0 +1,26 @@
+{
+  "tab": "gathering_trees",
+  "note": "NOTE: Nature, Elemental, and Spiritual each have one production node that yields that tree's essence (Nature Essence, Elemental Essence, Spirit Essence) on a steep curve, plus an efficiency node. Item sources and slot nodes are deprecated. General holds Hunter's Luck (looting). Commons can also be exchanged for category essence at 10:1 (exchange tab).",
+  "columns": [
+    "id",
+    "name"
+  ],
+  "rows": [
+    {
+      "id": "nature",
+      "name": "Nature"
+    },
+    {
+      "id": "elemental",
+      "name": "Elemental"
+    },
+    {
+      "id": "spiritual",
+      "name": "Spiritual"
+    },
+    {
+      "id": "general",
+      "name": "General"
+    }
+  ]
+}

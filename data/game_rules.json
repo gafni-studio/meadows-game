@@ -1,0 +1,107 @@
+{
+  "tab": "game_rules",
+  "note": "NOTE: High-level v0 game rules (combat, progression, formulas, gathering, economy, death, level-up, and monster aggro/leash). Detailed combat math is in combat_formulas. Values are a starting baseline and may pivot after playtesting.",
+  "columns": [
+    "key",
+    "value",
+    "notes"
+  ],
+  "rows": [
+    {
+      "key": "ability_points_per_level",
+      "value": 5,
+      "notes": "Each level grants 5 ability points, allocated freely to any stat (STR, INT, AGI, SPI).",
+      "num": 5
+    },
+    {
+      "key": "combat",
+      "value": "real-time 2D side-scrolling platformer",
+      "notes": "Players move, jump, and attack in real time on 2D side-scrolling maps.",
+      "num": 2
+    },
+    {
+      "key": "skills",
+      "value": "hotkeys; cost MP; short cooldowns",
+      "notes": "Combat skills are bound to hotkeys, spend MP, and have short cooldowns.",
+      "num": null
+    },
+    {
+      "key": "damage_formula",
+      "value": "max(min_dmg, floor(skill% × attack − defense)) — see combat_formulas",
+      "notes": "attack = (weapon_damage + main_stat × 2) × weapon_stat_multiplier. Full definitions, XP curve, HP/MP, potions, and a worked example are in the combat_formulas tab.",
+      "num": null
+    },
+    {
+      "key": "monster_respawn",
+      "value": "timer per map",
+      "notes": "Monsters respawn on a timer in each map.",
+      "num": null
+    },
+    {
+      "key": "skill_rank_scaling",
+      "value": "basic +2%/rank; nature +8%; elemental +7%; spiritual +7% (to be tuned)",
+      "notes": "Basic skills start weaker (Power Strike 140%, Energy Blast 130%, Backstab 250%) and scale slowly so category skills overtake them. See the skills tab rationale.",
+      "num": 2
+    },
+    {
+      "key": "passive_gathering",
+      "value": "each tree produces its category essence on a steep curve (sources/slots deprecated)",
+      "notes": "Item sources and gathering slots are retired. Each of Nature, Elemental, and Spiritual has one production node that yields only that tree's essence. Rank 0 yields nothing. At rank r, yield = 1.5 × 1.6^(r-1) /h (rank 1 = 1.5, rank 5 ≈ 9.8, rank 10 ≈ 103). Efficiency adds +% category material and category-essence drop rate while hunting. Hunter's Luck is a general looting node (+1% bonus drop-roll chance per rank, max 10). v0 draft; may pivot.",
+      "num": null
+    },
+    {
+      "key": "hunters_luck",
+      "value": "+1% bonus drop-roll chance per rank (max 10)",
+      "notes": "A single general looting node. Each rank adds +1% chance that a kill makes one extra roll on the same drop table (rank 10 = +10%). Costs a mix of all three category essences plus coins. To be tuned.",
+      "num": 1
+    },
+    {
+      "key": "drop_rate_bands",
+      "value": "category essences 20-30% (qty 1-3, bosses more); commons 15-20%; uncommons 1-3%; rares ~0.3-1%",
+      "notes": "A monster drops its own category's essence (Nature / Elemental / Spirit) at 20-30%, quantity 1-3; bosses 40%, qty 2-5. Monster Essence (basic skills) ~15% from any monster. Early commons: Twig, Bark, Pebble, Clay, Wool, Feather, Fur, Earth Grit, Holy Dust, Soul Dust. Uncommons: Earth/Fire/Ice/Lightning Shard, Copper Nail, Leather Scrap, Stone Chunk, Branch. Training Scroll ~6%. Coins, misc, gear, Heartwood, and ultra-rares are unchanged. Placeholder.",
+      "num": 20
+    },
+    {
+      "key": "upgrade_costs",
+      "value": "materials + category essence + coins each rank; rares only at 5 and 10",
+      "notes": "Essence is an addition to the material recipe, not a replacement, and is the main power gate. Category skills and passives cost collected materials (commons in tens, plus a few 1-3% items, including a mixed-category ingredient on skills) PLUS that category's essence (rank 1 placeholder: 50) PLUS Copper Coin, then ×1.6 per rank. Basic skills cost Monster Essence 50 + Training Scroll 6 + Copper Coin 30 (then ×1.6). Rare drops (Heartwood, Earth Crystal, Holy Essence, Soul Shard, Stone Chunk, etc.) appear only as milestone requirements at ranks 5 and 10. Passive trees produce only category essence (commons are gathered from kills or exchanged at 10:1). Having a lot of category essence is a lot of power. To be tuned.",
+      "num": 5
+    },
+    {
+      "key": "essence_exchange",
+      "value": "10 commons (or listed shards) = 1 matching category essence",
+      "notes": "Nature materials (Twig, Bark, Pebble, Clay, Wool, Feather, Fur) → Nature Essence. Earth Grit and Fire/Ice/Lightning/Earth Shards → Elemental Essence. Holy Dust and Soul Dust → Spirit Essence. Steep on purpose so essence stays desirable. See the exchange tab.",
+      "num": 10
+    },
+    {
+      "key": "skill_unlocks",
+      "value": "basic from start; nature lv3+5 main stat; elemental lv6+10; spiritual lv8+15",
+      "notes": "Main stat is STR (Warrior), INT (Mage), or AGI (Rogue). Both the level and the stat requirement must be met. See unlock_requirements.",
+      "num": 3
+    },
+    {
+      "key": "death_penalty",
+      "value": "lose 5% of current-level XP progress (not below 0); respawn in town; no item loss",
+      "notes": "On death, the player loses 5% of XP already earned toward the next level, floored at 0 progress for that level (they cannot drop a level). Respawn at Meadow Town after a short ~3s delay, with HP and MP restored to full. No items, coins, or essence are lost. This is the mild early-game / Meadows rule; later zones may be steeper. Placeholder.",
+      "num": 5
+    },
+    {
+      "key": "level_up_rewards",
+      "value": "5 ability points; full HP and MP restore; brief invulnerability",
+      "notes": "Each level grants 5 ability points, spent freely on STR, INT, AGI, or SPI (see ability_points_per_level). HP and MP are fully restored on level up. A brief ~1.5s invulnerability follows so a pack cannot finish the player mid-ding. Points are not auto-spent. Placeholder.",
+      "num": 5
+    },
+    {
+      "key": "monster_aggro_leash",
+      "value": "aggressive aggro in range; passive until hit; leash back to spawn",
+      "notes": "Aggressive monsters (monsters.aggression = aggressive) aggro when the player enters ~8 tiles (placeholder). Passive monsters only fight back once attacked. If the player leaves ~20 tiles from that monster's spawn, or exits the area through a portal, the monster drops aggro, returns to spawn, and resets HP. Nearby aggressive pack-mates may assist if the player is also inside their aggro range (v0, to be tuned). Bosses (Old Stump, Night Stump) cannot be leashed out of Stump Hollow.",
+      "num": null
+    },
+    {
+      "key": "design_status",
+      "value": "v0 basics, may pivot after playtesting",
+      "notes": "These rules are a starting baseline, not a locked combat design.",
+      "num": 0
+    }
+  ]
+}

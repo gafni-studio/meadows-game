@@ -1,0 +1,20 @@
+{
+  "tab": "zones",
+  "note": null,
+  "columns": [
+    "id",
+    "name",
+    "world",
+    "level_range",
+    "description"
+  ],
+  "rows": [
+    {
+      "id": "meadows",
+      "name": "Meadows",
+      "world": "Starting World",
+      "level_range": "1-10",
+      "description": "The starting zone: easygoing meadows with a warm, nostalgic feel. The first area players hunt and gather in, before later worlds are added."
+    }
+  ]
+}

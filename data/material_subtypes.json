@@ -1,0 +1,90 @@
+{
+  "tab": "material_subtypes",
+  "note": "NOTE: subtype_id values are used by items.subtype_id (materials only). general belongs to Neutral (e.g. Training Scroll). earth is elemental/magical earth energy, distinct from Nature stone.",
+  "columns": [
+    "id",
+    "category_id",
+    "name",
+    "description"
+  ],
+  "rows": [
+    {
+      "id": "wood",
+      "category_id": "nature",
+      "name": "Wood",
+      "description": "Timber, bark, twigs, logs, and other plant matter from trees and plants."
+    },
+    {
+      "id": "stone",
+      "category_id": "nature",
+      "name": "Stone",
+      "description": "Rock, mineral chunks, clay, and earth taken from the ground."
+    },
+    {
+      "id": "iron",
+      "category_id": "nature",
+      "name": "Iron",
+      "description": "Raw metal and ferrous scrap used in tools, armor, and heavier crafts."
+    },
+    {
+      "id": "hide",
+      "category_id": "nature",
+      "name": "Hide",
+      "description": "Leather, pelts, wool, fur, feathers, and other hides from natural creatures."
+    },
+    {
+      "id": "fire",
+      "category_id": "elemental",
+      "name": "Fire",
+      "description": "Heat, embers, and flame essences drawn from fire elemental sources."
+    },
+    {
+      "id": "ice",
+      "category_id": "elemental",
+      "name": "Ice",
+      "description": "Frost, snow, and frozen essences drawn from ice elemental sources."
+    },
+    {
+      "id": "lightning",
+      "category_id": "elemental",
+      "name": "Lightning",
+      "description": "Sparks, charged shards, and storm essences drawn from lightning elemental sources."
+    },
+    {
+      "id": "earth",
+      "category_id": "elemental",
+      "name": "Earth",
+      "description": "Elemental, magical earth energy — distinct from Nature's physical stone. Found as shards and crystals."
+    },
+    {
+      "id": "holy",
+      "category_id": "spiritual",
+      "name": "Holy",
+      "description": "Blessed light and sacred relics of faith and protection."
+    },
+    {
+      "id": "arcane",
+      "category_id": "spiritual",
+      "name": "Arcane",
+      "description": "Pure magical residue and runic fragments of learned spellcraft."
+    },
+    {
+      "id": "curse",
+      "category_id": "spiritual",
+      "name": "Curse",
+      "description": "Tainted, hexed matter bound to misfortune and dark magic."
+    },
+    {
+      "id": "soul",
+      "category_id": "spiritual",
+      "name": "Soul",
+      "description": "Echoes of spirit and life essence drawn from living or departed beings."
+    },
+    {
+      "id": "general",
+      "category_id": "neutral",
+      "name": "General",
+      "description": "Plain general materials any monster can drop (e.g. Training Scroll). Currencies are not subtypes."
+    }
+  ]
+}

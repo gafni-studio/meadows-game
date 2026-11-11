@@ -1,0 +1,193 @@
+{
+  "tab": "gear",
+  "note": "NOTE: item_id is a foreign key to items.id (item_type = gear). weapon_damage is the base weapon attack used in combat_formulas (0 for armor). stat_multiplier on weapons applies to attack; on armor it is a placeholder for a later small stat bonus (defense is the v0 armor stat). Meadows starter weapons are 10 damage; steel (ultra-rare) is 18. Class-specific attribute gear comes later.",
+  "columns": [
+    "item_id",
+    "slot",
+    "class_id",
+    "required_stat",
+    "required_value",
+    "stat_multiplier",
+    "defense",
+    "weapon_damage",
+    "description"
+  ],
+  "rows": [
+    {
+      "item_id": "wooden_sword",
+      "slot": "weapon",
+      "class_id": "warrior",
+      "required_stat": "STR",
+      "required_value": 1,
+      "stat_multiplier": 1.1,
+      "defense": 0,
+      "weapon_damage": 10,
+      "description": "A plain wooden sword. Basic Meadows warrior weapon."
+    },
+    {
+      "item_id": "worn_staff",
+      "slot": "weapon",
+      "class_id": "mage",
+      "required_stat": "INT",
+      "required_value": 1,
+      "stat_multiplier": 1.1,
+      "defense": 0,
+      "weapon_damage": 10,
+      "description": "A worn wooden staff. Basic Meadows mage weapon."
+    },
+    {
+      "item_id": "rusty_dagger",
+      "slot": "weapon",
+      "class_id": "rogue",
+      "required_stat": "AGI",
+      "required_value": 1,
+      "stat_multiplier": 1.1,
+      "defense": 0,
+      "weapon_damage": 10,
+      "description": "A rusty dagger. Basic Meadows rogue weapon."
+    },
+    {
+      "item_id": "cloth_cap",
+      "slot": "head",
+      "class_id": "any",
+      "required_stat": null,
+      "required_value": 0,
+      "stat_multiplier": 1.03,
+      "defense": 2,
+      "weapon_damage": 0,
+      "description": "A simple cloth cap. Cross-class Meadows head armor."
+    },
+    {
+      "item_id": "cloth_tunic",
+      "slot": "torso",
+      "class_id": "any",
+      "required_stat": null,
+      "required_value": 0,
+      "stat_multiplier": 1.05,
+      "defense": 4,
+      "weapon_damage": 0,
+      "description": "A simple cloth tunic. Cross-class Meadows torso armor."
+    },
+    {
+      "item_id": "cloth_pants",
+      "slot": "legs",
+      "class_id": "any",
+      "required_stat": null,
+      "required_value": 0,
+      "stat_multiplier": 1.04,
+      "defense": 3,
+      "weapon_damage": 0,
+      "description": "A simple pair of cloth pants. Cross-class Meadows leg armor."
+    },
+    {
+      "item_id": "cloth_shoes",
+      "slot": "boots",
+      "class_id": "any",
+      "required_stat": null,
+      "required_value": 0,
+      "stat_multiplier": 1.03,
+      "defense": 2,
+      "weapon_damage": 0,
+      "description": "A simple pair of cloth shoes. Cross-class Meadows boots."
+    },
+    {
+      "item_id": "cloth_gloves",
+      "slot": "gloves",
+      "class_id": "any",
+      "required_stat": null,
+      "required_value": 0,
+      "stat_multiplier": 1.03,
+      "defense": 1,
+      "weapon_damage": 0,
+      "description": "A simple pair of cloth gloves. Cross-class Meadows gloves."
+    },
+    {
+      "item_id": "leather_cap",
+      "slot": "head",
+      "class_id": "any",
+      "required_stat": "any",
+      "required_value": 3,
+      "stat_multiplier": 1.06,
+      "defense": 3,
+      "weapon_damage": 0,
+      "description": "A simple leather cap. Cross-class Meadows head armor. Requires a total of 3 points in any attribute."
+    },
+    {
+      "item_id": "leather_vest",
+      "slot": "torso",
+      "class_id": "any",
+      "required_stat": "any",
+      "required_value": 3,
+      "stat_multiplier": 1.08,
+      "defense": 6,
+      "weapon_damage": 0,
+      "description": "A simple leather vest. Cross-class Meadows torso armor. Requires a total of 3 points in any attribute."
+    },
+    {
+      "item_id": "leather_pants",
+      "slot": "legs",
+      "class_id": "any",
+      "required_stat": "any",
+      "required_value": 3,
+      "stat_multiplier": 1.07,
+      "defense": 5,
+      "weapon_damage": 0,
+      "description": "A simple pair of leather pants. Cross-class Meadows leg armor. Requires a total of 3 points in any attribute."
+    },
+    {
+      "item_id": "leather_boots",
+      "slot": "boots",
+      "class_id": "any",
+      "required_stat": "any",
+      "required_value": 3,
+      "stat_multiplier": 1.06,
+      "defense": 3,
+      "weapon_damage": 0,
+      "description": "A simple pair of leather boots. Cross-class Meadows boots. Requires a total of 3 points in any attribute."
+    },
+    {
+      "item_id": "leather_gloves",
+      "slot": "gloves",
+      "class_id": "any",
+      "required_stat": "any",
+      "required_value": 3,
+      "stat_multiplier": 1.06,
+      "defense": 2,
+      "weapon_damage": 0,
+      "description": "A simple pair of leather gloves. Cross-class Meadows gloves. Requires a total of 3 points in any attribute."
+    },
+    {
+      "item_id": "steel_sword",
+      "slot": "weapon",
+      "class_id": "warrior",
+      "required_stat": "STR",
+      "required_value": 5,
+      "stat_multiplier": 1.25,
+      "defense": 0,
+      "weapon_damage": 18,
+      "description": "A steel sword. Higher-area warrior weapon. Out-of-zone ultra-rare in Meadows."
+    },
+    {
+      "item_id": "steel_staff",
+      "slot": "weapon",
+      "class_id": "mage",
+      "required_stat": "INT",
+      "required_value": 5,
+      "stat_multiplier": 1.25,
+      "defense": 0,
+      "weapon_damage": 18,
+      "description": "A steel staff. Higher-area mage weapon. Out-of-zone ultra-rare in Meadows."
+    },
+    {
+      "item_id": "steel_dagger",
+      "slot": "weapon",
+      "class_id": "rogue",
+      "required_stat": "AGI",
+      "required_value": 5,
+      "stat_multiplier": 1.25,
+      "defense": 0,
+      "weapon_damage": 18,
+      "description": "A steel dagger. Higher-area rogue weapon. Out-of-zone ultra-rare in Meadows."
+    }
+  ]
+}

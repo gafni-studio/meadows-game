@@ -1,0 +1,126 @@
+{
+  "tab": "starter_quests",
+  "note": "DRAFT — First-30-minute quest chain for Meadows. Teaches movement, combat, looting, the shop, spending ability points, ranking the first basic skill with Monster Essence, exchanging commons for category essence, and the first passive-tree point. Quest rewards cover most of the rank-1 basic-skill cost (30 Monster Essence, 5 Training Scrolls, 20 coins) and most of the rank-1 Nature Production cost (50 Pebble, 40 Bark, 5 Earth Shard, 50 Nature Essence, 30 coins), with a short hunt still required so the grind is not skipped. Total quest XP is 440; most leveling still comes from kills (level 2 during the early fights, around level 4 by the end). NPC names are original and plain: Pell (greeter), Mara (vendor), Calden (trainer), Ila (exchange). Placeholders, to be tuned.",
+  "columns": [
+    "id",
+    "name",
+    "giver",
+    "area_id",
+    "objective",
+    "reward_xp",
+    "reward_coins",
+    "reward_items",
+    "prerequisite",
+    "notes"
+  ],
+  "rows": [
+    {
+      "id": "sq_welcome",
+      "name": "A First Step",
+      "giver": "Pell",
+      "area_id": "meadow_town",
+      "objective": "Talk to Pell at the east gate, walk and jump to the Sunny Pasture entrance, and return to Pell.",
+      "reward_xp": 15,
+      "reward_coins": 5,
+      "reward_items": "meadow_dew x3",
+      "prerequisite": "—",
+      "notes": "Teaches movement and jump. Pell is the town greeter. Three Meadow Dew so early deaths stay mild."
+    },
+    {
+      "id": "sq_first_fight",
+      "name": "Mice in the Grass",
+      "giver": "Pell",
+      "area_id": "sunny_pasture",
+      "objective": "Defeat 5 Field Mice in Sunny Pasture and return to Pell.",
+      "reward_xp": 50,
+      "reward_coins": 8,
+      "reward_items": "—",
+      "prerequisite": "sq_welcome",
+      "notes": "Teaches basic attack (J / left click) and real-time combat. 5 mice = 50 combat XP plus this 50 quest XP, which is enough to reach level 2 (70 XP)."
+    },
+    {
+      "id": "sq_loot",
+      "name": "Pick It Up",
+      "giver": "Pell",
+      "area_id": "sunny_pasture",
+      "objective": "Pick up 6 dropped items in Sunny Pasture (press E on a drop) and talk to Pell.",
+      "reward_xp": 30,
+      "reward_coins": 8,
+      "reward_items": "—",
+      "prerequisite": "sq_first_fight",
+      "notes": "Teaches loot pickup. Any dropped items count (materials, junk, coins, essence). Leaves the player with something to sell."
+    },
+    {
+      "id": "sq_shop",
+      "name": "Mara's Counter",
+      "giver": "Mara",
+      "area_id": "meadow_town",
+      "objective": "Sell 1 sellable junk item to Mara and buy 1 Meadow Dew or 1 Barley Cake from her shop.",
+      "reward_xp": 25,
+      "reward_coins": 12,
+      "reward_items": "barley_cake x1",
+      "prerequisite": "sq_loot",
+      "notes": "Teaches the NPC shop and sell-back. Mara is the Meadows vendor (npc_shop). The 12-coin reward cushions the purchase. She will not buy materials or essences."
+    },
+    {
+      "id": "sq_spend_points",
+      "name": "A Little Stronger",
+      "giver": "Pell",
+      "area_id": "meadow_town",
+      "objective": "Open the stats window (C) and spend your first 5 ability points. Warriors should put them into STR.",
+      "reward_xp": 40,
+      "reward_coins": 10,
+      "reward_items": "—",
+      "prerequisite": "sq_shop",
+      "notes": "Teaches spending ability points. The player should already be level 2 from sq_first_fight. Points are not auto-spent on level up."
+    },
+    {
+      "id": "sq_essence_lesson",
+      "name": "A Vial of Essence",
+      "giver": "Calden",
+      "area_id": "meadow_town",
+      "objective": "Collect 1 Monster Essence from a Meadows monster and bring it to Calden.",
+      "reward_xp": 40,
+      "reward_coins": 20,
+      "reward_items": "monster_essence x25; training_scroll x4",
+      "prerequisite": "sq_spend_points",
+      "notes": "Teaches that Monster Essence drops from monsters and is used to train basic skills. Calden is the skill trainer. The reward covers most of a rank-1 basic skill (30 Monster Essence, 5 Training Scrolls, 20 coins) — the player still needs about 5 more Monster Essence and 1 Training Scroll from hunting (~25-35 pasture kills, a few minutes). Does not rank the skill yet."
+    },
+    {
+      "id": "sq_rank_skill",
+      "name": "Put Your Weight Into It",
+      "giver": "Calden",
+      "area_id": "meadow_town",
+      "objective": "Rank any basic starting skill to rank 1 (Warrior: Power Strike or Rage). Spend 30 Monster Essence, 5 Training Scrolls, and 20 Copper Coin at the skills window (K).",
+      "reward_xp": 80,
+      "reward_coins": 15,
+      "reward_items": "meadow_dew x2",
+      "prerequisite": "sq_essence_lesson",
+      "notes": "Teaches skill ranking. Basic skills are already unlocked at the start but begin at rank 0 until paid. The previous quest's reward plus a short hunt should cover the cost without skipping the gather step. After this, the first skill rank is done."
+    },
+    {
+      "id": "sq_exchange",
+      "name": "Ten for One",
+      "giver": "Ila",
+      "area_id": "meadow_town",
+      "objective": "Bring 10 Nature commons (Twig, Bark, Pebble, Clay, Wool, Feather, or Fur, in any mix) to Ila and exchange them for 1 Nature Essence.",
+      "reward_xp": 60,
+      "reward_coins": 20,
+      "reward_items": "nature_essence x35; pebble x40; bark x30; earth_shard x5",
+      "prerequisite": "sq_rank_skill",
+      "notes": "Teaches the 10:1 commons-to-category-essence exchange (see the exchange tab). Ila minds the exchange bench in town. The reward is most of a rank-1 Nature Production passive (50 Pebble, 40 Bark, 5 Earth Shard, 50 Nature Essence, 30 coins). Earth Shards are ~3% on Earth Sprite and are not realistically farmed in the first 30 minutes, so they are granted here. The player still needs about 15 Nature Essence and 10 Pebble / 10 Bark from inventory, a short hunt, or one more exchange."
+    },
+    {
+      "id": "sq_first_passive",
+      "name": "A Quiet Start",
+      "giver": "Ila",
+      "area_id": "meadow_town",
+      "objective": "Open the passive tree (T) and spend your first point. Nature Production is the recommended first node in Meadows.",
+      "reward_xp": 100,
+      "reward_coins": 20,
+      "reward_items": "spring_draught x1",
+      "prerequisite": "sq_exchange",
+      "notes": "Teaches the passive tree and the first point of essence production (rank 0 yields nothing; rank 1 starts the steep curve). Completing this should be possible around the 30-minute mark if the player hunted during the earlier quests. Rewards do not fully pay the node — a little gathering remains so the grind is not skipped. First skill rank and first passive point are both done by the end of this chain."
+    }
+  ]
+}

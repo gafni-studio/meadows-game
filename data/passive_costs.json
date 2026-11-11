@@ -1,0 +1,762 @@
+{
+  "tab": "passive_costs",
+  "note": "DRAFT — Each rank costs the material recipe PLUS the tree's category essence (the main power gate) PLUS Copper Coin. Essence is an addition, not a replacement — except that passive trees produce only essence (not commons); commons still have to be collected or exchanged. Rank 1: Nature = Pebble 50, Bark 40, Earth Shard 5, Nature Essence 50, Coin 30. Elemental = Earth Grit 50, Pebble 40, Earth Shard 5, Elemental Essence 50, Coin 30. Spiritual = Holy Dust 50, Soul Dust 40, Copper Nail 5, Spirit Essence 50, Coin 30. Hunter's Luck = Pebble 50, Earth Grit 40, Earth Shard 5, all three essences 20 each, Coin 30. Ranks 1-3 are listed. For any rank r: quantity = round(rank_1_qty × 1.6^(r-1)). Rare drops are milestone items at ranks 5 and 10 only (not scaled): Nature r5 Stone Chunk / r10 Heartwood; Elemental r5 Earth Crystal / r10 Holy Essence; Spiritual r5 Holy Essence / r10 Soul Shard; Hunter's Luck r5 Earth Crystal / r10 Heartwood. Deprecated source/slot/discovery nodes have no costs. Upgrade time: 10 × 1.6^(rank-1) minutes.",
+  "columns": [
+    "node_id",
+    "rank",
+    "material_id",
+    "quantity"
+  ],
+  "rows": [
+    {
+      "node_id": "nature_prod",
+      "rank": 1,
+      "material_id": "pebble",
+      "quantity": 50
+    },
+    {
+      "node_id": "nature_prod",
+      "rank": 1,
+      "material_id": "bark",
+      "quantity": 40
+    },
+    {
+      "node_id": "nature_prod",
+      "rank": 1,
+      "material_id": "earth_shard",
+      "quantity": 5
+    },
+    {
+      "node_id": "nature_prod",
+      "rank": 1,
+      "material_id": "nature_essence",
+      "quantity": 50
+    },
+    {
+      "node_id": "nature_prod",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 30
+    },
+    {
+      "node_id": "nature_prod",
+      "rank": 2,
+      "material_id": "pebble",
+      "quantity": 80
+    },
+    {
+      "node_id": "nature_prod",
+      "rank": 2,
+      "material_id": "bark",
+      "quantity": 64
+    },
+    {
+      "node_id": "nature_prod",
+      "rank": 2,
+      "material_id": "earth_shard",
+      "quantity": 8
+    },
+    {
+      "node_id": "nature_prod",
+      "rank": 2,
+      "material_id": "nature_essence",
+      "quantity": 80
+    },
+    {
+      "node_id": "nature_prod",
+      "rank": 2,
+      "material_id": "copper_coin",
+      "quantity": 48
+    },
+    {
+      "node_id": "nature_prod",
+      "rank": 3,
+      "material_id": "pebble",
+      "quantity": 128
+    },
+    {
+      "node_id": "nature_prod",
+      "rank": 3,
+      "material_id": "bark",
+      "quantity": 102
+    },
+    {
+      "node_id": "nature_prod",
+      "rank": 3,
+      "material_id": "earth_shard",
+      "quantity": 13
+    },
+    {
+      "node_id": "nature_prod",
+      "rank": 3,
+      "material_id": "nature_essence",
+      "quantity": 128
+    },
+    {
+      "node_id": "nature_prod",
+      "rank": 3,
+      "material_id": "copper_coin",
+      "quantity": 77
+    },
+    {
+      "node_id": "nature_prod",
+      "rank": 5,
+      "material_id": "stone_chunk",
+      "quantity": 1
+    },
+    {
+      "node_id": "nature_prod",
+      "rank": 10,
+      "material_id": "heartwood",
+      "quantity": 1
+    },
+    {
+      "node_id": "nature_eff_drops",
+      "rank": 1,
+      "material_id": "pebble",
+      "quantity": 50
+    },
+    {
+      "node_id": "nature_eff_drops",
+      "rank": 1,
+      "material_id": "bark",
+      "quantity": 40
+    },
+    {
+      "node_id": "nature_eff_drops",
+      "rank": 1,
+      "material_id": "earth_shard",
+      "quantity": 5
+    },
+    {
+      "node_id": "nature_eff_drops",
+      "rank": 1,
+      "material_id": "nature_essence",
+      "quantity": 50
+    },
+    {
+      "node_id": "nature_eff_drops",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 30
+    },
+    {
+      "node_id": "nature_eff_drops",
+      "rank": 2,
+      "material_id": "pebble",
+      "quantity": 80
+    },
+    {
+      "node_id": "nature_eff_drops",
+      "rank": 2,
+      "material_id": "bark",
+      "quantity": 64
+    },
+    {
+      "node_id": "nature_eff_drops",
+      "rank": 2,
+      "material_id": "earth_shard",
+      "quantity": 8
+    },
+    {
+      "node_id": "nature_eff_drops",
+      "rank": 2,
+      "material_id": "nature_essence",
+      "quantity": 80
+    },
+    {
+      "node_id": "nature_eff_drops",
+      "rank": 2,
+      "material_id": "copper_coin",
+      "quantity": 48
+    },
+    {
+      "node_id": "nature_eff_drops",
+      "rank": 3,
+      "material_id": "pebble",
+      "quantity": 128
+    },
+    {
+      "node_id": "nature_eff_drops",
+      "rank": 3,
+      "material_id": "bark",
+      "quantity": 102
+    },
+    {
+      "node_id": "nature_eff_drops",
+      "rank": 3,
+      "material_id": "earth_shard",
+      "quantity": 13
+    },
+    {
+      "node_id": "nature_eff_drops",
+      "rank": 3,
+      "material_id": "nature_essence",
+      "quantity": 128
+    },
+    {
+      "node_id": "nature_eff_drops",
+      "rank": 3,
+      "material_id": "copper_coin",
+      "quantity": 77
+    },
+    {
+      "node_id": "nature_eff_drops",
+      "rank": 5,
+      "material_id": "stone_chunk",
+      "quantity": 1
+    },
+    {
+      "node_id": "nature_eff_drops",
+      "rank": 10,
+      "material_id": "heartwood",
+      "quantity": 1
+    },
+    {
+      "node_id": "elemental_prod",
+      "rank": 1,
+      "material_id": "earth_grit",
+      "quantity": 50
+    },
+    {
+      "node_id": "elemental_prod",
+      "rank": 1,
+      "material_id": "pebble",
+      "quantity": 40
+    },
+    {
+      "node_id": "elemental_prod",
+      "rank": 1,
+      "material_id": "earth_shard",
+      "quantity": 5
+    },
+    {
+      "node_id": "elemental_prod",
+      "rank": 1,
+      "material_id": "elemental_essence",
+      "quantity": 50
+    },
+    {
+      "node_id": "elemental_prod",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 30
+    },
+    {
+      "node_id": "elemental_prod",
+      "rank": 2,
+      "material_id": "earth_grit",
+      "quantity": 80
+    },
+    {
+      "node_id": "elemental_prod",
+      "rank": 2,
+      "material_id": "pebble",
+      "quantity": 64
+    },
+    {
+      "node_id": "elemental_prod",
+      "rank": 2,
+      "material_id": "earth_shard",
+      "quantity": 8
+    },
+    {
+      "node_id": "elemental_prod",
+      "rank": 2,
+      "material_id": "elemental_essence",
+      "quantity": 80
+    },
+    {
+      "node_id": "elemental_prod",
+      "rank": 2,
+      "material_id": "copper_coin",
+      "quantity": 48
+    },
+    {
+      "node_id": "elemental_prod",
+      "rank": 3,
+      "material_id": "earth_grit",
+      "quantity": 128
+    },
+    {
+      "node_id": "elemental_prod",
+      "rank": 3,
+      "material_id": "pebble",
+      "quantity": 102
+    },
+    {
+      "node_id": "elemental_prod",
+      "rank": 3,
+      "material_id": "earth_shard",
+      "quantity": 13
+    },
+    {
+      "node_id": "elemental_prod",
+      "rank": 3,
+      "material_id": "elemental_essence",
+      "quantity": 128
+    },
+    {
+      "node_id": "elemental_prod",
+      "rank": 3,
+      "material_id": "copper_coin",
+      "quantity": 77
+    },
+    {
+      "node_id": "elemental_prod",
+      "rank": 5,
+      "material_id": "earth_crystal",
+      "quantity": 1
+    },
+    {
+      "node_id": "elemental_prod",
+      "rank": 10,
+      "material_id": "holy_essence",
+      "quantity": 1
+    },
+    {
+      "node_id": "elemental_eff_drops",
+      "rank": 1,
+      "material_id": "earth_grit",
+      "quantity": 50
+    },
+    {
+      "node_id": "elemental_eff_drops",
+      "rank": 1,
+      "material_id": "pebble",
+      "quantity": 40
+    },
+    {
+      "node_id": "elemental_eff_drops",
+      "rank": 1,
+      "material_id": "earth_shard",
+      "quantity": 5
+    },
+    {
+      "node_id": "elemental_eff_drops",
+      "rank": 1,
+      "material_id": "elemental_essence",
+      "quantity": 50
+    },
+    {
+      "node_id": "elemental_eff_drops",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 30
+    },
+    {
+      "node_id": "elemental_eff_drops",
+      "rank": 2,
+      "material_id": "earth_grit",
+      "quantity": 80
+    },
+    {
+      "node_id": "elemental_eff_drops",
+      "rank": 2,
+      "material_id": "pebble",
+      "quantity": 64
+    },
+    {
+      "node_id": "elemental_eff_drops",
+      "rank": 2,
+      "material_id": "earth_shard",
+      "quantity": 8
+    },
+    {
+      "node_id": "elemental_eff_drops",
+      "rank": 2,
+      "material_id": "elemental_essence",
+      "quantity": 80
+    },
+    {
+      "node_id": "elemental_eff_drops",
+      "rank": 2,
+      "material_id": "copper_coin",
+      "quantity": 48
+    },
+    {
+      "node_id": "elemental_eff_drops",
+      "rank": 3,
+      "material_id": "earth_grit",
+      "quantity": 128
+    },
+    {
+      "node_id": "elemental_eff_drops",
+      "rank": 3,
+      "material_id": "pebble",
+      "quantity": 102
+    },
+    {
+      "node_id": "elemental_eff_drops",
+      "rank": 3,
+      "material_id": "earth_shard",
+      "quantity": 13
+    },
+    {
+      "node_id": "elemental_eff_drops",
+      "rank": 3,
+      "material_id": "elemental_essence",
+      "quantity": 128
+    },
+    {
+      "node_id": "elemental_eff_drops",
+      "rank": 3,
+      "material_id": "copper_coin",
+      "quantity": 77
+    },
+    {
+      "node_id": "elemental_eff_drops",
+      "rank": 5,
+      "material_id": "earth_crystal",
+      "quantity": 1
+    },
+    {
+      "node_id": "elemental_eff_drops",
+      "rank": 10,
+      "material_id": "holy_essence",
+      "quantity": 1
+    },
+    {
+      "node_id": "spiritual_prod",
+      "rank": 1,
+      "material_id": "holy_dust",
+      "quantity": 50
+    },
+    {
+      "node_id": "spiritual_prod",
+      "rank": 1,
+      "material_id": "soul_dust",
+      "quantity": 40
+    },
+    {
+      "node_id": "spiritual_prod",
+      "rank": 1,
+      "material_id": "copper_nail",
+      "quantity": 5
+    },
+    {
+      "node_id": "spiritual_prod",
+      "rank": 1,
+      "material_id": "spirit_essence",
+      "quantity": 50
+    },
+    {
+      "node_id": "spiritual_prod",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 30
+    },
+    {
+      "node_id": "spiritual_prod",
+      "rank": 2,
+      "material_id": "holy_dust",
+      "quantity": 80
+    },
+    {
+      "node_id": "spiritual_prod",
+      "rank": 2,
+      "material_id": "soul_dust",
+      "quantity": 64
+    },
+    {
+      "node_id": "spiritual_prod",
+      "rank": 2,
+      "material_id": "copper_nail",
+      "quantity": 8
+    },
+    {
+      "node_id": "spiritual_prod",
+      "rank": 2,
+      "material_id": "spirit_essence",
+      "quantity": 80
+    },
+    {
+      "node_id": "spiritual_prod",
+      "rank": 2,
+      "material_id": "copper_coin",
+      "quantity": 48
+    },
+    {
+      "node_id": "spiritual_prod",
+      "rank": 3,
+      "material_id": "holy_dust",
+      "quantity": 128
+    },
+    {
+      "node_id": "spiritual_prod",
+      "rank": 3,
+      "material_id": "soul_dust",
+      "quantity": 102
+    },
+    {
+      "node_id": "spiritual_prod",
+      "rank": 3,
+      "material_id": "copper_nail",
+      "quantity": 13
+    },
+    {
+      "node_id": "spiritual_prod",
+      "rank": 3,
+      "material_id": "spirit_essence",
+      "quantity": 128
+    },
+    {
+      "node_id": "spiritual_prod",
+      "rank": 3,
+      "material_id": "copper_coin",
+      "quantity": 77
+    },
+    {
+      "node_id": "spiritual_prod",
+      "rank": 5,
+      "material_id": "holy_essence",
+      "quantity": 1
+    },
+    {
+      "node_id": "spiritual_prod",
+      "rank": 10,
+      "material_id": "soul_shard",
+      "quantity": 1
+    },
+    {
+      "node_id": "spiritual_eff_drops",
+      "rank": 1,
+      "material_id": "holy_dust",
+      "quantity": 50
+    },
+    {
+      "node_id": "spiritual_eff_drops",
+      "rank": 1,
+      "material_id": "soul_dust",
+      "quantity": 40
+    },
+    {
+      "node_id": "spiritual_eff_drops",
+      "rank": 1,
+      "material_id": "copper_nail",
+      "quantity": 5
+    },
+    {
+      "node_id": "spiritual_eff_drops",
+      "rank": 1,
+      "material_id": "spirit_essence",
+      "quantity": 50
+    },
+    {
+      "node_id": "spiritual_eff_drops",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 30
+    },
+    {
+      "node_id": "spiritual_eff_drops",
+      "rank": 2,
+      "material_id": "holy_dust",
+      "quantity": 80
+    },
+    {
+      "node_id": "spiritual_eff_drops",
+      "rank": 2,
+      "material_id": "soul_dust",
+      "quantity": 64
+    },
+    {
+      "node_id": "spiritual_eff_drops",
+      "rank": 2,
+      "material_id": "copper_nail",
+      "quantity": 8
+    },
+    {
+      "node_id": "spiritual_eff_drops",
+      "rank": 2,
+      "material_id": "spirit_essence",
+      "quantity": 80
+    },
+    {
+      "node_id": "spiritual_eff_drops",
+      "rank": 2,
+      "material_id": "copper_coin",
+      "quantity": 48
+    },
+    {
+      "node_id": "spiritual_eff_drops",
+      "rank": 3,
+      "material_id": "holy_dust",
+      "quantity": 128
+    },
+    {
+      "node_id": "spiritual_eff_drops",
+      "rank": 3,
+      "material_id": "soul_dust",
+      "quantity": 102
+    },
+    {
+      "node_id": "spiritual_eff_drops",
+      "rank": 3,
+      "material_id": "copper_nail",
+      "quantity": 13
+    },
+    {
+      "node_id": "spiritual_eff_drops",
+      "rank": 3,
+      "material_id": "spirit_essence",
+      "quantity": 128
+    },
+    {
+      "node_id": "spiritual_eff_drops",
+      "rank": 3,
+      "material_id": "copper_coin",
+      "quantity": 77
+    },
+    {
+      "node_id": "spiritual_eff_drops",
+      "rank": 5,
+      "material_id": "holy_essence",
+      "quantity": 1
+    },
+    {
+      "node_id": "spiritual_eff_drops",
+      "rank": 10,
+      "material_id": "soul_shard",
+      "quantity": 1
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 1,
+      "material_id": "pebble",
+      "quantity": 50
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 1,
+      "material_id": "earth_grit",
+      "quantity": 40
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 1,
+      "material_id": "earth_shard",
+      "quantity": 5
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 1,
+      "material_id": "nature_essence",
+      "quantity": 20
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 1,
+      "material_id": "elemental_essence",
+      "quantity": 20
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 1,
+      "material_id": "spirit_essence",
+      "quantity": 20
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 30
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 2,
+      "material_id": "pebble",
+      "quantity": 80
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 2,
+      "material_id": "earth_grit",
+      "quantity": 64
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 2,
+      "material_id": "earth_shard",
+      "quantity": 8
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 2,
+      "material_id": "nature_essence",
+      "quantity": 32
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 2,
+      "material_id": "elemental_essence",
+      "quantity": 32
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 2,
+      "material_id": "spirit_essence",
+      "quantity": 32
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 2,
+      "material_id": "copper_coin",
+      "quantity": 48
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 3,
+      "material_id": "pebble",
+      "quantity": 128
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 3,
+      "material_id": "earth_grit",
+      "quantity": 102
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 3,
+      "material_id": "earth_shard",
+      "quantity": 13
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 3,
+      "material_id": "nature_essence",
+      "quantity": 51
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 3,
+      "material_id": "elemental_essence",
+      "quantity": 51
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 3,
+      "material_id": "spirit_essence",
+      "quantity": 51
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 3,
+      "material_id": "copper_coin",
+      "quantity": 77
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 5,
+      "material_id": "earth_crystal",
+      "quantity": 1
+    },
+    {
+      "node_id": "hunters_luck",
+      "rank": 10,
+      "material_id": "heartwood",
+      "quantity": 1
+    }
+  ]
+}

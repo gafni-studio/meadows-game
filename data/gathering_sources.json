@@ -1,0 +1,57 @@
+{
+  "tab": "gathering_sources",
+  "note": null,
+  "columns": [
+    "DEPRECATED — Item sources and gathering slots are retired. Each passive tree now produces only its category essence (Nature / Elemental / Spirit Essence) on a steep Mastery-style curve (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none). Rows below are kept for reference only and are not in use. See passive_nodes (production nodes) and the exchange tab."
+  ],
+  "rows": [
+    {
+      "DEPRECATED — Item sources and gathering slots are retired. Each passive tree now produces only its category essence (Nature / Elemental / Spirit Essence) on a steep Mastery-style curve (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none). Rows below are kept for reference only and are not in use. See passive_nodes (production nodes) and the exchange tab.": "source_id"
+    },
+    {
+      "DEPRECATED — Item sources and gathering slots are retired. Each passive tree now produces only its category essence (Nature / Elemental / Spirit Essence) on a steep Mastery-style curve (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none). Rows below are kept for reference only and are not in use. See passive_nodes (production nodes) and the exchange tab.": "src_wood_patch"
+    },
+    {
+      "DEPRECATED — Item sources and gathering slots are retired. Each passive tree now produces only its category essence (Nature / Elemental / Spirit Essence) on a steep Mastery-style curve (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none). Rows below are kept for reference only and are not in use. See passive_nodes (production nodes) and the exchange tab.": "src_old_grove"
+    },
+    {
+      "DEPRECATED — Item sources and gathering slots are retired. Each passive tree now produces only its category essence (Nature / Elemental / Spirit Essence) on a steep Mastery-style curve (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none). Rows below are kept for reference only and are not in use. See passive_nodes (production nodes) and the exchange tab.": "src_pebble_bed"
+    },
+    {
+      "DEPRECATED — Item sources and gathering slots are retired. Each passive tree now produces only its category essence (Nature / Elemental / Spirit Essence) on a steep Mastery-style curve (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none). Rows below are kept for reference only and are not in use. See passive_nodes (production nodes) and the exchange tab.": "src_scrap_pile"
+    },
+    {
+      "DEPRECATED — Item sources and gathering slots are retired. Each passive tree now produces only its category essence (Nature / Elemental / Spirit Essence) on a steep Mastery-style curve (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none). Rows below are kept for reference only and are not in use. See passive_nodes (production nodes) and the exchange tab.": "src_wool_patch"
+    },
+    {
+      "DEPRECATED — Item sources and gathering slots are retired. Each passive tree now produces only its category essence (Nature / Elemental / Spirit Essence) on a steep Mastery-style curve (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none). Rows below are kept for reference only and are not in use. See passive_nodes (production nodes) and the exchange tab.": "src_hide_rack"
+    },
+    {
+      "DEPRECATED — Item sources and gathering slots are retired. Each passive tree now produces only its category essence (Nature / Elemental / Spirit Essence) on a steep Mastery-style curve (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none). Rows below are kept for reference only and are not in use. See passive_nodes (production nodes) and the exchange tab.": "src_ember_patch"
+    },
+    {
+      "DEPRECATED — Item sources and gathering slots are retired. Each passive tree now produces only its category essence (Nature / Elemental / Spirit Essence) on a steep Mastery-style curve (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none). Rows below are kept for reference only and are not in use. See passive_nodes (production nodes) and the exchange tab.": "src_frost_patch"
+    },
+    {
+      "DEPRECATED — Item sources and gathering slots are retired. Each passive tree now produces only its category essence (Nature / Elemental / Spirit Essence) on a steep Mastery-style curve (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none). Rows below are kept for reference only and are not in use. See passive_nodes (production nodes) and the exchange tab.": "src_spark_patch"
+    },
+    {
+      "DEPRECATED — Item sources and gathering slots are retired. Each passive tree now produces only its category essence (Nature / Elemental / Spirit Essence) on a steep Mastery-style curve (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none). Rows below are kept for reference only and are not in use. See passive_nodes (production nodes) and the exchange tab.": "src_earth_patch"
+    },
+    {
+      "DEPRECATED — Item sources and gathering slots are retired. Each passive tree now produces only its category essence (Nature / Elemental / Spirit Essence) on a steep Mastery-style curve (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none). Rows below are kept for reference only and are not in use. See passive_nodes (production nodes) and the exchange tab.": "src_shard_vein"
+    },
+    {
+      "DEPRECATED — Item sources and gathering slots are retired. Each passive tree now produces only its category essence (Nature / Elemental / Spirit Essence) on a steep Mastery-style curve (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none). Rows below are kept for reference only and are not in use. See passive_nodes (production nodes) and the exchange tab.": "src_shrine_path"
+    },
+    {
+      "DEPRECATED — Item sources and gathering slots are retired. Each passive tree now produces only its category essence (Nature / Elemental / Spirit Essence) on a steep Mastery-style curve (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none). Rows below are kept for reference only and are not in use. See passive_nodes (production nodes) and the exchange tab.": "src_shrine_spring"
+    },
+    {
+      "DEPRECATED — Item sources and gathering slots are retired. Each passive tree now produces only its category essence (Nature / Elemental / Spirit Essence) on a steep Mastery-style curve (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none). Rows below are kept for reference only and are not in use. See passive_nodes (production nodes) and the exchange tab.": "src_quiet_grove"
+    },
+    {
+      "DEPRECATED — Item sources and gathering slots are retired. Each passive tree now produces only its category essence (Nature / Elemental / Spirit Essence) on a steep Mastery-style curve (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none). Rows below are kept for reference only and are not in use. See passive_nodes (production nodes) and the exchange tab.": "src_dusk_hollow"
+    }
+  ]
+}

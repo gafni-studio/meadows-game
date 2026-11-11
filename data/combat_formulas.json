@@ -1,0 +1,347 @@
+{
+  "tab": "combat_formulas",
+  "note": "DRAFT — v0 combat and progression math. All numbers are a starting baseline and should be tweaked after playtesting. Damage is skill% × attack − defense, with a small minimum. See the worked example at the bottom (level 5 Warrior vs Meadow Boar). Monster stats live on the monsters tab. Healing drinks are Meadow Dew / Clear Dew / Spring Draught / Mint Draught.",
+  "columns": [
+    "key",
+    "value",
+    "notes"
+  ],
+  "rows": [
+    {
+      "key": "player_points_per_level",
+      "value": 5,
+      "notes": "Total points at level L = 5 × L, allocated freely (STR, INT, AGI, SPI). No hidden base stats.",
+      "num": 5
+    },
+    {
+      "key": "hp_base_warrior",
+      "value": 120,
+      "notes": "Max HP at level 1 before STR.",
+      "num": 120
+    },
+    {
+      "key": "hp_base_mage",
+      "value": 80,
+      "notes": "Max HP at level 1 before STR.",
+      "num": 80
+    },
+    {
+      "key": "hp_base_rogue",
+      "value": 100,
+      "notes": "Max HP at level 1 before STR.",
+      "num": 100
+    },
+    {
+      "key": "hp_per_level_warrior",
+      "value": 16,
+      "notes": "Added at each level after 1, before STR. HP = base + per_level × (level−1) + STR × 4.",
+      "num": 16
+    },
+    {
+      "key": "hp_per_level_mage",
+      "value": 10,
+      "notes": "Added at each level after 1, before STR.",
+      "num": 10
+    },
+    {
+      "key": "hp_per_level_rogue",
+      "value": 13,
+      "notes": "Added at each level after 1, before STR.",
+      "num": 13
+    },
+    {
+      "key": "hp_per_str",
+      "value": 4,
+      "notes": "Max HP += STR × 4.",
+      "num": 4
+    },
+    {
+      "key": "mp_base_warrior",
+      "value": 40,
+      "notes": "Max MP at level 1 before INT.",
+      "num": 40
+    },
+    {
+      "key": "mp_base_mage",
+      "value": 80,
+      "notes": "Max MP at level 1 before INT.",
+      "num": 80
+    },
+    {
+      "key": "mp_base_rogue",
+      "value": 50,
+      "notes": "Max MP at level 1 before INT.",
+      "num": 50
+    },
+    {
+      "key": "mp_per_level_warrior",
+      "value": 4,
+      "notes": "MP = base + per_level × (level−1) + INT × 5.",
+      "num": 4
+    },
+    {
+      "key": "mp_per_level_mage",
+      "value": 10,
+      "notes": "MP = base + per_level × (level−1) + INT × 5.",
+      "num": 10
+    },
+    {
+      "key": "mp_per_level_rogue",
+      "value": 6,
+      "notes": "MP = base + per_level × (level−1) + INT × 5.",
+      "num": 6
+    },
+    {
+      "key": "mp_per_int",
+      "value": 5,
+      "notes": "Max MP += INT × 5.",
+      "num": 5
+    },
+    {
+      "key": "mp_regen_base",
+      "value": "0.5 MP/s",
+      "notes": "Out of combat and in combat (same in v0).",
+      "num": 0.5
+    },
+    {
+      "key": "mp_regen_per_spi",
+      "value": "0.15 MP/s",
+      "notes": "Regen = 0.5 + SPI × 0.15.",
+      "num": 0.15
+    },
+    {
+      "key": "attack_formula",
+      "value": "(weapon_damage + main_stat × 2) × weapon_stat_multiplier",
+      "notes": "main_stat is STR (Warrior), INT (Mage), or AGI (Rogue). Wooden/worn/rusty weapons: weapon_damage 10, multiplier 1.1. Steel: 18 and 1.25. Unarmed: weapon_damage 6, multiplier 1.0. Armor defense does not add to attack. Armor stat_multiplier is unused in v0.",
+      "num": 2
+    },
+    {
+      "key": "damage_formula",
+      "value": "max(min_damage, floor(skill_multiplier × attack − target_defense))",
+      "notes": "skill_multiplier is the skill's damage_multiplier (1.4 = 140%). Auto/basic swing with no skill uses multiplier 1.0. Min damage = max(1, floor(0.05 × skill_multiplier × attack)).",
+      "num": null
+    },
+    {
+      "key": "min_damage",
+      "value": "max(1, floor(0.05 × skill_multiplier × attack))",
+      "notes": "Stops high defense from fully soaking a hit.",
+      "num": 1
+    },
+    {
+      "key": "crit_base_chance",
+      "value": "5%",
+      "notes": "Before AGI. Rolled per hit except where a skill says otherwise.",
+      "num": 5
+    },
+    {
+      "key": "crit_per_agi",
+      "value": "0.4% per AGI",
+      "notes": "Crit chance = 5% + AGI × 0.4%.",
+      "num": 0.4
+    },
+    {
+      "key": "crit_multiplier",
+      "value": 1.5,
+      "notes": "A crit deals 150% of the already-computed hit. Backstab is a guaranteed crit whose 250% already includes this — do not apply 1.5× again.",
+      "num": 1.5
+    },
+    {
+      "key": "attack_interval",
+      "value": "1.0 / (1 + AGI × 0.005) seconds",
+      "notes": "Base 1.0s between basic skill uses (short cooldown). AGI shortens it. Placeholder.",
+      "num": 1
+    },
+    {
+      "key": "dodge",
+      "value": "AGI × 0.2%, plus Stealth 50% while active",
+      "notes": "v0: attacks otherwise always hit. No separate monster accuracy table in Meadows. Can add accuracy later.",
+      "num": 0.2
+    },
+    {
+      "key": "incoming_damage",
+      "value": "max(min_damage, floor(monster_attack − player_defense))",
+      "notes": "player_defense is the sum of worn armor defense (cloth set = 12, leather set = 19). Same min_damage rule, using monster_attack as the pre-defense amount.",
+      "num": null
+    },
+    {
+      "key": "potion_small_hp",
+      "value": "40 HP",
+      "notes": "Meadow Dew.",
+      "num": 40
+    },
+    {
+      "key": "potion_small_mp",
+      "value": "30 MP",
+      "notes": "Clear Dew.",
+      "num": 30
+    },
+    {
+      "key": "potion_medium_hp",
+      "value": "100 HP",
+      "notes": "Spring Draught.",
+      "num": 100
+    },
+    {
+      "key": "potion_medium_mp",
+      "value": "80 MP",
+      "notes": "Mint Draught.",
+      "num": 80
+    },
+    {
+      "key": "food_barley_cake",
+      "value": "20 HP",
+      "notes": "Barley Cake. Town food, shop only.",
+      "num": 20
+    },
+    {
+      "key": "food_wild_apple",
+      "value": "15 HP",
+      "notes": "Wild Apple.",
+      "num": 15
+    },
+    {
+      "key": "mint_sprig",
+      "value": "+20% move and attack speed for 30s",
+      "notes": "Mint Sprig. Does not stack with itself in v0.",
+      "num": 20
+    },
+    {
+      "key": "xp_formula",
+      "value": "xp_to_next(L) = round(40 × L^1.5 + 30 × L)",
+      "notes": "XP required to go from level L to L+1. Listed explicitly for 1-10 below; use the formula from 11 onward (and it also reproduces 1-10).",
+      "num": 40
+    },
+    {
+      "key": "xp_to_next_1",
+      "value": 70,
+      "notes": "Level 1 → 2. About 7 Field Mice (10 XP each).",
+      "num": 70
+    },
+    {
+      "key": "xp_to_next_2",
+      "value": 173,
+      "notes": "Level 2 → 3.",
+      "num": 173
+    },
+    {
+      "key": "xp_to_next_3",
+      "value": 298,
+      "notes": "Level 3 → 4.",
+      "num": 298
+    },
+    {
+      "key": "xp_to_next_4",
+      "value": 440,
+      "notes": "Level 4 → 5.",
+      "num": 440
+    },
+    {
+      "key": "xp_to_next_5",
+      "value": 597,
+      "notes": "Level 5 → 6.",
+      "num": 597
+    },
+    {
+      "key": "xp_to_next_6",
+      "value": 768,
+      "notes": "Level 6 → 7.",
+      "num": 768
+    },
+    {
+      "key": "xp_to_next_7",
+      "value": 951,
+      "notes": "Level 7 → 8. About 15 Meadow Boars (65 XP).",
+      "num": 951
+    },
+    {
+      "key": "xp_to_next_8",
+      "value": 1145,
+      "notes": "Level 8 → 9.",
+      "num": 1145
+    },
+    {
+      "key": "xp_to_next_9",
+      "value": 1350,
+      "notes": "Level 9 → 10.",
+      "num": 1350
+    },
+    {
+      "key": "xp_to_next_10",
+      "value": 1565,
+      "notes": "Level 10 → 11. About 6 Old Stump kills (250 XP) or 20 Dusk Wisps (80 XP).",
+      "num": 1565
+    },
+    {
+      "key": "design_ttk_regular",
+      "value": "3-5 basic skill hits at level parity",
+      "notes": "Tuned around a typical player: ~80% of points in the class main stat, remainder in SPI, Wooden/Worn/Rusty weapon. Cloth armor is common from the shop by mid Meadows (defense 12).",
+      "num": 3
+    },
+    {
+      "key": "design_ttk_boss",
+      "value": "about 1-2 minutes",
+      "notes": "Old Stump 4200 HP / Night Stump 4500 HP. A level 10 Warrior's Power Strike deals ~119 after defense; ~35 hits. At a 1s cooldown with dodging and movement this is about 1-1.5 minutes. Category skills (Flame Cleave 200%, etc.) pull it toward 1 minute. Placeholder.",
+      "num": 1
+    },
+    {
+      "key": "design_mob_damage",
+      "value": "5-10% of player HP per hit at level parity",
+      "notes": "After subtracting typical player defense. A same-level melee trade should not burst the player, but two or three ignored hits should be felt.",
+      "num": 5
+    },
+    {
+      "key": "example_name",
+      "value": "Level 5 Warrior vs Meadow Boar",
+      "notes": "Worked example. Boar is level 7, so this is a slightly hard fight (two levels above), not exact parity.",
+      "num": 5
+    },
+    {
+      "key": "example_build",
+      "value": "STR 20, SPI 5 (all 25 points). Wooden Sword. Full cloth (defense 12).",
+      "notes": "A reasonable mid-Meadows Warrior who bought starter cloth from the town vendor.",
+      "num": 20
+    },
+    {
+      "key": "example_player_hp",
+      "value": 264,
+      "notes": "120 + 16×4 + 20×4 = 264.",
+      "num": 264
+    },
+    {
+      "key": "example_player_mp",
+      "value": 56,
+      "notes": "40 + 4×4 = 56. Regen = 0.5 + 5×0.15 = 1.25 MP/s. Power Strike costs 8 MP.",
+      "num": 56
+    },
+    {
+      "key": "example_player_attack",
+      "value": 55,
+      "notes": "(10 + 20×2) × 1.1 = 55.",
+      "num": 55
+    },
+    {
+      "key": "example_power_strike",
+      "value": "65 damage",
+      "notes": "floor(1.4 × 55 − 12) = floor(77 − 12) = 65. No crit.",
+      "num": 65
+    },
+    {
+      "key": "example_hits_to_kill",
+      "value": "7 Power Strikes",
+      "notes": "Boar HP 450 / 65 ≈ 6.9, so 7 hits. At a 1s cooldown this is about 7s if the player never misses or runs. Longer than the 3-5 hit parity target because the Boar is two levels higher; a level 7 Warrior (STR 28) deals 90 after defense and kills in 5 hits.",
+      "num": 7
+    },
+    {
+      "key": "example_boar_hit",
+      "value": "24 damage (9% of 264 HP)",
+      "notes": "floor(36 − 12) = 24. Inside the 5-10% band. If they trade 6 hits the Warrior takes 144 and wins with about 45% HP left (or drinks a Meadow Dew for 40).",
+      "num": 24
+    },
+    {
+      "key": "example_xp",
+      "value": "65 XP toward 597 for level 6",
+      "notes": "About 9 Boars to level if the Warrior stayed here, or a mix with other mid monsters.",
+      "num": 65
+    }
+  ]
+}

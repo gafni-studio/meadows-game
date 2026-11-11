@@ -1,0 +1,570 @@
+{
+  "tab": "skill_costs",
+  "note": "NOTE: Each rank costs the material recipe PLUS the matching essence (the main power gate) PLUS Copper Coin. Rank 1 is listed. For rank r > 1, quantity = round(rank_1_qty × 1.6^(r-1)). Costs scale by power/tier: basic < nature < elemental < spiritual, and within a class the stronger skill costs more (Flame Cleave / Firebolt > Earthbreaker / Thorn Bind; Holy Light is the most expensive). Basic (all): Monster Essence 30, Training Scroll 5, Copper Coin 20. Nature: Thorn Bind is a bit cheaper (NE 35); Earthbreaker and Venom Strike use NE 40 + Nature commons + Holy Dust (cross-category) + Stone Chunk/Branch. Elemental bulk is Earth Grit (not Twig/Wool), plus Soul Dust (cross-category) and a shard; Lightning Dash EE 50, Flame Cleave/Firebolt EE 60. Spiritual: Soul Guard/Shadow Mark SE 65; Holy Light SE 75. Rare drops are milestones at ranks 5 and 10 only (unchanged). Placeholders; to be tuned.",
+  "columns": [
+    "skill_id",
+    "rank",
+    "material_id",
+    "quantity"
+  ],
+  "rows": [
+    {
+      "skill_id": "rage",
+      "rank": 1,
+      "material_id": "monster_essence",
+      "quantity": 30
+    },
+    {
+      "skill_id": "rage",
+      "rank": 1,
+      "material_id": "training_scroll",
+      "quantity": 5
+    },
+    {
+      "skill_id": "rage",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 20
+    },
+    {
+      "skill_id": "power_strike",
+      "rank": 1,
+      "material_id": "monster_essence",
+      "quantity": 30
+    },
+    {
+      "skill_id": "power_strike",
+      "rank": 1,
+      "material_id": "training_scroll",
+      "quantity": 5
+    },
+    {
+      "skill_id": "power_strike",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 20
+    },
+    {
+      "skill_id": "energy_shield",
+      "rank": 1,
+      "material_id": "monster_essence",
+      "quantity": 30
+    },
+    {
+      "skill_id": "energy_shield",
+      "rank": 1,
+      "material_id": "training_scroll",
+      "quantity": 5
+    },
+    {
+      "skill_id": "energy_shield",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 20
+    },
+    {
+      "skill_id": "energy_blast",
+      "rank": 1,
+      "material_id": "monster_essence",
+      "quantity": 30
+    },
+    {
+      "skill_id": "energy_blast",
+      "rank": 1,
+      "material_id": "training_scroll",
+      "quantity": 5
+    },
+    {
+      "skill_id": "energy_blast",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 20
+    },
+    {
+      "skill_id": "stealth",
+      "rank": 1,
+      "material_id": "monster_essence",
+      "quantity": 30
+    },
+    {
+      "skill_id": "stealth",
+      "rank": 1,
+      "material_id": "training_scroll",
+      "quantity": 5
+    },
+    {
+      "skill_id": "stealth",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 20
+    },
+    {
+      "skill_id": "backstab",
+      "rank": 1,
+      "material_id": "monster_essence",
+      "quantity": 30
+    },
+    {
+      "skill_id": "backstab",
+      "rank": 1,
+      "material_id": "training_scroll",
+      "quantity": 5
+    },
+    {
+      "skill_id": "backstab",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 20
+    },
+    {
+      "skill_id": "thorn_bind",
+      "rank": 1,
+      "material_id": "twig",
+      "quantity": 28
+    },
+    {
+      "skill_id": "thorn_bind",
+      "rank": 1,
+      "material_id": "bark",
+      "quantity": 22
+    },
+    {
+      "skill_id": "thorn_bind",
+      "rank": 1,
+      "material_id": "holy_dust",
+      "quantity": 10
+    },
+    {
+      "skill_id": "thorn_bind",
+      "rank": 1,
+      "material_id": "stone_chunk",
+      "quantity": 2
+    },
+    {
+      "skill_id": "thorn_bind",
+      "rank": 1,
+      "material_id": "branch",
+      "quantity": 2
+    },
+    {
+      "skill_id": "thorn_bind",
+      "rank": 1,
+      "material_id": "nature_essence",
+      "quantity": 35
+    },
+    {
+      "skill_id": "thorn_bind",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 22
+    },
+    {
+      "skill_id": "earthbreaker",
+      "rank": 1,
+      "material_id": "twig",
+      "quantity": 35
+    },
+    {
+      "skill_id": "earthbreaker",
+      "rank": 1,
+      "material_id": "bark",
+      "quantity": 30
+    },
+    {
+      "skill_id": "earthbreaker",
+      "rank": 1,
+      "material_id": "holy_dust",
+      "quantity": 12
+    },
+    {
+      "skill_id": "earthbreaker",
+      "rank": 1,
+      "material_id": "stone_chunk",
+      "quantity": 3
+    },
+    {
+      "skill_id": "earthbreaker",
+      "rank": 1,
+      "material_id": "branch",
+      "quantity": 3
+    },
+    {
+      "skill_id": "earthbreaker",
+      "rank": 1,
+      "material_id": "nature_essence",
+      "quantity": 40
+    },
+    {
+      "skill_id": "earthbreaker",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 25
+    },
+    {
+      "skill_id": "venom_strike",
+      "rank": 1,
+      "material_id": "twig",
+      "quantity": 35
+    },
+    {
+      "skill_id": "venom_strike",
+      "rank": 1,
+      "material_id": "bark",
+      "quantity": 30
+    },
+    {
+      "skill_id": "venom_strike",
+      "rank": 1,
+      "material_id": "holy_dust",
+      "quantity": 12
+    },
+    {
+      "skill_id": "venom_strike",
+      "rank": 1,
+      "material_id": "stone_chunk",
+      "quantity": 3
+    },
+    {
+      "skill_id": "venom_strike",
+      "rank": 1,
+      "material_id": "branch",
+      "quantity": 3
+    },
+    {
+      "skill_id": "venom_strike",
+      "rank": 1,
+      "material_id": "nature_essence",
+      "quantity": 40
+    },
+    {
+      "skill_id": "venom_strike",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 25
+    },
+    {
+      "skill_id": "earthbreaker",
+      "rank": 5,
+      "material_id": "heartwood",
+      "quantity": 1
+    },
+    {
+      "skill_id": "earthbreaker",
+      "rank": 10,
+      "material_id": "earth_crystal",
+      "quantity": 1
+    },
+    {
+      "skill_id": "thorn_bind",
+      "rank": 5,
+      "material_id": "heartwood",
+      "quantity": 1
+    },
+    {
+      "skill_id": "thorn_bind",
+      "rank": 10,
+      "material_id": "earth_crystal",
+      "quantity": 1
+    },
+    {
+      "skill_id": "venom_strike",
+      "rank": 5,
+      "material_id": "heartwood",
+      "quantity": 1
+    },
+    {
+      "skill_id": "venom_strike",
+      "rank": 10,
+      "material_id": "earth_crystal",
+      "quantity": 1
+    },
+    {
+      "skill_id": "lightning_dash",
+      "rank": 1,
+      "material_id": "earth_grit",
+      "quantity": 40
+    },
+    {
+      "skill_id": "lightning_dash",
+      "rank": 1,
+      "material_id": "soul_dust",
+      "quantity": 10
+    },
+    {
+      "skill_id": "lightning_dash",
+      "rank": 1,
+      "material_id": "lightning_shard",
+      "quantity": 4
+    },
+    {
+      "skill_id": "lightning_dash",
+      "rank": 1,
+      "material_id": "elemental_essence",
+      "quantity": 50
+    },
+    {
+      "skill_id": "lightning_dash",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 30
+    },
+    {
+      "skill_id": "flame_cleave",
+      "rank": 1,
+      "material_id": "earth_grit",
+      "quantity": 50
+    },
+    {
+      "skill_id": "flame_cleave",
+      "rank": 1,
+      "material_id": "soul_dust",
+      "quantity": 12
+    },
+    {
+      "skill_id": "flame_cleave",
+      "rank": 1,
+      "material_id": "fire_shard",
+      "quantity": 5
+    },
+    {
+      "skill_id": "flame_cleave",
+      "rank": 1,
+      "material_id": "elemental_essence",
+      "quantity": 60
+    },
+    {
+      "skill_id": "flame_cleave",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 35
+    },
+    {
+      "skill_id": "firebolt",
+      "rank": 1,
+      "material_id": "earth_grit",
+      "quantity": 50
+    },
+    {
+      "skill_id": "firebolt",
+      "rank": 1,
+      "material_id": "soul_dust",
+      "quantity": 12
+    },
+    {
+      "skill_id": "firebolt",
+      "rank": 1,
+      "material_id": "fire_shard",
+      "quantity": 5
+    },
+    {
+      "skill_id": "firebolt",
+      "rank": 1,
+      "material_id": "elemental_essence",
+      "quantity": 60
+    },
+    {
+      "skill_id": "firebolt",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 35
+    },
+    {
+      "skill_id": "flame_cleave",
+      "rank": 5,
+      "material_id": "earth_crystal",
+      "quantity": 1
+    },
+    {
+      "skill_id": "flame_cleave",
+      "rank": 10,
+      "material_id": "holy_essence",
+      "quantity": 1
+    },
+    {
+      "skill_id": "firebolt",
+      "rank": 5,
+      "material_id": "earth_crystal",
+      "quantity": 1
+    },
+    {
+      "skill_id": "firebolt",
+      "rank": 10,
+      "material_id": "holy_essence",
+      "quantity": 1
+    },
+    {
+      "skill_id": "lightning_dash",
+      "rank": 5,
+      "material_id": "earth_crystal",
+      "quantity": 1
+    },
+    {
+      "skill_id": "lightning_dash",
+      "rank": 10,
+      "material_id": "holy_essence",
+      "quantity": 1
+    },
+    {
+      "skill_id": "holy_light",
+      "rank": 1,
+      "material_id": "holy_dust",
+      "quantity": 50
+    },
+    {
+      "skill_id": "holy_light",
+      "rank": 1,
+      "material_id": "soul_dust",
+      "quantity": 40
+    },
+    {
+      "skill_id": "holy_light",
+      "rank": 1,
+      "material_id": "bark",
+      "quantity": 15
+    },
+    {
+      "skill_id": "holy_light",
+      "rank": 1,
+      "material_id": "copper_nail",
+      "quantity": 4
+    },
+    {
+      "skill_id": "holy_light",
+      "rank": 1,
+      "material_id": "leather_scrap",
+      "quantity": 4
+    },
+    {
+      "skill_id": "holy_light",
+      "rank": 1,
+      "material_id": "spirit_essence",
+      "quantity": 75
+    },
+    {
+      "skill_id": "holy_light",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 42
+    },
+    {
+      "skill_id": "soul_guard",
+      "rank": 1,
+      "material_id": "holy_dust",
+      "quantity": 40
+    },
+    {
+      "skill_id": "soul_guard",
+      "rank": 1,
+      "material_id": "soul_dust",
+      "quantity": 35
+    },
+    {
+      "skill_id": "soul_guard",
+      "rank": 1,
+      "material_id": "bark",
+      "quantity": 12
+    },
+    {
+      "skill_id": "soul_guard",
+      "rank": 1,
+      "material_id": "copper_nail",
+      "quantity": 3
+    },
+    {
+      "skill_id": "soul_guard",
+      "rank": 1,
+      "material_id": "leather_scrap",
+      "quantity": 3
+    },
+    {
+      "skill_id": "soul_guard",
+      "rank": 1,
+      "material_id": "spirit_essence",
+      "quantity": 65
+    },
+    {
+      "skill_id": "soul_guard",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 36
+    },
+    {
+      "skill_id": "shadow_mark",
+      "rank": 1,
+      "material_id": "holy_dust",
+      "quantity": 40
+    },
+    {
+      "skill_id": "shadow_mark",
+      "rank": 1,
+      "material_id": "soul_dust",
+      "quantity": 35
+    },
+    {
+      "skill_id": "shadow_mark",
+      "rank": 1,
+      "material_id": "bark",
+      "quantity": 12
+    },
+    {
+      "skill_id": "shadow_mark",
+      "rank": 1,
+      "material_id": "copper_nail",
+      "quantity": 3
+    },
+    {
+      "skill_id": "shadow_mark",
+      "rank": 1,
+      "material_id": "leather_scrap",
+      "quantity": 3
+    },
+    {
+      "skill_id": "shadow_mark",
+      "rank": 1,
+      "material_id": "spirit_essence",
+      "quantity": 65
+    },
+    {
+      "skill_id": "shadow_mark",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 36
+    },
+    {
+      "skill_id": "holy_light",
+      "rank": 5,
+      "material_id": "holy_essence",
+      "quantity": 1
+    },
+    {
+      "skill_id": "holy_light",
+      "rank": 10,
+      "material_id": "soul_shard",
+      "quantity": 1
+    },
+    {
+      "skill_id": "soul_guard",
+      "rank": 5,
+      "material_id": "soul_shard",
+      "quantity": 1
+    },
+    {
+      "skill_id": "soul_guard",
+      "rank": 10,
+      "material_id": "holy_essence",
+      "quantity": 1
+    },
+    {
+      "skill_id": "shadow_mark",
+      "rank": 5,
+      "material_id": "soul_shard",
+      "quantity": 1
+    },
+    {
+      "skill_id": "shadow_mark",
+      "rank": 10,
+      "material_id": "holy_essence",
+      "quantity": 1
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "tab": "material_categories",
+  "note": "NOTE: Nature, Elemental, and Spiritual are tied to monster types, gathering trees, and category essences (Nature Essence, Elemental Essence, Spirit Essence). Neutral is for general materials any monster can drop (e.g. Training Scroll). Monster Essence is a neutral currency for basic skills only, not a Neutral material.",
+  "columns": [
+    "id",
+    "name",
+    "description"
+  ],
+  "rows": [
+    {
+      "id": "nature",
+      "name": "Nature",
+      "description": "Materials from the natural world and natural creatures: wood and plant matter, stone, metals, and hides."
+    },
+    {
+      "id": "elemental",
+      "name": "Elemental",
+      "description": "Raw forces captured as materials: fire, ice, lightning, and earth essences. Dropped by elemental creatures."
+    },
+    {
+      "id": "spiritual",
+      "name": "Spiritual",
+      "description": "Otherworldly essences of faith, magic, and the inner self: holy, arcane, curse, and soul. Dropped by spiritual creatures."
+    },
+    {
+      "id": "neutral",
+      "name": "Neutral",
+      "description": "General materials any monster can drop (e.g. Training Scroll). Not a gathering tree. Upgrade currencies are separate: Monster Essence (basic skills only) and the three category essences."
+    }
+  ]
+}

@@ -1,0 +1,254 @@
+{
+  "tab": "unlock_requirements",
+  "note": "DRAFT — Unlock rules are not final. target_type 'material' refers to items.id; 'source' to gathering_sources.source_id (DEPRECATED with item sources); 'skill' to skills.id. unlock_cursed_dust is still in use (Cursed Dust drops from Night Stump once Heartwood is owned). Source-discovery unlocks are kept for reference only. Skills: basic from start; nature = level 3 + 5 main-stat points; elemental = level 6 + 10; spiritual = level 8 + 15. Where a skill has both a level and a stat gate, both rows must be met.",
+  "columns": [
+    "id",
+    "target_type",
+    "target_id",
+    "requirement_type",
+    "requirement_id",
+    "requirement_value"
+  ],
+  "rows": [
+    {
+      "id": "unlock_cursed_dust",
+      "target_type": "material",
+      "target_id": "cursed_dust",
+      "requirement_type": "item_owned",
+      "requirement_id": "heartwood",
+      "requirement_value": 1
+    },
+    {
+      "id": "unlock_old_grove",
+      "target_type": "source",
+      "target_id": "src_old_grove",
+      "requirement_type": "item_owned",
+      "requirement_id": "heartwood",
+      "requirement_value": 1
+    },
+    {
+      "id": "unlock_hide_rack",
+      "target_type": "source",
+      "target_id": "src_hide_rack",
+      "requirement_type": "item_owned",
+      "requirement_id": "leather_scrap",
+      "requirement_value": 1
+    },
+    {
+      "id": "unlock_shard_vein",
+      "target_type": "source",
+      "target_id": "src_shard_vein",
+      "requirement_type": "item_owned",
+      "requirement_id": "earth_crystal",
+      "requirement_value": 1
+    },
+    {
+      "id": "unlock_shrine_spring",
+      "target_type": "source",
+      "target_id": "src_shrine_spring",
+      "requirement_type": "item_owned",
+      "requirement_id": "holy_essence",
+      "requirement_value": 1
+    },
+    {
+      "id": "unlock_dusk_hollow",
+      "target_type": "source",
+      "target_id": "src_dusk_hollow",
+      "requirement_type": "item_owned",
+      "requirement_id": "soul_shard",
+      "requirement_value": 1
+    },
+    {
+      "id": "unlock_rage",
+      "target_type": "skill",
+      "target_id": "rage",
+      "requirement_type": "start",
+      "requirement_id": "none",
+      "requirement_value": 1
+    },
+    {
+      "id": "unlock_power_strike",
+      "target_type": "skill",
+      "target_id": "power_strike",
+      "requirement_type": "start",
+      "requirement_id": "none",
+      "requirement_value": 1
+    },
+    {
+      "id": "unlock_energy_shield",
+      "target_type": "skill",
+      "target_id": "energy_shield",
+      "requirement_type": "start",
+      "requirement_id": "none",
+      "requirement_value": 1
+    },
+    {
+      "id": "unlock_energy_blast",
+      "target_type": "skill",
+      "target_id": "energy_blast",
+      "requirement_type": "start",
+      "requirement_id": "none",
+      "requirement_value": 1
+    },
+    {
+      "id": "unlock_stealth",
+      "target_type": "skill",
+      "target_id": "stealth",
+      "requirement_type": "start",
+      "requirement_id": "none",
+      "requirement_value": 1
+    },
+    {
+      "id": "unlock_backstab",
+      "target_type": "skill",
+      "target_id": "backstab",
+      "requirement_type": "start",
+      "requirement_id": "none",
+      "requirement_value": 1
+    },
+    {
+      "id": "unlock_earthbreaker_level",
+      "target_type": "skill",
+      "target_id": "earthbreaker",
+      "requirement_type": "level",
+      "requirement_id": "player_level",
+      "requirement_value": 3
+    },
+    {
+      "id": "unlock_earthbreaker_stat",
+      "target_type": "skill",
+      "target_id": "earthbreaker",
+      "requirement_type": "stat",
+      "requirement_id": "STR",
+      "requirement_value": 5
+    },
+    {
+      "id": "unlock_thorn_bind_level",
+      "target_type": "skill",
+      "target_id": "thorn_bind",
+      "requirement_type": "level",
+      "requirement_id": "player_level",
+      "requirement_value": 3
+    },
+    {
+      "id": "unlock_thorn_bind_stat",
+      "target_type": "skill",
+      "target_id": "thorn_bind",
+      "requirement_type": "stat",
+      "requirement_id": "INT",
+      "requirement_value": 5
+    },
+    {
+      "id": "unlock_venom_strike_level",
+      "target_type": "skill",
+      "target_id": "venom_strike",
+      "requirement_type": "level",
+      "requirement_id": "player_level",
+      "requirement_value": 3
+    },
+    {
+      "id": "unlock_venom_strike_stat",
+      "target_type": "skill",
+      "target_id": "venom_strike",
+      "requirement_type": "stat",
+      "requirement_id": "AGI",
+      "requirement_value": 5
+    },
+    {
+      "id": "unlock_flame_cleave_level",
+      "target_type": "skill",
+      "target_id": "flame_cleave",
+      "requirement_type": "level",
+      "requirement_id": "player_level",
+      "requirement_value": 6
+    },
+    {
+      "id": "unlock_flame_cleave_stat",
+      "target_type": "skill",
+      "target_id": "flame_cleave",
+      "requirement_type": "stat",
+      "requirement_id": "STR",
+      "requirement_value": 10
+    },
+    {
+      "id": "unlock_firebolt_level",
+      "target_type": "skill",
+      "target_id": "firebolt",
+      "requirement_type": "level",
+      "requirement_id": "player_level",
+      "requirement_value": 6
+    },
+    {
+      "id": "unlock_firebolt_stat",
+      "target_type": "skill",
+      "target_id": "firebolt",
+      "requirement_type": "stat",
+      "requirement_id": "INT",
+      "requirement_value": 10
+    },
+    {
+      "id": "unlock_lightning_dash_level",
+      "target_type": "skill",
+      "target_id": "lightning_dash",
+      "requirement_type": "level",
+      "requirement_id": "player_level",
+      "requirement_value": 6
+    },
+    {
+      "id": "unlock_lightning_dash_stat",
+      "target_type": "skill",
+      "target_id": "lightning_dash",
+      "requirement_type": "stat",
+      "requirement_id": "AGI",
+      "requirement_value": 10
+    },
+    {
+      "id": "unlock_holy_light_level",
+      "target_type": "skill",
+      "target_id": "holy_light",
+      "requirement_type": "level",
+      "requirement_id": "player_level",
+      "requirement_value": 8
+    },
+    {
+      "id": "unlock_holy_light_stat",
+      "target_type": "skill",
+      "target_id": "holy_light",
+      "requirement_type": "stat",
+      "requirement_id": "INT",
+      "requirement_value": 15
+    },
+    {
+      "id": "unlock_soul_guard_level",
+      "target_type": "skill",
+      "target_id": "soul_guard",
+      "requirement_type": "level",
+      "requirement_id": "player_level",
+      "requirement_value": 8
+    },
+    {
+      "id": "unlock_soul_guard_stat",
+      "target_type": "skill",
+      "target_id": "soul_guard",
+      "requirement_type": "stat",
+      "requirement_id": "STR",
+      "requirement_value": 15
+    },
+    {
+      "id": "unlock_shadow_mark_level",
+      "target_type": "skill",
+      "target_id": "shadow_mark",
+      "requirement_type": "level",
+      "requirement_id": "player_level",
+      "requirement_value": 8
+    },
+    {
+      "id": "unlock_shadow_mark_stat",
+      "target_type": "skill",
+      "target_id": "shadow_mark",
+      "requirement_type": "stat",
+      "requirement_id": "AGI",
+      "requirement_value": 15
+    }
+  ]
+}

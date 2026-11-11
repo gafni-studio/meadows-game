@@ -1,0 +1,31 @@
+{
+  "tab": "ability_stats",
+  "note": "NOTE: These are the four allocatable stats. Each level grants 5 points that can be spent freely on any of them. Effects below are v0 numbers used by combat_formulas and may pivot after playtesting.",
+  "columns": [
+    "id",
+    "name",
+    "description"
+  ],
+  "rows": [
+    {
+      "id": "STR",
+      "name": "Strength",
+      "description": "Warrior's main damage stat (feeds attack). Also +4 max HP per point."
+    },
+    {
+      "id": "INT",
+      "name": "Intelligence",
+      "description": "Mage's main damage stat (feeds attack). Also +5 max MP per point."
+    },
+    {
+      "id": "AGI",
+      "name": "Agility",
+      "description": "Rogue's main damage stat (feeds attack). Also +0.4% crit chance and +0.5% attack speed per point. Small dodge: +0.2% per point."
+    },
+    {
+      "id": "SPI",
+      "name": "Spirit",
+      "description": "Shared stat for every class. +0.15 MP/s regen per point (added to a 0.5 MP/s base). Also +1% passive essence production speed and +0.5% spiritual resistance per point (placeholders)."
+    }
+  ]
+}

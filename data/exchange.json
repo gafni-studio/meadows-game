@@ -1,0 +1,126 @@
+{
+  "tab": "exchange",
+  "note": "DRAFT — Convert common (and listed uncommon shard) materials into the matching category essence at a steep 10:1 rate. Nature: Twig, Bark, Pebble, Clay, Wool, Feather, Fur → Nature Essence. Elemental: Earth Grit and Fire/Ice/Lightning/Earth Shards → Elemental Essence. Spiritual: Holy Dust, Soul Dust → Spirit Essence. Rare items (crystals, Heartwood, Holy Essence, Soul Shard, etc.) are not exchanged; they are milestone costs. The steep rate makes category essence desirable — having a lot of it is a lot of power. Placeholders.",
+  "columns": [
+    "id",
+    "input_item_id",
+    "input_qty",
+    "output_item_id",
+    "output_qty",
+    "notes"
+  ],
+  "rows": [
+    {
+      "id": "ex_twig",
+      "input_item_id": "twig",
+      "input_qty": 10,
+      "output_item_id": "nature_essence",
+      "output_qty": 1,
+      "notes": "10 common Nature materials = 1 Nature Essence. Steep, by design."
+    },
+    {
+      "id": "ex_bark",
+      "input_item_id": "bark",
+      "input_qty": 10,
+      "output_item_id": "nature_essence",
+      "output_qty": 1,
+      "notes": "10 common Nature materials = 1 Nature Essence. Steep, by design."
+    },
+    {
+      "id": "ex_pebble",
+      "input_item_id": "pebble",
+      "input_qty": 10,
+      "output_item_id": "nature_essence",
+      "output_qty": 1,
+      "notes": "10 common Nature materials = 1 Nature Essence. Steep, by design."
+    },
+    {
+      "id": "ex_clay",
+      "input_item_id": "clay",
+      "input_qty": 10,
+      "output_item_id": "nature_essence",
+      "output_qty": 1,
+      "notes": "10 common Nature materials = 1 Nature Essence. Steep, by design."
+    },
+    {
+      "id": "ex_wool",
+      "input_item_id": "wool",
+      "input_qty": 10,
+      "output_item_id": "nature_essence",
+      "output_qty": 1,
+      "notes": "10 common Nature materials = 1 Nature Essence. Steep, by design."
+    },
+    {
+      "id": "ex_feather",
+      "input_item_id": "feather",
+      "input_qty": 10,
+      "output_item_id": "nature_essence",
+      "output_qty": 1,
+      "notes": "10 common Nature materials = 1 Nature Essence. Steep, by design."
+    },
+    {
+      "id": "ex_fur",
+      "input_item_id": "fur",
+      "input_qty": 10,
+      "output_item_id": "nature_essence",
+      "output_qty": 1,
+      "notes": "10 common Nature materials = 1 Nature Essence. Steep, by design."
+    },
+    {
+      "id": "ex_earth_grit",
+      "input_item_id": "earth_grit",
+      "input_qty": 10,
+      "output_item_id": "elemental_essence",
+      "output_qty": 1,
+      "notes": "10 Earth Grit = 1 Elemental Essence. Steep, by design."
+    },
+    {
+      "id": "ex_earth_shard",
+      "input_item_id": "earth_shard",
+      "input_qty": 10,
+      "output_item_id": "elemental_essence",
+      "output_qty": 1,
+      "notes": "10 shards = 1 Elemental Essence. Same steep rate as commons (placeholder; may tune)."
+    },
+    {
+      "id": "ex_fire_shard",
+      "input_item_id": "fire_shard",
+      "input_qty": 10,
+      "output_item_id": "elemental_essence",
+      "output_qty": 1,
+      "notes": "10 shards = 1 Elemental Essence. Same steep rate as commons (placeholder; may tune)."
+    },
+    {
+      "id": "ex_ice_shard",
+      "input_item_id": "ice_shard",
+      "input_qty": 10,
+      "output_item_id": "elemental_essence",
+      "output_qty": 1,
+      "notes": "10 shards = 1 Elemental Essence. Same steep rate as commons (placeholder; may tune)."
+    },
+    {
+      "id": "ex_lightning_shard",
+      "input_item_id": "lightning_shard",
+      "input_qty": 10,
+      "output_item_id": "elemental_essence",
+      "output_qty": 1,
+      "notes": "10 shards = 1 Elemental Essence. Same steep rate as commons (placeholder; may tune)."
+    },
+    {
+      "id": "ex_holy_dust",
+      "input_item_id": "holy_dust",
+      "input_qty": 10,
+      "output_item_id": "spirit_essence",
+      "output_qty": 1,
+      "notes": "10 Holy Dust or Soul Dust = 1 Spirit Essence. Steep, by design."
+    },
+    {
+      "id": "ex_soul_dust",
+      "input_item_id": "soul_dust",
+      "input_qty": 10,
+      "output_item_id": "spirit_essence",
+      "output_qty": 1,
+      "notes": "10 Holy Dust or Soul Dust = 1 Spirit Essence. Steep, by design."
+    }
+  ]
+}

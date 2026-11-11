@@ -1,0 +1,159 @@
+{
+  "tab": "npc_shop",
+  "note": "DRAFT — Meadows town vendor (one NPC for now). Sells for Copper Coin only. Stock is unlimited in v0. Healing and MP drinks use meadow names (Meadow Dew, Clear Dew, Spring Draught, Mint Draught). Sell-back: misc with sellable_only = true (junk, curios, rare junk) at 100% of items.sell_price; consumables at 50% of shop price; gear at 50% of items.sell_price (or 50% of shop price if listed here). Materials and essences are not bought. Crafting is deferred. No leather or weapons in this shop — those stay as drops.",
+  "columns": [
+    "id",
+    "item_id",
+    "role",
+    "price",
+    "currency",
+    "stock",
+    "notes"
+  ],
+  "rows": [
+    {
+      "id": "shop_meadow_dew",
+      "item_id": "meadow_dew",
+      "role": "sell",
+      "price": 15,
+      "currency": "copper_coin",
+      "stock": "unlimited",
+      "notes": "Restores 40 HP."
+    },
+    {
+      "id": "shop_clear_dew",
+      "item_id": "clear_dew",
+      "role": "sell",
+      "price": 15,
+      "currency": "copper_coin",
+      "stock": "unlimited",
+      "notes": "Restores 30 MP."
+    },
+    {
+      "id": "shop_spring",
+      "item_id": "spring_draught",
+      "role": "sell",
+      "price": 40,
+      "currency": "copper_coin",
+      "stock": "unlimited",
+      "notes": "Restores 100 HP."
+    },
+    {
+      "id": "shop_mint_draught",
+      "item_id": "mint_draught",
+      "role": "sell",
+      "price": 40,
+      "currency": "copper_coin",
+      "stock": "unlimited",
+      "notes": "Restores 80 MP."
+    },
+    {
+      "id": "shop_barley",
+      "item_id": "barley_cake",
+      "role": "sell",
+      "price": 6,
+      "currency": "copper_coin",
+      "stock": "unlimited",
+      "notes": "Restores 20 HP. Town food."
+    },
+    {
+      "id": "shop_apple",
+      "item_id": "wild_apple",
+      "role": "sell",
+      "price": 5,
+      "currency": "copper_coin",
+      "stock": "unlimited",
+      "notes": "Restores 15 HP."
+    },
+    {
+      "id": "shop_mint_sprig",
+      "item_id": "mint_sprig",
+      "role": "sell",
+      "price": 25,
+      "currency": "copper_coin",
+      "stock": "unlimited",
+      "notes": "+20% move and attack speed for 30s."
+    },
+    {
+      "id": "shop_cloth_cap",
+      "item_id": "cloth_cap",
+      "role": "sell",
+      "price": 25,
+      "currency": "copper_coin",
+      "stock": "unlimited",
+      "notes": "Starter cloth head armor."
+    },
+    {
+      "id": "shop_cloth_tunic",
+      "item_id": "cloth_tunic",
+      "role": "sell",
+      "price": 35,
+      "currency": "copper_coin",
+      "stock": "unlimited",
+      "notes": "Starter cloth torso armor."
+    },
+    {
+      "id": "shop_cloth_pants",
+      "item_id": "cloth_pants",
+      "role": "sell",
+      "price": 30,
+      "currency": "copper_coin",
+      "stock": "unlimited",
+      "notes": "Starter cloth leg armor."
+    },
+    {
+      "id": "shop_cloth_shoes",
+      "item_id": "cloth_shoes",
+      "role": "sell",
+      "price": 22,
+      "currency": "copper_coin",
+      "stock": "unlimited",
+      "notes": "Starter cloth boots."
+    },
+    {
+      "id": "shop_cloth_gloves",
+      "item_id": "cloth_gloves",
+      "role": "sell",
+      "price": 22,
+      "currency": "copper_coin",
+      "stock": "unlimited",
+      "notes": "Starter cloth gloves."
+    },
+    {
+      "id": "buy_misc",
+      "item_id": "(sellable_only misc)",
+      "role": "buy",
+      "price": null,
+      "currency": "copper_coin",
+      "stock": "any",
+      "notes": "Vendor buys any item with sellable_only = true (common junk, mid curios, rare high-sell junk) at items.sell_price in full."
+    },
+    {
+      "id": "buy_consumable",
+      "item_id": "(consumables)",
+      "role": "buy",
+      "price": null,
+      "currency": "copper_coin",
+      "stock": "any",
+      "notes": "Vendor buys consumables back at 50% of this shop's sell price (or 50% of items.sell_price if not sold here)."
+    },
+    {
+      "id": "buy_gear",
+      "item_id": "(gear)",
+      "role": "buy",
+      "price": null,
+      "currency": "copper_coin",
+      "stock": "any",
+      "notes": "Vendor buys gear at 50% of items.sell_price (starter cloth bought here can be sold back at 50% of the shop price)."
+    },
+    {
+      "id": "buy_no_mats",
+      "item_id": "(materials and essences)",
+      "role": "buy",
+      "price": null,
+      "currency": "copper_coin",
+      "stock": "none",
+      "notes": "Vendor does not buy materials, category essences, Monster Essence, or currency. Exchange those via the exchange tab or keep them for training."
+    }
+  ]
+}

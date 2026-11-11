@@ -1,0 +1,1590 @@
+{
+  "tab": "drop_tables",
+  "note": "NOTE: drop_rate is a percent (25 = 25%, 0.5 = 0.5%). Each row is an independent roll. Category essences 20-30% (qty 1-3; bosses 40%, 2-5). Monster Essence ~15%; Training Scroll ~6%. Material bands: commons 15-20%; uncommons 1-3%; crystals / Holy Essence / Soul Shard / Log ~0.3-1%; Heartwood boss-only ~2-5%; gear ~0.05-0.2%; ultra-rares ~0.01-0.05%. Healing and MP drinks (Meadow Dew, Clear Dew, Spring Draught, Mint Draught) are NOT on every monster — only overlapping subsets of thematically related ones, at low rates. Mid curios and rare high-sell junk are also shared by 2-3 related monsters, not the whole zone; some monsters have none. Common found junk (Broken Twig, Lost Button, etc.) still appears on several monsters. unlock_requirement_id is optional (e.g. unlock_cursed_dust).",
+  "columns": [
+    "monster_id",
+    "item_id",
+    "drop_rate",
+    "min_qty",
+    "max_qty",
+    "unlock_requirement_id"
+  ],
+  "rows": [
+    {
+      "monster_id": "field_mouse",
+      "item_id": "copper_coin",
+      "drop_rate": 35,
+      "min_qty": 1,
+      "max_qty": 3,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "field_mouse",
+      "item_id": "nature_essence",
+      "drop_rate": 22,
+      "min_qty": 1,
+      "max_qty": 2,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "field_mouse",
+      "item_id": "broken_twig",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "field_mouse",
+      "item_id": "torn_cloth",
+      "drop_rate": 4,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "field_mouse",
+      "item_id": "twig",
+      "drop_rate": 20,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "field_mouse",
+      "item_id": "fur",
+      "drop_rate": 18,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "field_mouse",
+      "item_id": "bark",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "field_mouse",
+      "item_id": "monster_essence",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "field_mouse",
+      "item_id": "training_scroll",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "field_mouse",
+      "item_id": "meadow_dew",
+      "drop_rate": 3,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "wool_sheep",
+      "item_id": "copper_coin",
+      "drop_rate": 35,
+      "min_qty": 1,
+      "max_qty": 3,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "wool_sheep",
+      "item_id": "nature_essence",
+      "drop_rate": 22,
+      "min_qty": 1,
+      "max_qty": 2,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "wool_sheep",
+      "item_id": "torn_cloth",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "wool_sheep",
+      "item_id": "lost_button",
+      "drop_rate": 4,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "wool_sheep",
+      "item_id": "wool",
+      "drop_rate": 20,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "wool_sheep",
+      "item_id": "fur",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "wool_sheep",
+      "item_id": "leather_vest",
+      "drop_rate": 0.06,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "wool_sheep",
+      "item_id": "leather_boots",
+      "drop_rate": 0.06,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "wool_sheep",
+      "item_id": "monster_essence",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "wool_sheep",
+      "item_id": "training_scroll",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "wool_sheep",
+      "item_id": "meadow_dew",
+      "drop_rate": 3,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "wool_sheep",
+      "item_id": "wild_apple",
+      "drop_rate": 2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "wool_sheep",
+      "item_id": "pasture_bell",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "copper_coin",
+      "drop_rate": 30,
+      "min_qty": 1,
+      "max_qty": 3,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "nature_essence",
+      "drop_rate": 24,
+      "min_qty": 1,
+      "max_qty": 2,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "lost_button",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "broken_twig",
+      "drop_rate": 4,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "feather",
+      "drop_rate": 20,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "twig",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "bark",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "leather_cap",
+      "drop_rate": 0.06,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "leather_gloves",
+      "drop_rate": 0.08,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "monster_essence",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "training_scroll",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "wild_apple",
+      "drop_rate": 2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "pasture_bell",
+      "drop_rate": 4,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "bright_bead",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "old_coin_purse",
+      "drop_rate": 0.5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "copper_bit",
+      "drop_rate": 0.4,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "burrow_mole",
+      "item_id": "copper_coin",
+      "drop_rate": 30,
+      "min_qty": 1,
+      "max_qty": 4,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "burrow_mole",
+      "item_id": "nature_essence",
+      "drop_rate": 24,
+      "min_qty": 1,
+      "max_qty": 3,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "burrow_mole",
+      "item_id": "old_bone",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "burrow_mole",
+      "item_id": "cracked_shell",
+      "drop_rate": 5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "burrow_mole",
+      "item_id": "pebble",
+      "drop_rate": 20,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "burrow_mole",
+      "item_id": "clay",
+      "drop_rate": 18,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "burrow_mole",
+      "item_id": "stone_chunk",
+      "drop_rate": 2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "burrow_mole",
+      "item_id": "copper_nail",
+      "drop_rate": 1.2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "burrow_mole",
+      "item_id": "leather_pants",
+      "drop_rate": 0.08,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "burrow_mole",
+      "item_id": "leather_gloves",
+      "drop_rate": 0.08,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "burrow_mole",
+      "item_id": "monster_essence",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "burrow_mole",
+      "item_id": "training_scroll",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "burrow_mole",
+      "item_id": "fence_peg",
+      "drop_rate": 4,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "burrow_mole",
+      "item_id": "shiny_stone",
+      "drop_rate": 0.8,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "burrow_mole",
+      "item_id": "glass_chip",
+      "drop_rate": 0.5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "burrow_mole",
+      "item_id": "old_key",
+      "drop_rate": 0.4,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "copper_coin",
+      "drop_rate": 30,
+      "min_qty": 1,
+      "max_qty": 5,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "nature_essence",
+      "drop_rate": 28,
+      "min_qty": 1,
+      "max_qty": 3,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "old_bone",
+      "drop_rate": 5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "torn_cloth",
+      "drop_rate": 3,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "fur",
+      "drop_rate": 18,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "bark",
+      "drop_rate": 16,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "branch",
+      "drop_rate": 2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "log",
+      "drop_rate": 0.5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "leather_scrap",
+      "drop_rate": 2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "copper_nail",
+      "drop_rate": 2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "wooden_sword",
+      "drop_rate": 0.08,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "rusty_dagger",
+      "drop_rate": 0.08,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "leather_boots",
+      "drop_rate": 0.1,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "iron_ore",
+      "drop_rate": 0.02,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "steel_sword",
+      "drop_rate": 0.015,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "leather_cap",
+      "drop_rate": 0.1,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "leather_vest",
+      "drop_rate": 0.12,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "leather_pants",
+      "drop_rate": 0.1,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "monster_essence",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "training_scroll",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "fence_peg",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "shiny_stone",
+      "drop_rate": 0.5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "meadow_boar",
+      "item_id": "old_coin_purse",
+      "drop_rate": 0.7,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "earth_sprite",
+      "item_id": "copper_coin",
+      "drop_rate": 30,
+      "min_qty": 1,
+      "max_qty": 4,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "earth_sprite",
+      "item_id": "elemental_essence",
+      "drop_rate": 28,
+      "min_qty": 1,
+      "max_qty": 3,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "earth_sprite",
+      "item_id": "lost_button",
+      "drop_rate": 4,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "earth_sprite",
+      "item_id": "earth_grit",
+      "drop_rate": 20,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "earth_sprite",
+      "item_id": "earth_shard",
+      "drop_rate": 3,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "earth_sprite",
+      "item_id": "earth_crystal",
+      "drop_rate": 0.6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "earth_sprite",
+      "item_id": "worn_staff",
+      "drop_rate": 0.08,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "earth_sprite",
+      "item_id": "monster_essence",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "earth_sprite",
+      "item_id": "training_scroll",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "earth_sprite",
+      "item_id": "meadow_dew",
+      "drop_rate": 2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "earth_sprite",
+      "item_id": "clear_dew",
+      "drop_rate": 3,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "earth_sprite",
+      "item_id": "spring_draught",
+      "drop_rate": 0.8,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "earth_sprite",
+      "item_id": "warm_grain",
+      "drop_rate": 4,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "earth_sprite",
+      "item_id": "shiny_stone",
+      "drop_rate": 0.6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "earth_sprite",
+      "item_id": "glass_chip",
+      "drop_rate": 0.7,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "ember_beetle",
+      "item_id": "copper_coin",
+      "drop_rate": 32,
+      "min_qty": 1,
+      "max_qty": 3,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "ember_beetle",
+      "item_id": "elemental_essence",
+      "drop_rate": 24,
+      "min_qty": 1,
+      "max_qty": 3,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "ember_beetle",
+      "item_id": "broken_twig",
+      "drop_rate": 4,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "ember_beetle",
+      "item_id": "earth_grit",
+      "drop_rate": 16,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "ember_beetle",
+      "item_id": "fire_shard",
+      "drop_rate": 2.5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "ember_beetle",
+      "item_id": "fire_crystal",
+      "drop_rate": 0.04,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "ember_beetle",
+      "item_id": "monster_essence",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "ember_beetle",
+      "item_id": "training_scroll",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "ember_beetle",
+      "item_id": "warm_grain",
+      "drop_rate": 5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "frost_moth",
+      "item_id": "copper_coin",
+      "drop_rate": 28,
+      "min_qty": 1,
+      "max_qty": 4,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "frost_moth",
+      "item_id": "elemental_essence",
+      "drop_rate": 24,
+      "min_qty": 1,
+      "max_qty": 3,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "frost_moth",
+      "item_id": "torn_cloth",
+      "drop_rate": 4,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "frost_moth",
+      "item_id": "earth_grit",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "frost_moth",
+      "item_id": "ice_shard",
+      "drop_rate": 2.5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "frost_moth",
+      "item_id": "worn_staff",
+      "drop_rate": 0.1,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "frost_moth",
+      "item_id": "steel_staff",
+      "drop_rate": 0.015,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "frost_moth",
+      "item_id": "monster_essence",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "frost_moth",
+      "item_id": "training_scroll",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "frost_moth",
+      "item_id": "clear_dew",
+      "drop_rate": 3,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "frost_moth",
+      "item_id": "mint_draught",
+      "drop_rate": 0.8,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "frost_moth",
+      "item_id": "mint_sprig",
+      "drop_rate": 1,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "frost_moth",
+      "item_id": "silver_thread",
+      "drop_rate": 0.6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "spark_bug",
+      "item_id": "copper_coin",
+      "drop_rate": 25,
+      "min_qty": 1,
+      "max_qty": 4,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "spark_bug",
+      "item_id": "elemental_essence",
+      "drop_rate": 22,
+      "min_qty": 1,
+      "max_qty": 2,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "spark_bug",
+      "item_id": "lost_button",
+      "drop_rate": 4,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "spark_bug",
+      "item_id": "lightning_shard",
+      "drop_rate": 1.5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "spark_bug",
+      "item_id": "rusty_dagger",
+      "drop_rate": 0.1,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "spark_bug",
+      "item_id": "steel_dagger",
+      "drop_rate": 0.015,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "spark_bug",
+      "item_id": "fire_crystal",
+      "drop_rate": 0.03,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "spark_bug",
+      "item_id": "monster_essence",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "spark_bug",
+      "item_id": "training_scroll",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "spark_bug",
+      "item_id": "mint_sprig",
+      "drop_rate": 1,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "spark_bug",
+      "item_id": "bright_bead",
+      "drop_rate": 4,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "spark_bug",
+      "item_id": "copper_bit",
+      "drop_rate": 0.6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "shrine_wisp",
+      "item_id": "copper_coin",
+      "drop_rate": 25,
+      "min_qty": 1,
+      "max_qty": 4,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "shrine_wisp",
+      "item_id": "spirit_essence",
+      "drop_rate": 24,
+      "min_qty": 1,
+      "max_qty": 3,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "shrine_wisp",
+      "item_id": "lost_button",
+      "drop_rate": 3,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "shrine_wisp",
+      "item_id": "holy_dust",
+      "drop_rate": 18,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "shrine_wisp",
+      "item_id": "holy_essence",
+      "drop_rate": 0.6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "shrine_wisp",
+      "item_id": "cloth_tunic",
+      "drop_rate": 0.12,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "shrine_wisp",
+      "item_id": "steel_staff",
+      "drop_rate": 0.02,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "shrine_wisp",
+      "item_id": "cloth_cap",
+      "drop_rate": 0.1,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "shrine_wisp",
+      "item_id": "cloth_shoes",
+      "drop_rate": 0.08,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "shrine_wisp",
+      "item_id": "monster_essence",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "shrine_wisp",
+      "item_id": "training_scroll",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "shrine_wisp",
+      "item_id": "clear_dew",
+      "drop_rate": 3,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "shrine_wisp",
+      "item_id": "spring_draught",
+      "drop_rate": 0.8,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "shrine_wisp",
+      "item_id": "mint_draught",
+      "drop_rate": 0.8,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "shrine_wisp",
+      "item_id": "worn_charm",
+      "drop_rate": 5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "shrine_wisp",
+      "item_id": "silver_thread",
+      "drop_rate": 0.5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "shrine_wisp",
+      "item_id": "shrine_pin",
+      "drop_rate": 0.6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "shrine_wisp",
+      "item_id": "evening_bead",
+      "drop_rate": 0.4,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "dusk_wisp",
+      "item_id": "copper_coin",
+      "drop_rate": 25,
+      "min_qty": 1,
+      "max_qty": 5,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "dusk_wisp",
+      "item_id": "spirit_essence",
+      "drop_rate": 24,
+      "min_qty": 1,
+      "max_qty": 3,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "dusk_wisp",
+      "item_id": "old_bone",
+      "drop_rate": 4,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "dusk_wisp",
+      "item_id": "soul_dust",
+      "drop_rate": 18,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "dusk_wisp",
+      "item_id": "soul_shard",
+      "drop_rate": 0.6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "dusk_wisp",
+      "item_id": "steel_dagger",
+      "drop_rate": 0.025,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "dusk_wisp",
+      "item_id": "cloth_pants",
+      "drop_rate": 0.1,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "dusk_wisp",
+      "item_id": "cloth_gloves",
+      "drop_rate": 0.08,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "dusk_wisp",
+      "item_id": "monster_essence",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "dusk_wisp",
+      "item_id": "training_scroll",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "dusk_wisp",
+      "item_id": "worn_charm",
+      "drop_rate": 5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "dusk_wisp",
+      "item_id": "shrine_pin",
+      "drop_rate": 0.5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "dusk_wisp",
+      "item_id": "evening_bead",
+      "drop_rate": 0.7,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "copper_coin",
+      "drop_rate": 40,
+      "min_qty": 2,
+      "max_qty": 5,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "nature_essence",
+      "drop_rate": 40,
+      "min_qty": 2,
+      "max_qty": 5,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "broken_twig",
+      "drop_rate": 8,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "twig",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "bark",
+      "drop_rate": 20,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "branch",
+      "drop_rate": 3,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "log",
+      "drop_rate": 1,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "heartwood",
+      "drop_rate": 4,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "wooden_sword",
+      "drop_rate": 0.2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "iron_ore",
+      "drop_rate": 0.04,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "steel_sword",
+      "drop_rate": 0.04,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "cloth_pants",
+      "drop_rate": 0.12,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "cloth_tunic",
+      "drop_rate": 0.1,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "cloth_gloves",
+      "drop_rate": 0.1,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "monster_essence",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "training_scroll",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "meadow_dew",
+      "drop_rate": 3,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "spring_draught",
+      "drop_rate": 1.2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "wild_apple",
+      "drop_rate": 2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "old_sap",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "amber_drop",
+      "drop_rate": 1.2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "tarnished_ring",
+      "drop_rate": 0.6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "old_stump",
+      "item_id": "old_key",
+      "drop_rate": 0.6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "night_stump",
+      "item_id": "copper_coin",
+      "drop_rate": 35,
+      "min_qty": 2,
+      "max_qty": 5,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "night_stump",
+      "item_id": "spirit_essence",
+      "drop_rate": 40,
+      "min_qty": 2,
+      "max_qty": 5,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "night_stump",
+      "item_id": "old_bone",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "night_stump",
+      "item_id": "soul_dust",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "night_stump",
+      "item_id": "soul_shard",
+      "drop_rate": 0.5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "night_stump",
+      "item_id": "cursed_dust",
+      "drop_rate": 0.8,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": "unlock_cursed_dust"
+    },
+    {
+      "monster_id": "night_stump",
+      "item_id": "cloth_tunic",
+      "drop_rate": 0.15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "night_stump",
+      "item_id": "steel_staff",
+      "drop_rate": 0.04,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "night_stump",
+      "item_id": "steel_dagger",
+      "drop_rate": 0.03,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "night_stump",
+      "item_id": "cloth_cap",
+      "drop_rate": 0.12,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "night_stump",
+      "item_id": "cloth_shoes",
+      "drop_rate": 0.1,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "night_stump",
+      "item_id": "monster_essence",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "night_stump",
+      "item_id": "training_scroll",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "night_stump",
+      "item_id": "old_sap",
+      "drop_rate": 5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "night_stump",
+      "item_id": "amber_drop",
+      "drop_rate": 1,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "night_stump",
+      "item_id": "tarnished_ring",
+      "drop_rate": 1,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    }
+  ]
+}

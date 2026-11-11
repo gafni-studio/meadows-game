@@ -1,0 +1,126 @@
+{
+  "tab": "controls",
+  "note": "DRAFT — Keyboard layout for a browser side-scroller (keyboard primary, mouse used for the basic attack and UI clicks). Keys can be remapped later; these are the v0 defaults. Number-row skill and potion hotkeys stay visible on a simple hotbar. Do not capture browser-reserved keys (Ctrl+T, Ctrl+W, F5). Placeholders.",
+  "columns": [
+    "action",
+    "keys",
+    "context",
+    "notes"
+  ],
+  "rows": [
+    {
+      "action": "move_left",
+      "keys": "A / Left Arrow",
+      "context": "world",
+      "notes": "Hold to walk left. Arrow keys are an alternative to WASD."
+    },
+    {
+      "action": "move_right",
+      "keys": "D / Right Arrow",
+      "context": "world",
+      "notes": "Hold to walk right."
+    },
+    {
+      "action": "jump",
+      "keys": "Space / W / Up Arrow",
+      "context": "world",
+      "notes": "Variable jump in v0 is not required; a single fixed jump is fine for the prototype. W also jumps so WASD stays complete."
+    },
+    {
+      "action": "drop_through",
+      "keys": "S / Down Arrow",
+      "context": "world",
+      "notes": "Optional. Drop through a one-way platform. Skip in v0.1 if platforms are all solid."
+    },
+    {
+      "action": "basic_attack",
+      "keys": "J / Left Mouse Button",
+      "context": "combat",
+      "notes": "The default swing (skill multiplier 1.0). Does not spend MP."
+    },
+    {
+      "action": "pickup_interact",
+      "keys": "E",
+      "context": "world",
+      "notes": "Pick up a nearby drop, talk to an NPC, or use a path/portal when standing in its trigger. Hold is not required."
+    },
+    {
+      "action": "skill_1",
+      "keys": 1,
+      "context": "combat",
+      "notes": "Skill hotkey 1. Warrior default: Power Strike."
+    },
+    {
+      "action": "skill_2",
+      "keys": 2,
+      "context": "combat",
+      "notes": "Skill hotkey 2. Warrior default: Rage."
+    },
+    {
+      "action": "skill_3",
+      "keys": 3,
+      "context": "combat",
+      "notes": "Skill hotkey 3. Empty until a third skill is unlocked."
+    },
+    {
+      "action": "skill_4",
+      "keys": 4,
+      "context": "combat",
+      "notes": "Skill hotkey 4. Empty until a fourth skill is unlocked."
+    },
+    {
+      "action": "potion_hp",
+      "keys": "5 / Q",
+      "context": "combat",
+      "notes": "Drink the first HP consumable in the potion bar (Meadow Dew by default if owned)."
+    },
+    {
+      "action": "potion_mp",
+      "keys": "6 / R",
+      "context": "combat",
+      "notes": "Drink the first MP consumable in the potion bar (Clear Dew by default if owned)."
+    },
+    {
+      "action": "inventory",
+      "keys": "I",
+      "context": "ui",
+      "notes": "Toggle inventory. Esc also closes it."
+    },
+    {
+      "action": "skills",
+      "keys": "K",
+      "context": "ui",
+      "notes": "Toggle the skills window (view ranks, pay a rank-up cost)."
+    },
+    {
+      "action": "stats",
+      "keys": "C",
+      "context": "ui",
+      "notes": "Toggle character / ability-point screen (STR, INT, AGI, SPI)."
+    },
+    {
+      "action": "passive_tree",
+      "keys": "T",
+      "context": "ui",
+      "notes": "Toggle the passive tree (production, efficiency, Hunter's Luck)."
+    },
+    {
+      "action": "map",
+      "keys": "M",
+      "context": "ui",
+      "notes": "Toggle the area map (Meadows areas and the current path)."
+    },
+    {
+      "action": "quest_log",
+      "keys": "L",
+      "context": "ui",
+      "notes": "Toggle the quest log. Optional for v0.1; useful once starter_quests are in."
+    },
+    {
+      "action": "close_or_pause",
+      "keys": "Esc",
+      "context": "ui",
+      "notes": "Close the topmost window, or pause if no window is open. Does not quit the browser tab."
+    }
+  ]
+}
