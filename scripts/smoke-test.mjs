@@ -8,6 +8,7 @@
  *   - inventory (I): Enter uses a potion; M + arrows + Enter moves a stack; X drops (confirm) and E picks up;
  *     gameplay keys ignored while open
  *   - storage chest: E opens, Enter stores a stack, it persists across a reload
+ *   - skills (K): Enter trains Power Strike rank 1 and pays Monster Essence + Training Scrolls + coins
  *   - stats (C): Enter spends a point; Esc menu opens/closes
  *   - walks into Sunny Pasture and fights with F / Power Strike (1)
  * Usage: npm run build && npm run smoke   (CHROME_PATH overrides /usr/bin/google-chrome)
@@ -94,8 +95,14 @@ try {
   if ((await s()).inv.meadow_dew !== 1) fail('drop 1 failed');
   await shot('inventory');
   await key('Escape');
-  await page.waitForTimeout(700);
-  await key('e', 300); // pick it back up
+  await page.waitForTimeout(400);
+  // step a little away so the fly arc is visible, but stay inside pickup radius (56)
+  await page.evaluate(() => { window.__state.scene.player.x -= 28; });
+  await page.waitForTimeout(120);
+  await shot('loot-on-ground');
+  await key('e', 320);
+  await shot('pickup-fly');
+  await page.waitForTimeout(800);
   if ((await s()).inv.meadow_dew !== 2) fail(`pickup of dropped item failed: ${JSON.stringify(await s())}`);
   console.log('inventory ok (use, move, drop, pick up)');
 
@@ -115,6 +122,51 @@ try {
   await page.waitForTimeout(500);
   if ((await page.evaluate(() => window.__state.player.storage.meadow_dew)) !== 2) fail('storage did not persist');
   console.log('storage ok');
+
+  // ── whodrops + gear instance (does not stack) ──
+  await key('`');
+  await page.keyboard.type('whodrops hide vest'); await key('Enter', 200);
+  const who = await page.evaluate(() => document.querySelector('#console-out')?.innerText ?? '');
+  if (!/Wool Sheep/i.test(who) || !/2%/.test(who)) fail(`whodrops failed: ${who.slice(-400)}`);
+  await page.keyboard.type('item hide_vest'); await key('Enter');
+  await page.keyboard.type('item hide_vest magic'); await key('Enter');
+  await key('Escape');
+  const gear = await page.evaluate(() => Object.values(window.__state.player.gearItems).map((g) => ({ id: g.itemId, def: g.defense, magic: g.magic, prefix: g.prefix, container: g.container })));
+  const hides = gear.filter((g) => g.id === 'hide_vest');
+  if (hides.length !== 2) fail(`expected 2 hide vest instances, got ${JSON.stringify(gear)}`);
+  if (!hides.some((g) => g.magic && g.prefix) || hides.some((g) => g.def < 2 || g.def > 5)) fail(`gear rolls/magic wrong: ${JSON.stringify(hides)}`);
+  if ((await page.evaluate(() => window.__state.player.inventory.hide_vest))) fail('gear should not stack in inventory counts');
+  await key('i', 250);
+  await page.evaluate(() => {
+    const tiles = [...document.querySelectorAll('#p-inventory .tile[data-uid]')];
+    const magic = tiles.find((t) => t.classList.contains('magic')) || tiles[0];
+    if (magic) magic.click();
+  });
+  await page.waitForTimeout(150);
+  await shot('inventory-gear');
+  await key('Escape');
+  console.log('gear/whodrops ok:', hides);
+
+
+  // ── Skill training (K / Calden): Enter trains Power Strike rank 1, pays the sheet cost ──
+  await key('`');
+  await page.keyboard.type('item monster_essence 30'); await key('Enter');
+  await page.keyboard.type('item training_scroll 5'); await key('Enter');
+  await key('Escape');
+  await key('k', 250);
+  if (!(await visible()).includes('skills')) fail('K did not open the skills window');
+  const sk = await page.evaluate(() => document.querySelector('#p-skills .sel')?.dataset.skill);
+  if (sk !== 'power_strike') fail(`skills default is ${sk}`);
+  const coinsBefore = (await s()).coins;
+  await key('Enter', 400);
+  const ranks = await page.evaluate(() => ({ ...window.__state.player.skillRanks, coins: window.__state.player.coins, me: window.__state.player.inventory.monster_essence ?? 0, sc: window.__state.player.inventory.training_scroll ?? 0, bar: [...window.__state.player.skillBar] }));
+  if (ranks.power_strike !== 1) fail(`train did not raise Power Strike: ${JSON.stringify(ranks)}`);
+  if (ranks.me !== 0 || ranks.sc !== 0 || ranks.coins !== coinsBefore - 20) fail(`train did not pay the cost: ${JSON.stringify(ranks)} coinsBefore=${coinsBefore}`);
+  await shot('skills-train');
+  await key('Escape');
+  if ((await visible()).length) fail('Esc did not close skills');
+  console.log('skills ok:', ranks);
+
 
   // ── Stats + Esc menu ──
   const pts = (await s()).unspent;

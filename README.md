@@ -28,7 +28,8 @@ Add `?canvas` to the URL to force the Canvas renderer instead of WebGL (used by 
 | Attack (basic swing, 100%) | **F** (hold to keep swinging) |
 | Skill 1: Power Strike | **1** |
 | Skill 2: Rage | **2** |
-| Skills 3-4 | **3 / 4** (empty in v0.1) |
+| Skills 3-4 | **3 / 4** (Earthbreaker / Flame Cleave once learned; bind any skill from the K window) |
+| Skill training (ranks, bind 1-4) | **K** (or E at Calden) |
 | HP potion (first owned: Meadow Dew → Spring Draught → Barley Cake → Wild Apple) | **5** |
 | MP potion (first owned: Clear Dew → Mint Draught) | **6** or **G** |
 | Pick up nearby drops / talk to NPC / use portal | **E** |
@@ -73,6 +74,29 @@ Hovering a tile with the mouse selects it too, and the preview panel shows the i
 12. **Monster accuracy:** ≈77-79% against an equal-level player; −3.5% for each level you're above the mob; floor 40%.
 13. **Subtler levels:** 3 ability points per level (was 5), +10 HP per level (was 16), +3 HP per STR (was 4), +2 MP per level (was 4). Skill ranks scale harder instead (v0.2).
 
+14. **Pickup animation:** loot pops up, then flies to you (same bounce-y feel as a drop). The toast with the icon and quantity appears when it arrives.
+15. **Gear instances and ranges:** gear no longer stacks. Each piece rolls `defense` / `weapon_damage` from the sheet's min/max when it drops or is bought, and those rolls are saved on the item. The preview shows the rolled value, the range, and a low / avg / high quality color. Materials, currency, consumables and junk still stack. Old saves are migrated (equipped and bag gear become mid-roll, non-magic instances).
+16. **More Meadows gear, split pools:** each class has a Hide (Warrior) / Linen (Mage) / Trail (Rogue) armor set plus a mid weapon (Meadow Blade, Grove Staff, Bone Knife). Each mob has its own pool — e.g. mice drop gloves, sheep drop vests and pants, crows drop caps, boots and the mid weapons. Shop cloth is a weaker stepping-stone.
+17. **Impactful full set:** at level 1 with 0 points, a mid-roll Meadows drop set (Meadow Blade 14×1.15 + Hide armor, defense 10) is **+45% attack** and takes **~56% less** from a Crow vs basic (Wooden Sword, no armor). Hide and the Blade need 3 STR. Steel stays ultra-rare and above this. Skill training is still the main power-up. Numbers are in `assumptions.ts` and on the gear tab.
+18. **Magic gear:** about 1/12 of gear drops (and shop rolls) come out magic, with a plain prefix (Sturdy, Keen, Bright, Swift, Hearty, …) and 1–2 extra bonuses (STR/INT/AGI/SPI, accuracy, crit, HP/MP, regen) rolled from ranges. Blue name and a ✦ on the tile. Category infusion is later (Pitch Book B-003).
+19. **Console `whodrops <item>`:** lists every monster (and area) that drops it, with chance and quantity range. Partial names work (`whodrops hide`). It is in `help` and does not mark the save as cheated.
+
+
+## What's new in v0.2 (skill training)
+
+- **Calden** trains skills (E), and **K** opens the same window anywhere. Keyboard-first tile UI, consistent with the shop: arrows, Enter to learn/train, 1-4 to bind a known skill, Esc to close. Preview shows the next-rank effect and the material + essence + coin cost (have / need).
+- **Warrior, all 5 sheet skills** (the sheet lists 5 per class, not 6):
+  - Power Strike and Rage are known at rank 0. Training rank 1+ costs 30 Monster Essence, 5 Training Scrolls and 20 Copper (× 1.6 each further rank).
+  - Earthbreaker (Nature, lv 3 + 5 STR): 150% AoE slam + stun. Flame Cleave (Elemental, lv 6 + 10 STR): 200% wide swing + 3s burn (35% of the hit as DoT). Soul Guard (Spiritual, lv 8 + 15 STR): a shield absorbing 18% of max HP for 20s.
+  - Category skills are learned at rank 1 (base value) and auto-bind to the first empty hotbar slot; they scale from rank 2.
+- **Rank scaling** (v0.1.2 numbers): basic +5% / rank, nature +12%, elemental +10%, spiritual +10%. Damage skills add that many percentage points of the attack multiplier; buffs and the shield grow as effect × (1 + N% × ranks).
+- Rares (Heartwood, crystals, shards) are only required at ranks 5 and 10.
+- Mage and Rogue skills exist as sheet data (costs, icons, unlocks) but are not playable yet — there is no class select.
+- Passive-tree production and Ila's 10:1 essence exchange are still later.
+
+Console: `rank <skill> [n]` sets a rank (cheat); `train <skill>` pays the real cost.
+
+
 ## What's new in v0.1.1
 
 - **Keyboard menus:** every window (NPC dialogs, quest dialog, shop, inventory, stats, Esc menu, erase-save confirm) works with arrows + Enter + Esc + Tab.
@@ -87,7 +111,7 @@ Hovering a tile with the mouse selects it too, and the preview panel shows the i
 
 ## What's in v0.1
 
-- Meadow Town (safe hub): Mara's shop (buys and sells per the `npc_shop` rules), Pell (hint, plus the first starter quest "A First Step" as a one-time reward), and Calden and Ila (placeholders until v0.2). East gate to Sunny Pasture.
+- Meadow Town (safe hub): Mara's shop (buys and sells per the `npc_shop` rules), Pell (hint, plus the first starter quest "A First Step" as a one-time reward), Calden (skill trainer — E opens the training window, also available anywhere with K), and Ila (essence exchange, later). East gate to Sunny Pasture.
 - Sunny Pasture: Field Mouse ×8, Wool Sheep ×5 and Crow ×3 (from `map_layout.spawn_counts`), with timed respawns (`monsters.respawn_s`). Passive mobs fight back once hit; aggressive mobs (Crow) aggro within 8 tiles. They leash at 20 tiles from spawn and walk home with HP reset. One-way platforms. The east path to Dirt Banks is marked "v0.2".
 - Warrior only. Real-time melee, single target, with damage numbers and crits.
   - Power Strike: 140% damage, 8 MP, 1s cooldown.
@@ -112,7 +136,8 @@ Press **`** to open, type a command, press **Enter** to run, **↑/↓** for his
 | `xp <n>` | Gain n XP (levels up normally) |
 | `level <n>` | Set level (±5 ability points per level) |
 | `copper <n>` | Add (or remove, if negative) Copper Coin |
-| `item <id> [qty]` | Add an item by `items.id` (e.g. `item spring_draught 5`) |
+| `item <id> [qty] [magic]` | Add an item (gear becomes a rolled instance; add `magic` to force a magic roll) |
+| `whodrops <item>` | List monsters and areas that drop it, with chance and qty (partial names ok; not a cheat) |
 | `hp <n>` | Set current HP |
 | `maxhp <n>` | Bonus max HP (0 clears) |
 | `atk <n>` | Bonus attack (0 clears) |
@@ -123,6 +148,8 @@ Press **`** to open, type a command, press **Enter** to run, **↑/↓** for his
 | `tp <area>` | Teleport: `meadow_town`, `sunny_pasture` |
 | `spawn <monsterId> [n]` | Spawn monsters next to you (e.g. `spawn crow 3`) |
 | `droprate <x>` | Multiply all drop chances (1 = normal) |
+| `rank <skill> [n]` | Set a skill rank (default +1) |
+| `train <skill>` | Pay the real cost and train the next rank |
 | `reset` | Erase the save and reload |
 
 ## Combat-feel stats (not in the sheet yet)
