@@ -4,3 +4,9 @@ dist/
 .DS_Store
 smoke-screenshot.png
 scripts/_*.mjs
+# Vendored CC0 art sources: keep only the individual tiles and licenses
+art-src/*/*
+!art-src/*/Tiles/
+!art-src/*/License.txt
+shots/
+.netlify/
