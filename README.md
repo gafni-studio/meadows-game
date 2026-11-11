@@ -1,4 +1,4 @@
-# Meadows — prototype v0.1.1
+# Meadows — prototype v0.1.2
 
 A 2D side-scrolling browser MMORPG prototype (MapleStory-style real-time grinding, later Travian-style offline growth).
 v0.1 is a **single-player** slice of the Meadows zone: **Meadow Town** (hub + Mara's shop) and **Sunny Pasture** (levels 1-3).
@@ -32,7 +32,8 @@ Add `?canvas` to the URL to force the Canvas renderer instead of WebGL (used by 
 | HP potion (first owned: Meadow Dew → Spring Draught → Barley Cake → Wild Apple) | **5** |
 | MP potion (first owned: Clear Dew → Mint Draught) | **6** or **G** |
 | Pick up nearby drops / talk to NPC / use portal | **E** |
-| Inventory (use, equip, sell when the shop is open) | **I** |
+| Inventory (use, equip, move, drop) | **I** |
+| Storage chest in Meadow Town (next to the sign) | **E** |
 | Character / ability points | **C** |
 | Close window / open menu (save, new game) | **Esc** |
 | Test console | **`** (backtick) |
@@ -46,11 +47,31 @@ While any window is open, gameplay keys (move, jump, F attack, skills, potions) 
 | Move the highlight (grids, lists, tabs, buttons) | **← ↑ ↓ →** |
 | Confirm / OK / buy / sell / use / equip / remove / +1 stat | **Enter** |
 | Switch Buy ↔ Sell in Mara's shop | **Tab** (or ↑ to the tab row, then ← →) |
+| Bag / storage: pick up a stack, then place it on another slot (swap) | **M**, arrows, **Enter** (or **M**); Esc cancels |
+| Bag: drop the selected stack on the ground (asks first for stacks and valuables) | **X** or **Delete** |
+| Storage: move the selected stack to the other side / move one | **Enter** / **1** |
+| Mouse | drag tiles between slots and between bag ↔ chest; drag out of the window to drop on the ground |
 | Back / close | **Esc** |
 
 Hovering a tile with the mouse selects it too, and the preview panel shows the item's icon, type, description, effect, prices and how many you own.
 
 **Why these keys:** no modifier keys are used, so gameplay can't trigger browser shortcuts (Ctrl+W closes the tab, etc.). Phaser calls `preventDefault` on every bound key, and a small guard blocks stray Ctrl+letter page shortcuts (Ctrl+S, Ctrl+P, ...). Potions are on 5 and 6/G instead of the sheet's Q/R.
+
+## What's new in v0.1.2 (playtest notes)
+
+1. **Knockback ×3:** basic 420 px/s, Power Strike 1080 px/s (hitstun and knockback resistance unchanged).
+2. **Contact melee + one ranged mob:** melee mobs only hurt you on body contact (4px reach, swing must still touch). New sheet column `monsters.attack_type` (melee / ranged): the **Crow** is ranged. It keeps 150-230px away, telegraphs, and throws a slow (150 px/s) pebble at chest height. Jump over it or walk away.
+3. **Mobs move 2.5× slower:** mouse 28, sheep 20, crow 38 px/s.
+4. **Nicer badges:** loot/info toasts slide in with the item icon and quantity ("Copper ×3"). Level-up shows a centered "LEVEL UP!" banner with a burst, a light beam and sparks, plus a short synthesized chime (WebAudio, no files). Nothing blocks input.
+5. **Lower jump:** 60% of the old height (≈73px). Pasture platforms moved down to 2 and 4 tiles so they stay reachable.
+6. **Regen ÷4:** 0.5% max HP/s after 5s out of combat, × (1 + 0.02 × SPI).
+7. **Inventory slots:** 24 bag slots you can rearrange (mouse drag, or M → arrows → Enter). Drop items on the ground (X / drag out). Stacks and valuables ask first. Dropped items are normal pickups (E).
+8. **Storage chest** in Meadow Town: two-panel window (chest 30 slots | bag), keyboard and mouse, saved with the character.
+9. **Drops:** every `drop_tables.drop_rate` doubled (relative rarity unchanged). Quantities now roll `min_qty`-`max_qty` weighted toward the low end: copper 1-4, essences 1-3, Monster Essence 1-2, common materials 1-3, uncommon 1-2, rares 1. The drop multiplier (console `droprate`) raises chance **and** quantity: above 1× it stretches `max_qty` by 50% per extra 1×, and chance above 100% becomes a bonus roll.
+10. **Monster HP −50%** in the sheet (mouse 55, sheep 75, crow 95, ...).
+11. **Less predictable mobs:** random wind-up per swing (250-600ms), random recover (150-450ms), 15% feints (telegraph, then hop back without striking), random hesitation before closing in again, and a random choice of back off / hop over / pause.
+12. **Monster accuracy:** ≈77-79% against an equal-level player; −3.5% for each level you're above the mob; floor 40%.
+13. **Subtler levels:** 3 ability points per level (was 5), +10 HP per level (was 16), +3 HP per STR (was 4), +2 MP per level (was 4). Skill ranks scale harder instead (v0.2).
 
 ## What's new in v0.1.1
 
@@ -106,23 +127,21 @@ Press **`** to open, type a command, press **Enter** to run, **↑/↓** for his
 
 ## Combat-feel stats (not in the sheet yet)
 
-These live in `src/data/assumptions.ts` (`HIT`, `PLAYER_ACC`, `PLAYER_EVA`, `MONSTER_FEEL`, `ATTACK_FEEL`, `PLAYER_HIT_KB`, `AI`, `REGEN`) and are candidates for new sheet columns:
+These live in `src/data/assumptions.ts` (`HIT`, `HIT_MONSTER`, `PLAYER_ACC`, `PLAYER_EVA`, `MONSTER_FEEL`, `RANGED`, `ATTACK_FEEL`, `PLAYER_HIT_KB`, `AI`, `REGEN`, `LOOT`) and are candidates for new sheet columns:
 
-- **Hit chance:** clamp(85 + (acc − eva) × 1.5 + (attacker level − defender level) × 2, 50, 98)%.
-- **Player:**
-  - Accuracy = 10 + AGI + 0.5 × level.
-  - Evasion = 8 + 0.8 × AGI + 0.5 × level.
-- **Monsters:** acc / eva / knockback resistance / reach / wind-up:
-  - Field Mouse: 5 / 7 / 0.0 / 14px / 380ms.
-  - Wool Sheep: 6 / 6 / 0.6 / 16px / 450ms.
-  - Crow: 8 / 10 / 0.2 / 18px / 400ms.
-- **Knockback and hitstun:** basic attack 140 px/s, 320ms. Power Strike 360 px/s, 500ms. Rage none. Hitstun is scaled by 1 − kbRes × 0.5. The player is pushed 170 px/s when hit.
-- **AI:**
-  - Recover 250ms after a swing.
-  - Then back off (45%), hop over (35%) or pause (20%).
-  - A reposition lasts 550–1100ms and a pause 250–800ms.
-  - Monsters stay at least 6px apart from you, edge to edge.
-- **HP regen:** 2% max HP/s after 5s out of combat, × (1 + 0.02 × SPI).
+- **Hit chance:** clamp(base + (acc − eva) × k + (attacker level − defender level) × L, min, max)%.
+  - Player attacks (`HIT`): base 85, k 1.5, L 2, 50-98% (≈90% at parity).
+  - Monster attacks (`HIT_MONSTER`): base 78, k 1, L 3.5, 40-95% (≈77-79% at parity).
+- **Player:** accuracy = 10 + AGI + 0.5 × level; evasion = 8 + 0.8 × AGI + 0.5 × level.
+- **Monsters** (acc / eva / knockback resistance / contact reach / wind-up range):
+  - Field Mouse: 8 / 7 / 0.0 / 4px / 250-550ms.
+  - Wool Sheep: 9 / 6 / 0.6 / 4px / 320-600ms.
+  - Crow (ranged): 10 / 10 / 0.2 / keeps 150-230px, fires within 300px / 400-600ms; pebble 150 px/s, cooldown 2.2-3.6s.
+- **Speeds:** mouse 28, sheep 20, crow 38 px/s (chase ×1.6). Player 190 px/s, jump 435 px/s (≈73px).
+- **Knockback and hitstun:** basic 420 px/s, 320ms; Power Strike 1080 px/s, 500ms; Earthbreaker 600, 900ms; Flame Cleave 700, 450ms; Rage none. Hitstun × (1 − kbRes × 0.5). The player is pushed 170 px/s when hit.
+- **AI:** recover 150-450ms after a swing, then back off (45%), hop over (35%) or pause (20%). 15% of melee wind-ups are feints. Reposition 550-1100ms, pause 250-800ms, hesitation 0-500ms.
+- **HP regen:** 0.5% max HP/s after 5s out of combat, × (1 + 0.02 × SPI).
+- **Drop quantity:** roll = min + floor(r^1.8 × (max − min + 1)). Drop multiplier ×: max_qty × (1 + 0.5 × (× − 1)), overflow above 100% chance = bonus roll.
 
 ## Design data (Google Sheet → JSON)
 

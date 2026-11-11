@@ -5,7 +5,9 @@
  *   - boot + canvas, no console errors
  *   - test console (`): copper / item / xp commands, save marked cheated
  *   - Mara's shop: arrows + Enter buys, Tab switches to Sell, Esc closes
- *   - inventory (I): arrows + Enter uses a potion; gameplay keys ignored while open
+ *   - inventory (I): Enter uses a potion; M + arrows + Enter moves a stack; X drops (confirm) and E picks up;
+ *     gameplay keys ignored while open
+ *   - storage chest: E opens, Enter stores a stack, it persists across a reload
  *   - stats (C): Enter spends a point; Esc menu opens/closes
  *   - walks into Sunny Pasture and fights with F / Power Strike (1)
  * Usage: npm run build && npm run smoke   (CHROME_PATH overrides /usr/bin/google-chrome)
@@ -74,19 +76,50 @@ try {
   await page.keyboard.press('Space');
   if (Math.abs((await s()).x - x0) > 2) fail('player moved while inventory was open');
   await page.evaluate(() => { window.__state.player.hp = 50; });
-  await key('ArrowDown'); // the ArrowRight above moved the selection to the equipment row
+  await key('Escape'); await key('i'); // reopening starts on the first bag item
   const sel2 = await page.evaluate(() => document.querySelector('#p-inventory .sel')?.dataset.key);
   if (sel2 !== 'inv:meadow_dew') fail(`inventory selection is ${sel2}`);
   await key('Enter', 600);
   after = await s();
   if (after.inv.meadow_dew !== 2 || after.hp < 85) fail(`inventory Enter did not use ${sel2}: ${JSON.stringify(after)}`);
+  // move by keyboard: M picks up, → moves, Enter places
+  await key('m'); await key('ArrowRight'); await key('Enter');
+  const slots = await page.evaluate(() => window.__state.player.bagSlots.slice(0, 3));
+  if (slots[1] !== 'meadow_dew' || slots[0]) fail(`keyboard move failed: ${JSON.stringify(slots)}`);
+  // drop on the ground: X → confirm (stack of 2) → "Drop 1"
+  await key('ArrowRight'); await key('ArrowLeft'); // reselect the moved stack
+  await key('x');
+  if (!(await visible()).includes('drop')) fail('drop confirm did not open');
+  await key('Enter', 400);
+  if ((await s()).inv.meadow_dew !== 1) fail('drop 1 failed');
   await shot('inventory');
   await key('Escape');
-  console.log('inventory ok');
+  await page.waitForTimeout(700);
+  await key('e', 300); // pick it back up
+  if ((await s()).inv.meadow_dew !== 2) fail(`pickup of dropped item failed: ${JSON.stringify(await s())}`);
+  console.log('inventory ok (use, move, drop, pick up)');
+
+  // ── Storage chest: E opens, Enter stores the stack, persists across reload ──
+  await page.evaluate(() => { window.__state.scene.player.x = 15 * 32; });
+  await page.waitForTimeout(150);
+  await key('e', 250);
+  if (!(await visible()).includes('storage')) fail('storage did not open with E');
+  await key('Enter', 200);
+  const st = await page.evaluate(() => ({ ...window.__state.player.storage }));
+  if (st.meadow_dew !== 2) fail(`store failed: ${JSON.stringify(st)}`);
+  await shot('storage-chest');
+  await key('Escape');
+  await page.evaluate(() => window.__state.save());
+  await page.reload();
+  await page.waitForFunction(() => window.__state?.player && window.__game?.scene.isActive('World'), null, { timeout: 15000 });
+  await page.waitForTimeout(500);
+  if ((await page.evaluate(() => window.__state.player.storage.meadow_dew)) !== 2) fail('storage did not persist');
+  console.log('storage ok');
 
   // ── Stats + Esc menu ──
+  const pts = (await s()).unspent;
   await key('c'); await key('Enter');
-  if ((await s()).unspent !== 4) fail('stats Enter did not spend a point');
+  if ((await s()).unspent !== pts - 1) fail('stats Enter did not spend a point');
   await key('Escape'); await key('Escape');
   if (!(await visible()).includes('pause')) fail('Esc did not open the menu');
   await key('Enter');
