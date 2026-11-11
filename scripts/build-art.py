@@ -157,9 +157,34 @@ ICONS = {
     'cloth_shoes': hue(G('tt107'), 210, 0.4), 'cloth_gloves': hue(G('tt131'), 220, 0.4, 1.2),
     'leather_cap': hue(G('tt131'), 28), 'leather_vest': G('tt130'), 'leather_pants': hue(G('tt130'), 25, 1.0, 0.8),
     'leather_boots': hue(G('tt107'), 25), 'leather_gloves': hue(G('tt131'), 30, 1.0, 0.8),
+    # v0.1.2 class drop sets
+    'meadow_blade': hue(G('td104'), 35, 1.3, 1.05), 'grove_staff': hue(G('td129'), 115, 0.8, 1.1), 'bone_knife': hue(G('td103'), 40, 0.7, 1.15),
+    'hide_cap': hue(G('tt131'), 25, 1.1), 'hide_vest': hue(G('tt130'), 25, 1.1, 0.9), 'hide_pants': hue(G('tt130'), 22, 1.0, 0.75),
+    'hide_boots': hue(G('tt107'), 22, 1.1), 'hide_gloves': hue(G('tt131'), 22, 1.1, 0.85),
+    'linen_cap': hue(G('tt131'), 260, 0.35, 1.25), 'linen_vest': hue(G('tt130'), 255, 0.3, 1.3), 'linen_pants': hue(G('tt130'), 250, 0.25, 1.2),
+    'linen_boots': hue(G('tt107'), 250, 0.3, 1.25), 'linen_gloves': hue(G('tt131'), 255, 0.3, 1.2),
+    'trail_cap': hue(G('tt131'), 40, 0.7, 0.75), 'trail_vest': hue(G('tt130'), 38, 0.7, 0.7), 'trail_pants': hue(G('tt130'), 35, 0.65, 0.65),
+    'trail_boots': hue(G('tt107'), 35, 0.7, 0.7), 'trail_gloves': hue(G('tt131'), 38, 0.7, 0.7),
 }
+
 items = [r['id'] for r in json.load(open(os.path.join(ROOT, 'data', 'items.json')))['rows']]
 missing = [i for i in items if i not in ICONS]
 for item_id in items:
     save(pad(ICONS.get(item_id, G('td65'))), 'icons', f'{item_id}.png')
-print(f'Wrote art to public/art ({len(items)} icons). Fallback icon used for: {missing or "none"}')
+
+# Skill icons (trainer / hotbar)
+SKILLS = {
+    'power_strike': G('td104'), 'rage': hue(G('td127'), 5, 1.5),
+    'earthbreaker': G('pp6'), 'flame_cleave': hue(G('td104'), 5, 1.6, 1.1),
+    'soul_guard': G('td102'),
+    'energy_blast': hue(G('td116'), 200, 1.2), 'energy_shield': hue(G('td102'), 200, 0.6, 1.2),
+    'thorn_bind': hue(G('fa104'), 115, 1.2), 'firebolt': hue(G('pp67'), 5, 1.5),
+    'holy_light': hue(G('td125'), 50, 0.5, 1.3),
+    'stealth': grey(G('tt131'), 0.6), 'backstab': G('td103'),
+    'venom_strike': hue(G('td103'), 115, 1.3), 'lightning_dash': hue(G('pp67'), 55, 1.4),
+    'shadow_mark': hue(G('td129'), 275, 1.0),
+}
+for sid, im in SKILLS.items():
+    save(pad(im), 'icons', f'skill_{sid}.png')
+print(f'Wrote art to public/art ({len(items)} icons + {len(SKILLS)} skills). Fallback icon used for: {missing or "none"}')
+

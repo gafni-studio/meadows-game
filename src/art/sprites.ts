@@ -90,6 +90,9 @@ export function iconKey(itemId: string): string {
 export function iconUrl(itemId: string): string {
   return SPRITES[`icon.${itemId}`]?.file ?? '';
 }
+export function skillIconUrl(skillId: string): string {
+  return `art/icons/skill_${skillId}.png`;
+}
 export function monsterSlot(monsterId: string): string {
   return SPRITES[`monster.${monsterId}`] ? `monster.${monsterId}` : 'monster.default';
 }
