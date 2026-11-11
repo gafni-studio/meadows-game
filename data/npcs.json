@@ -1,0 +1,41 @@
+{
+  "tab": "npcs",
+  "note": "NOTE: Player-facing NPC lines. `desc` is shown in the talk dialog (or kept for later if the role opens a window directly). `notes` is design-only and is never shown in game. v0.1.2-descs.",
+  "columns": [
+    "id",
+    "name",
+    "role",
+    "desc",
+    "notes"
+  ],
+  "rows": [
+    {
+      "id": "mara",
+      "name": "Mara",
+      "role": "shop",
+      "desc": "I buy junk and sell supplies for the pasture.",
+      "notes": "Meadows vendor. Opens the shop (npc_shop). Design only — this line is unused while role=shop opens the shop directly."
+    },
+    {
+      "id": "pell",
+      "name": "Pell",
+      "role": "hint",
+      "desc": "Welcome to Meadow Town! Head east to Sunny Pasture — mice and sheep leave you be unless you hit them, but watch the crows. Press E to pick up drops, sell junk to Mara, and train with Calden.",
+      "notes": "Town greeter. Grants sq_welcome on first talk. Tutorial-length dialog is longer than item descs on purpose."
+    },
+    {
+      "id": "calden",
+      "name": "Calden",
+      "role": "trainer",
+      "desc": "Bring me Monster Essence and Training Scrolls to rank your skills. Nature, Elemental and Spiritual skills need their own essence and materials.",
+      "notes": "Skill trainer. Role=trainer opens the skills window directly; desc is kept for later use and documentation."
+    },
+    {
+      "id": "ila",
+      "name": "Ila",
+      "role": "soon",
+      "desc": "I'm not exchanging essence just yet. Hold on to your Twigs, Bark and Wool.",
+      "notes": "Essence exchange (10:1) is later. Do not mention version numbers or design milestones in desc."
+    }
+  ]
+}

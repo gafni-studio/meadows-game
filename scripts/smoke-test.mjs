@@ -11,6 +11,7 @@
  *   - skills (K): Enter trains Power Strike rank 1 and pays Monster Essence + Training Scrolls + coins
  *   - stats (C): Enter spends a point; Esc menu opens/closes
  *   - walks into Sunny Pasture and fights with F / Power Strike (1)
+ *   - console `reset` and Esc → New game → Enter/Y both land on a fresh character
  * Usage: npm run build && npm run smoke   (CHROME_PATH overrides /usr/bin/google-chrome)
  * SHOTS=dir also saves screenshots there.
  */
@@ -97,7 +98,7 @@ try {
   await key('Escape');
   await page.waitForTimeout(400);
   // step a little away so the fly arc is visible, but stay inside pickup radius (56)
-  await page.evaluate(() => { window.__state.scene.player.x -= 28; });
+  await page.evaluate(() => { window.__state.scene.player.x -= 14; });
   await page.waitForTimeout(120);
   await shot('loot-on-ground');
   await key('e', 320);
@@ -157,6 +158,9 @@ try {
   if (!(await visible()).includes('skills')) fail('K did not open the skills window');
   const sk = await page.evaluate(() => document.querySelector('#p-skills .sel')?.dataset.skill);
   if (sk !== 'power_strike') fail(`skills default is ${sk}`);
+  const skillText = await page.evaluate(() => document.querySelector('#p-skills')?.innerText ?? '');
+  if (/Intentionally modest|Rebalanced down|Available from level 1|Clearly stronger than|Most expensive|opens mid|opens early|opens late|Capstone/i.test(skillText)) fail(`skill UI shows design notes: ${skillText.slice(0, 400)}`);
+  if (!/A heavy blow that hits harder/i.test(skillText)) fail(`skill UI missing player desc: ${skillText.slice(0, 400)}`);
   const coinsBefore = (await s()).coins;
   await key('Enter', 400);
   const ranks = await page.evaluate(() => ({ ...window.__state.player.skillRanks, coins: window.__state.player.coins, me: window.__state.player.inventory.monster_essence ?? 0, sc: window.__state.player.inventory.training_scroll ?? 0, bar: [...window.__state.player.skillBar] }));
@@ -207,6 +211,54 @@ try {
   console.log('after fighting:', end);
   if (end.xp + end.level * 1000 <= xpBefore) fail('Gained no XP — combat may be broken');
   await page.screenshot({ path: 'smoke-screenshot.png' });
+
+  // ── Reset must wipe everything and not let beforeunload rewrite the old save ──
+  const dirty = await s();
+  if (dirty.coins === 0 && dirty.xp === 0 && !dirty.cheated) fail(`pre-reset state is already fresh: ${JSON.stringify(dirty)}`);
+  await key('`');
+  await page.keyboard.type('reset');
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: 'load', timeout: 15000 }),
+    key('Enter'),
+  ]);
+  await page.waitForFunction(() => window.__state?.player && window.__game?.scene.isActive('World'), null, { timeout: 15000 });
+  await page.waitForTimeout(400);
+  const freshOf = async () => page.evaluate(() => {
+    const p = window.__state.player;
+    return {
+      area: p.area, level: p.level, xp: p.xp, coins: p.coins, cheated: p.cheated,
+      unspent: p.unspent, inv: { ...p.inventory }, storage: { ...p.storage },
+      ranks: { ...p.skillRanks }, flags: { ...p.questFlags },
+      keys: Object.keys(localStorage).filter((k) => k.startsWith('meadows')),
+    };
+  });
+  let fresh = await freshOf();
+  const isFresh = (f) => f.level === 1 && f.coins === 0 && f.xp === 0 && !f.cheated
+    && f.area === 'meadow_town' && !Object.keys(f.inv).length && !Object.keys(f.storage).length
+    && (f.ranks.power_strike ?? 0) === 0;
+  if (!isFresh(fresh)) fail(`console reset did not start fresh: ${JSON.stringify(fresh)}`);
+  console.log('console reset ok:', fresh);
+
+  // Menu: dirty the save, Esc → New game → Enter (or Y) confirms
+  await page.evaluate(() => {
+    const p = window.__state.player;
+    p.coins = 77; p.xp = 15; p.cheated = true;
+    p.inventory.meadow_dew = 3; p.storage.meadow_dew = 2;
+    window.__state.save();
+  });
+  await key('Escape', 200);
+  if (!(await visible()).includes('pause')) fail('Esc did not open the menu for reset');
+  await key('ArrowDown'); await key('ArrowDown'); await key('Enter', 250);
+  if (!(await visible()).includes('confirm')) fail('New game did not ask to confirm');
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: 'load', timeout: 15000 }),
+    key('y'),
+  ]);
+  await page.waitForFunction(() => window.__state?.player && window.__game?.scene.isActive('World'), null, { timeout: 15000 });
+  await page.waitForTimeout(400);
+  fresh = await freshOf();
+  if (!isFresh(fresh)) fail(`menu reset (Y) did not start fresh: ${JSON.stringify(fresh)}`);
+  console.log('menu reset ok:', fresh);
 } finally {
   await browser.close();
   server.kill();

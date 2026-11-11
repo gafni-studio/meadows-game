@@ -80,6 +80,8 @@ Hovering a tile with the mouse selects it too, and the preview panel shows the i
 17. **Impactful full set:** at level 1 with 0 points, a mid-roll Meadows drop set (Meadow Blade 14×1.15 + Hide armor, defense 10) is **+45% attack** and takes **~56% less** from a Crow vs basic (Wooden Sword, no armor). Hide and the Blade need 3 STR. Steel stays ultra-rare and above this. Skill training is still the main power-up. Numbers are in `assumptions.ts` and on the gear tab.
 18. **Magic gear:** about 1/12 of gear drops (and shop rolls) come out magic, with a plain prefix (Sturdy, Keen, Bright, Swift, Hearty, …) and 1–2 extra bonuses (STR/INT/AGI/SPI, accuracy, crit, HP/MP, regen) rolled from ranges. Blue name and a ✦ on the tile. Category infusion is later (Pitch Book B-003).
 19. **Console `whodrops <item>`:** lists every monster (and area) that drops it, with chance and quantity range. Partial names work (`whodrops hide`). It is in `help` and does not mark the save as cheated.
+20. **Reset actually starts a fresh character:** both console `reset` and Esc → New game used to be undone by the tab-close autosave, which wrote the old character back during reload. Reset now sets a wipe flag, clears every `meadows*` key, skips autosave, and reloads. The menu asks first; Enter or Y confirms, N or Esc cancels.
+21. **Player-facing descriptions:** tooltips and NPC/quest blurbs show a short `desc` (flavor only) plus stats. Design notes live in a separate `notes` column and are never shown. New descs are listed in `docs/player-descs.md`.
 
 
 ## What's new in v0.2 (skill training)
@@ -122,7 +124,7 @@ Console: `rank <skill> [n]` sets a rank (cheat); `train <skill>` pays the real c
 - Inventory with coins, consumables (use buttons and hotkeys), gear equip/unequip, and stat requirements.
 - XP curve comes from `xp_to_next_N` (the formula is used beyond level 10). Each level gives 5 ability points, full HP/MP and 1.5s of invulnerability.
 - Death costs 5% of current-level XP progress (you can't lose a level). You respawn in town after 3s at full HP/MP and keep your items.
-- localStorage save (`meadows.save.v1`): autosaves every 10s, on area change, level-up, shop actions and tab close. Esc → "New game" erases it.
+- localStorage save (`meadows.save.v1`): autosaves every 10s, on area change, level-up, shop actions and tab close. To start fresh: Esc → New game (erase save) → Enter or Y to confirm (N or Esc cancels). Console `reset` does the same without a confirm. Reset clears every `meadows*` key and blocks autosave / tab-close from writing the old character back.
 
 **Not in v0.1:** Mage and Rogue, skill ranking, the passive tree, the essence exchange, the full quest chain, other Meadows areas, bosses, crafting, server and multiplayer, mobile controls.
 
@@ -150,7 +152,7 @@ Press **`** to open, type a command, press **Enter** to run, **↑/↓** for his
 | `droprate <x>` | Multiply all drop chances (1 = normal) |
 | `rank <skill> [n]` | Set a skill rank (default +1) |
 | `train <skill>` | Pay the real cost and train the next rank |
-| `reset` | Erase the save and reload |
+| `reset` | Erase the save and reload onto a fresh character (no confirm; menu New game asks first) |
 
 ## Combat-feel stats (not in the sheet yet)
 

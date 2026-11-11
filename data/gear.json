@@ -1,6 +1,6 @@
 {
   "tab": "gear",
-  "note": "NOTE: item_id is a foreign key to items.id (item_type = gear). v0.1.2-gear: defense and weapon_damage are the typical (mid) values; defense_min/max and weapon_damage_min/max are rolled per dropped or bought instance and stored on the item (gear does not stack). A magic roll (~1/12 of gear drops) adds a prefix and 1-2 extra bonuses — see assumptions.MAGIC. Category infusion is later (Pitch Book B-003). Balance: at level 1 with 0 points, a mid-roll Meadows drop set (Meadow Blade 14×1.15 + Hide armor def 10) is about +45% attack and ~55% less damage taken from a Crow vs basic (Wooden Sword, no armor). Cloth is a weaker shop stepping-stone (mid def 6). Skill training remains the main power-up. Steel is ultra-rare.",
+  "note": "NOTE: item_id is a foreign key to items.id (item_type = gear). v0.1.2-gear: defense and weapon_damage are the typical (mid) values; defense_min/max and weapon_damage_min/max are rolled per dropped or bought instance and stored on the item (gear does not stack). A magic roll (~1/12 of gear drops) adds a prefix and 1-2 extra bonuses — see assumptions.MAGIC. Category infusion is later (Pitch Book B-003). Balance: at level 1 with 0 points, a mid-roll Meadows drop set (Meadow Blade 14×1.15 + Hide armor def 10) is about +45% attack and ~55% less damage taken from a Crow vs basic (Wooden Sword, no armor). Cloth is a weaker shop stepping-stone (mid def 6). Skill training remains the main power-up. Steel is ultra-rare. v0.1.2-descs: `desc` is player-facing flavor (no rolled ranges — those are shown as stats).",
   "columns": [
     "item_id",
     "slot",
@@ -14,7 +14,8 @@
     "defense_min",
     "defense_max",
     "weapon_damage_min",
-    "weapon_damage_max"
+    "weapon_damage_max",
+    "desc"
   ],
   "rows": [
     {
@@ -26,11 +27,12 @@
       "stat_multiplier": 1.1,
       "defense": 0,
       "weapon_damage": 10,
-      "description": "A plain wooden sword. Basic Meadows warrior weapon.",
+      "description": "A plain wooden sword.",
       "defense_min": 0,
       "defense_max": 0,
       "weapon_damage_min": 10,
-      "weapon_damage_max": 10
+      "weapon_damage_max": 10,
+      "desc": "A plain wooden sword."
     },
     {
       "item_id": "worn_staff",
@@ -41,11 +43,12 @@
       "stat_multiplier": 1.1,
       "defense": 0,
       "weapon_damage": 10,
-      "description": "A worn wooden staff. Basic Meadows mage weapon.",
+      "description": "A worn wooden staff.",
       "defense_min": 0,
       "defense_max": 0,
       "weapon_damage_min": 10,
-      "weapon_damage_max": 10
+      "weapon_damage_max": 10,
+      "desc": "A worn wooden staff."
     },
     {
       "item_id": "rusty_dagger",
@@ -56,11 +59,12 @@
       "stat_multiplier": 1.1,
       "defense": 0,
       "weapon_damage": 10,
-      "description": "A rusty dagger. Basic Meadows rogue weapon.",
+      "description": "A rusty dagger.",
       "defense_min": 0,
       "defense_max": 0,
       "weapon_damage_min": 10,
-      "weapon_damage_max": 10
+      "weapon_damage_max": 10,
+      "desc": "A rusty dagger."
     },
     {
       "item_id": "cloth_cap",
@@ -71,11 +75,12 @@
       "stat_multiplier": 1.03,
       "defense": 1,
       "weapon_damage": 0,
-      "description": "A simple cloth cap. Cross-class Meadows head armor.",
+      "description": "A simple cloth cap.",
       "defense_min": 1,
       "defense_max": 2,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "A simple cloth cap."
     },
     {
       "item_id": "cloth_tunic",
@@ -86,11 +91,12 @@
       "stat_multiplier": 1.05,
       "defense": 2,
       "weapon_damage": 0,
-      "description": "A simple cloth tunic. Cross-class Meadows torso armor.",
+      "description": "A simple cloth tunic.",
       "defense_min": 2,
       "defense_max": 3,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "A simple cloth tunic."
     },
     {
       "item_id": "cloth_pants",
@@ -101,11 +107,12 @@
       "stat_multiplier": 1.04,
       "defense": 1,
       "weapon_damage": 0,
-      "description": "A simple pair of cloth pants. Cross-class Meadows leg armor.",
+      "description": "A simple pair of cloth pants.",
       "defense_min": 1,
       "defense_max": 2,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "A simple pair of cloth pants."
     },
     {
       "item_id": "cloth_shoes",
@@ -116,11 +123,12 @@
       "stat_multiplier": 1.03,
       "defense": 1,
       "weapon_damage": 0,
-      "description": "A simple pair of cloth shoes. Cross-class Meadows boots.",
+      "description": "A simple pair of cloth shoes.",
       "defense_min": 1,
       "defense_max": 2,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "A simple pair of cloth shoes."
     },
     {
       "item_id": "cloth_gloves",
@@ -131,11 +139,12 @@
       "stat_multiplier": 1.03,
       "defense": 1,
       "weapon_damage": 0,
-      "description": "A simple pair of cloth gloves. Cross-class Meadows gloves.",
+      "description": "A simple pair of cloth gloves.",
       "defense_min": 1,
       "defense_max": 1,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "A simple pair of cloth gloves."
     },
     {
       "item_id": "leather_cap",
@@ -146,11 +155,12 @@
       "stat_multiplier": 1.06,
       "defense": 2,
       "weapon_damage": 0,
-      "description": "A simple leather cap. Cross-class Meadows head armor. Requires a total of 3 points in any attribute.",
+      "description": "A simple leather cap.",
       "defense_min": 1,
       "defense_max": 3,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "A simple leather cap."
     },
     {
       "item_id": "leather_vest",
@@ -161,11 +171,12 @@
       "stat_multiplier": 1.08,
       "defense": 3,
       "weapon_damage": 0,
-      "description": "A simple leather vest. Cross-class Meadows torso armor. Requires a total of 3 points in any attribute.",
+      "description": "A simple leather vest.",
       "defense_min": 2,
       "defense_max": 5,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "A simple leather vest."
     },
     {
       "item_id": "leather_pants",
@@ -176,11 +187,12 @@
       "stat_multiplier": 1.07,
       "defense": 2,
       "weapon_damage": 0,
-      "description": "A simple pair of leather pants. Cross-class Meadows leg armor. Requires a total of 3 points in any attribute.",
+      "description": "A simple pair of leather pants.",
       "defense_min": 1,
       "defense_max": 4,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "A simple pair of leather pants."
     },
     {
       "item_id": "leather_boots",
@@ -191,11 +203,12 @@
       "stat_multiplier": 1.06,
       "defense": 2,
       "weapon_damage": 0,
-      "description": "A simple pair of leather boots. Cross-class Meadows boots. Requires a total of 3 points in any attribute.",
+      "description": "A pair of simple leather boots.",
       "defense_min": 1,
       "defense_max": 3,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "A pair of simple leather boots."
     },
     {
       "item_id": "leather_gloves",
@@ -206,11 +219,12 @@
       "stat_multiplier": 1.06,
       "defense": 1,
       "weapon_damage": 0,
-      "description": "A simple pair of leather gloves. Cross-class Meadows gloves. Requires a total of 3 points in any attribute.",
+      "description": "A simple pair of leather gloves.",
       "defense_min": 1,
       "defense_max": 2,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "A simple pair of leather gloves."
     },
     {
       "item_id": "steel_sword",
@@ -221,11 +235,12 @@
       "stat_multiplier": 1.25,
       "defense": 0,
       "weapon_damage": 19,
-      "description": "A steel sword. Higher-area warrior weapon. Out-of-zone ultra-rare in Meadows.",
+      "description": "A well-forged steel sword.",
       "defense_min": 0,
       "defense_max": 0,
       "weapon_damage_min": 17,
-      "weapon_damage_max": 21
+      "weapon_damage_max": 21,
+      "desc": "A well-forged steel sword."
     },
     {
       "item_id": "steel_staff",
@@ -236,11 +251,12 @@
       "stat_multiplier": 1.25,
       "defense": 0,
       "weapon_damage": 19,
-      "description": "A steel staff. Higher-area mage weapon. Out-of-zone ultra-rare in Meadows.",
+      "description": "A well-forged steel staff.",
       "defense_min": 0,
       "defense_max": 0,
       "weapon_damage_min": 17,
-      "weapon_damage_max": 21
+      "weapon_damage_max": 21,
+      "desc": "A well-forged steel staff."
     },
     {
       "item_id": "steel_dagger",
@@ -251,11 +267,12 @@
       "stat_multiplier": 1.25,
       "defense": 0,
       "weapon_damage": 19,
-      "description": "A steel dagger. Higher-area rogue weapon. Out-of-zone ultra-rare in Meadows.",
+      "description": "A well-forged steel dagger.",
       "defense_min": 0,
       "defense_max": 0,
       "weapon_damage_min": 17,
-      "weapon_damage_max": 21
+      "weapon_damage_max": 21,
+      "desc": "A well-forged steel dagger."
     },
     {
       "item_id": "meadow_blade",
@@ -266,11 +283,12 @@
       "stat_multiplier": 1.15,
       "defense": 0,
       "weapon_damage": 14,
-      "description": "A sturdy farm blade, better than a wooden practice sword.",
+      "description": "A sturdy farm blade, better than a practice sword.",
       "defense_min": 0,
       "defense_max": 0,
       "weapon_damage_min": 13,
-      "weapon_damage_max": 16
+      "weapon_damage_max": 16,
+      "desc": "A sturdy farm blade, better than a practice sword."
     },
     {
       "item_id": "grove_staff",
@@ -281,11 +299,12 @@
       "stat_multiplier": 1.15,
       "defense": 0,
       "weapon_damage": 14,
-      "description": "A staff cut from a meadow grove. A step up from a worn staff.",
+      "description": "A staff cut from a grove tree.",
       "defense_min": 0,
       "defense_max": 0,
       "weapon_damage_min": 13,
-      "weapon_damage_max": 16
+      "weapon_damage_max": 16,
+      "desc": "A staff cut from a grove tree."
     },
     {
       "item_id": "bone_knife",
@@ -296,11 +315,12 @@
       "stat_multiplier": 1.15,
       "defense": 0,
       "weapon_damage": 14,
-      "description": "A sharp knife made from a cleaned bone. A step up from a rusty dagger.",
+      "description": "A sharp knife carved from bone.",
       "defense_min": 0,
       "defense_max": 0,
       "weapon_damage_min": 13,
-      "weapon_damage_max": 16
+      "weapon_damage_max": 16,
+      "desc": "A sharp knife carved from bone."
     },
     {
       "item_id": "hide_cap",
@@ -311,11 +331,12 @@
       "stat_multiplier": 1,
       "defense": 2,
       "weapon_damage": 0,
-      "description": "Thick hide cap for a Meadows warrior.",
+      "description": "A cap of meadow hide, stitched for a warrior.",
       "defense_min": 1,
       "defense_max": 3,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "A cap of meadow hide, stitched for a warrior."
     },
     {
       "item_id": "hide_vest",
@@ -326,11 +347,12 @@
       "stat_multiplier": 1,
       "defense": 3,
       "weapon_damage": 0,
-      "description": "Thick hide vest for a Meadows warrior.",
+      "description": "A vest of thick meadow hide.",
       "defense_min": 2,
       "defense_max": 5,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "A vest of thick meadow hide."
     },
     {
       "item_id": "hide_pants",
@@ -341,11 +363,12 @@
       "stat_multiplier": 1,
       "defense": 2,
       "weapon_damage": 0,
-      "description": "Thick hide pants for a Meadows warrior.",
+      "description": "Hide trousers, scuffed from the pasture.",
       "defense_min": 1,
       "defense_max": 4,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "Hide trousers, scuffed from the pasture."
     },
     {
       "item_id": "hide_boots",
@@ -356,11 +379,12 @@
       "stat_multiplier": 1,
       "defense": 2,
       "weapon_damage": 0,
-      "description": "Thick hide boots for a Meadows warrior.",
+      "description": "Sturdy hide boots for rough grass.",
       "defense_min": 1,
       "defense_max": 3,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "Sturdy hide boots for rough grass."
     },
     {
       "item_id": "hide_gloves",
@@ -371,11 +395,12 @@
       "stat_multiplier": 1,
       "defense": 1,
       "weapon_damage": 0,
-      "description": "Thick hide gloves for a Meadows warrior.",
+      "description": "A pair of hide gloves, still a little stiff.",
       "defense_min": 1,
       "defense_max": 2,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "A pair of hide gloves, still a little stiff."
     },
     {
       "item_id": "linen_cap",
@@ -386,11 +411,12 @@
       "stat_multiplier": 1,
       "defense": 2,
       "weapon_damage": 0,
-      "description": "Light linen cap for a Meadows mage.",
+      "description": "A light linen hood.",
       "defense_min": 1,
       "defense_max": 3,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "A light linen hood."
     },
     {
       "item_id": "linen_vest",
@@ -401,11 +427,12 @@
       "stat_multiplier": 1,
       "defense": 3,
       "weapon_damage": 0,
-      "description": "Light linen vest for a Meadows mage.",
+      "description": "A simple linen robe, cool in the sun.",
       "defense_min": 2,
       "defense_max": 5,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "A simple linen robe, cool in the sun."
     },
     {
       "item_id": "linen_pants",
@@ -416,11 +443,12 @@
       "stat_multiplier": 1,
       "defense": 2,
       "weapon_damage": 0,
-      "description": "Light linen pants for a Meadows mage.",
+      "description": "Linen wraps for walking the meadow.",
       "defense_min": 1,
       "defense_max": 4,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "Linen wraps for walking the meadow."
     },
     {
       "item_id": "linen_boots",
@@ -431,11 +459,12 @@
       "stat_multiplier": 1,
       "defense": 2,
       "weapon_damage": 0,
-      "description": "Light linen boots for a Meadows mage.",
+      "description": "Soft linen sandals.",
       "defense_min": 1,
       "defense_max": 3,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "Soft linen sandals."
     },
     {
       "item_id": "linen_gloves",
@@ -446,11 +475,12 @@
       "stat_multiplier": 1,
       "defense": 1,
       "weapon_damage": 0,
-      "description": "Light linen gloves for a Meadows mage.",
+      "description": "Light linen sleeves for the hands.",
       "defense_min": 1,
       "defense_max": 2,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "Light linen sleeves for the hands."
     },
     {
       "item_id": "trail_cap",
@@ -461,11 +491,12 @@
       "stat_multiplier": 1,
       "defense": 2,
       "weapon_damage": 0,
-      "description": "Worn trail cap for a Meadows rogue.",
+      "description": "A worn cap for the trail.",
       "defense_min": 1,
       "defense_max": 3,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "A worn cap for the trail."
     },
     {
       "item_id": "trail_vest",
@@ -476,11 +507,12 @@
       "stat_multiplier": 1,
       "defense": 3,
       "weapon_damage": 0,
-      "description": "Worn trail vest for a Meadows rogue.",
+      "description": "A light vest that will not catch on brush.",
       "defense_min": 2,
       "defense_max": 5,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "A light vest that will not catch on brush."
     },
     {
       "item_id": "trail_pants",
@@ -491,11 +523,12 @@
       "stat_multiplier": 1,
       "defense": 2,
       "weapon_damage": 0,
-      "description": "Worn trail pants for a Meadows rogue.",
+      "description": "Trail pants, easy to move in.",
       "defense_min": 1,
       "defense_max": 4,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "Trail pants, easy to move in."
     },
     {
       "item_id": "trail_boots",
@@ -506,11 +539,12 @@
       "stat_multiplier": 1,
       "defense": 2,
       "weapon_damage": 0,
-      "description": "Worn trail boots for a Meadows rogue.",
+      "description": "Quiet boots for the path.",
       "defense_min": 1,
       "defense_max": 3,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "Quiet boots for the path."
     },
     {
       "item_id": "trail_gloves",
@@ -521,11 +555,12 @@
       "stat_multiplier": 1,
       "defense": 1,
       "weapon_damage": 0,
-      "description": "Worn trail gloves for a Meadows rogue.",
+      "description": "Thin gloves that keep a firm grip.",
       "defense_min": 1,
       "defense_max": 2,
       "weapon_damage_min": 0,
-      "weapon_damage_max": 0
+      "weapon_damage_max": 0,
+      "desc": "Thin gloves that keep a firm grip."
     }
   ]
 }

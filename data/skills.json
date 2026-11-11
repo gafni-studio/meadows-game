@@ -1,6 +1,6 @@
 {
   "tab": "skills",
-  "note": "NOTE: branch is basic (starter, available from level 1) or nature / elemental / spiritual. Unlocks: basic from start; nature = level 3 + 5 main-stat points; elemental = level 6 + 10; spiritual = level 8 + 15. Rebalance rationale (to be tuned): basic skills are always available and cheap, so they start weaker and scale slowly (+5%/rank, v0.1.2). Category skills start stronger (or add utility) and scale faster (nature +12%, elemental +10%, spiritual +10% — raised in v0.1.2 so training is the main power-up) so they overtake basics and stay ahead. Examples: Power Strike 140% (was 180%), Energy Blast 130% (was 160%), Backstab 250% guaranteed crit, crit already baked in (was 400%). Training costs scale by tier: basic < nature < elemental < spiritual, and within a class the stronger skill costs more (e.g. Flame Cleave > Earthbreaker). Each rank still needs materials + essence + coins; rares are milestones at 5 and 10. mp_cost is placeholder MP spent on use. damage_multiplier is a factor (1.4 = 140% of attack). v0 placeholders; may pivot after playtesting.",
+  "note": "NOTE: branch is basic (starter, available from level 1) or nature / elemental / spiritual. Unlocks: basic from start; nature = level 3 + 5 main-stat points; elemental = level 6 + 10; spiritual = level 8 + 15. Rebalance rationale (to be tuned): basic skills are always available and cheap, so they start weaker and scale slowly (+5%/rank, v0.1.2). Category skills start stronger (or add utility) and scale faster (nature +12%, elemental +10%, spiritual +10% — raised in v0.1.2 so training is the main power-up) so they overtake basics and stay ahead. Examples: Power Strike 140% (was 180%), Energy Blast 130% (was 160%), Backstab 250% guaranteed crit, crit already baked in (was 400%). Training costs scale by tier: basic < nature < elemental < spiritual, and within a class the stronger skill costs more (e.g. Flame Cleave > Earthbreaker). Each rank still needs materials + essence + coins; rares are milestones at 5 and 10. mp_cost is placeholder MP spent on use. damage_multiplier is a factor (1.4 = 140% of attack). v0 placeholders; may pivot after playtesting. v0.1.2-descs: `desc` is the short player-facing line; design reasoning lives in `notes` and is never shown in game. `description` is kept in sync with `desc`.",
   "columns": [
     "id",
     "class_id",
@@ -15,7 +15,9 @@
     "duration_s",
     "mp_cost",
     "effect",
-    "description"
+    "description",
+    "desc",
+    "notes"
   ],
   "rows": [
     {
@@ -32,7 +34,9 @@
       "duration_s": 60,
       "mp_cost": 12,
       "effect": "+15% damage dealt, +10% damage taken",
-      "description": "Basic starter buff. Available from level 1. Intentionally modest so category skills feel like an upgrade."
+      "description": "Channel fury to hit harder for a short time.",
+      "desc": "Channel fury to hit harder for a short time.",
+      "notes": "Basic starter buff. Available from level 1. Intentionally modest so category skills feel like an upgrade."
     },
     {
       "id": "power_strike",
@@ -48,7 +52,9 @@
       "duration_s": null,
       "mp_cost": 8,
       "effect": "140% single-target damage",
-      "description": "Basic starter attack. Available from level 1. Rebalanced down from 180% so later skills outpace it (low +2%/rank scaling)."
+      "description": "A heavy blow that hits harder than a normal swing.",
+      "desc": "A heavy blow that hits harder than a normal swing.",
+      "notes": "Basic starter attack. Available from level 1. Rebalanced down from 180% so later skills outpace it (low +2%/rank scaling)."
     },
     {
       "id": "earthbreaker",
@@ -64,7 +70,9 @@
       "duration_s": null,
       "mp_cost": 14,
       "effect": "150% AoE ground slam + short stun",
-      "description": "Nature branch, opens early. A ground slam around the warrior. Slightly above Power Strike and hits a group."
+      "description": "Slam the ground and stagger nearby foes.",
+      "desc": "Slam the ground and stagger nearby foes.",
+      "notes": "Nature branch, opens early. A ground slam around the warrior. Slightly above Power Strike and hits a group."
     },
     {
       "id": "flame_cleave",
@@ -80,7 +88,9 @@
       "duration_s": 3,
       "mp_cost": 20,
       "effect": "200% wide swing + 3s burn",
-      "description": "Elemental branch, opens mid. A wide flaming swing. Clearly stronger than Earthbreaker; costs more to train."
+      "description": "A wide flaming swing that leaves enemies burning.",
+      "desc": "A wide flaming swing that leaves enemies burning.",
+      "notes": "Elemental branch, opens mid. A wide flaming swing. Clearly stronger than Earthbreaker; costs more to train."
     },
     {
       "id": "soul_guard",
@@ -96,7 +106,9 @@
       "duration_s": 20,
       "mp_cost": 26,
       "effect": "Shield absorbing 18% of max HP",
-      "description": "Spiritual branch, opens late. A protective soul shield. Most expensive warrior skill."
+      "description": "A shield of spirit that takes the next hits for you.",
+      "desc": "A shield of spirit that takes the next hits for you.",
+      "notes": "Spiritual branch, opens late. A protective soul shield. Most expensive warrior skill."
     },
     {
       "id": "energy_shield",
@@ -112,7 +124,9 @@
       "duration_s": 120,
       "mp_cost": 14,
       "effect": "+8% defense; attackers take 5% of damage dealt as reflected damage",
-      "description": "Basic starter buff. Available from level 1. Lasts 2 minutes. Modest so later skills feel stronger."
+      "description": "Wrap yourself in a ward that dulls and reflects blows.",
+      "desc": "Wrap yourself in a ward that dulls and reflects blows.",
+      "notes": "Basic starter buff. Available from level 1. Lasts 2 minutes. Modest so later skills feel stronger."
     },
     {
       "id": "energy_blast",
@@ -128,7 +142,9 @@
       "duration_s": null,
       "mp_cost": 10,
       "effect": "130% ranged damage",
-      "description": "Basic starter attack. Available from level 1. A ranged energy shot. Rebalanced down from 160% so Firebolt and Holy Light pull ahead."
+      "description": "A bolt of raw energy thrown from a distance.",
+      "desc": "A bolt of raw energy thrown from a distance.",
+      "notes": "Basic starter attack. Available from level 1. A ranged energy shot. Rebalanced down from 160% so Firebolt and Holy Light pull ahead."
     },
     {
       "id": "thorn_bind",
@@ -144,7 +160,9 @@
       "duration_s": 2,
       "mp_cost": 14,
       "effect": "120% damage + 2s root",
-      "description": "Nature branch, opens early. Vines bind the target in place. Lower raw damage than Energy Blast, but the root is the upgrade."
+      "description": "Vines lash out and hold a foe in place.",
+      "desc": "Vines lash out and hold a foe in place.",
+      "notes": "Nature branch, opens early. Vines bind the target in place. Lower raw damage than Energy Blast, but the root is the upgrade."
     },
     {
       "id": "firebolt",
@@ -160,7 +178,9 @@
       "duration_s": 3,
       "mp_cost": 22,
       "effect": "220% damage + 3s burn",
-      "description": "Elemental branch, opens mid. A direct fire bolt. Clearly stronger than Energy Blast; costs more than Thorn Bind."
+      "description": "A searing bolt that sets the target alight.",
+      "desc": "A searing bolt that sets the target alight.",
+      "notes": "Elemental branch, opens mid. A direct fire bolt. Clearly stronger than Energy Blast; costs more than Thorn Bind."
     },
     {
       "id": "holy_light",
@@ -176,7 +196,9 @@
       "duration_s": null,
       "mp_cost": 28,
       "effect": "220% AoE damage; heals the caster for 10% of damage dealt",
-      "description": "Spiritual branch, opens late. A burst of holy light. Capstone mage skill; most expensive to train."
+      "description": "A burst of light that harms foes and mends you.",
+      "desc": "A burst of light that harms foes and mends you.",
+      "notes": "Spiritual branch, opens late. A burst of holy light. Capstone mage skill; most expensive to train."
     },
     {
       "id": "stealth",
@@ -192,7 +214,9 @@
       "duration_s": 30,
       "mp_cost": 12,
       "effect": "50% dodge chance; cancelled when attacking",
-      "description": "Basic starter buff. Available from level 1. Required to use Backstab."
+      "description": "Slip into the shadows and become harder to hit.",
+      "desc": "Slip into the shadows and become harder to hit.",
+      "notes": "Basic starter buff. Available from level 1. Required to use Backstab."
     },
     {
       "id": "backstab",
@@ -208,7 +232,9 @@
       "duration_s": null,
       "mp_cost": 12,
       "effect": "250% damage, guaranteed crit (crit multiplier already included; no extra 1.5x). Only usable during Stealth.",
-      "description": "Basic starter attack. Available from level 1. Can only be used while Stealth is active. Rebalanced down from 400% so category skills can outpace it at high rank."
+      "description": "A precise strike from hiding that finds a weak spot.",
+      "desc": "A precise strike from hiding that finds a weak spot.",
+      "notes": "Basic starter attack. Available from level 1. Can only be used while Stealth is active. Rebalanced down from 400% so category skills can outpace it at high rank."
     },
     {
       "id": "venom_strike",
@@ -224,7 +250,9 @@
       "duration_s": 5,
       "mp_cost": 14,
       "effect": "150% damage + 5s poison",
-      "description": "Nature branch, opens early. A poisoned stab. Repeatable and scales better than Backstab."
+      "description": "A poisoned blade that keeps hurting after the cut.",
+      "desc": "A poisoned blade that keeps hurting after the cut.",
+      "notes": "Nature branch, opens early. A poisoned stab. Repeatable and scales better than Backstab."
     },
     {
       "id": "lightning_dash",
@@ -240,7 +268,9 @@
       "duration_s": null,
       "mp_cost": 20,
       "effect": "Dash through enemies, 200% damage each",
-      "description": "Elemental branch, opens mid. A dash that hits each enemy passed through. Stronger than Venom Strike; costs more."
+      "description": "Dash through your enemies in a crack of lightning.",
+      "desc": "Dash through your enemies in a crack of lightning.",
+      "notes": "Elemental branch, opens mid. A dash that hits each enemy passed through. Stronger than Venom Strike; costs more."
     },
     {
       "id": "shadow_mark",
@@ -256,7 +286,9 @@
       "duration_s": 15,
       "mp_cost": 26,
       "effect": "Marked target takes +30% damage",
-      "description": "Spiritual branch, opens late. Marks a target so they take more damage. Most expensive rogue skill."
+      "description": "Mark a foe so every hit that follows bites deeper.",
+      "desc": "Mark a foe so every hit that follows bites deeper.",
+      "notes": "Spiritual branch, opens late. Marks a target so they take more damage. Most expensive rogue skill."
     }
   ]
 }

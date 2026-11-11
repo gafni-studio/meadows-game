@@ -1,6 +1,6 @@
 {
   "tab": "starter_quests",
-  "note": "DRAFT — First-30-minute quest chain for Meadows. Teaches movement, combat, looting, the shop, spending ability points, ranking the first basic skill with Monster Essence, exchanging commons for category essence, and the first passive-tree point. Quest rewards cover most of the rank-1 basic-skill cost (30 Monster Essence, 5 Training Scrolls, 20 coins) and most of the rank-1 Nature Production cost (50 Pebble, 40 Bark, 5 Earth Shard, 50 Nature Essence, 30 coins), with a short hunt still required so the grind is not skipped. Total quest XP is 440; most leveling still comes from kills (level 2 during the early fights, around level 4 by the end). NPC names are original and plain: Pell (greeter), Mara (vendor), Calden (trainer), Ila (exchange). Placeholders, to be tuned.",
+  "note": "DRAFT — First-30-minute quest chain for Meadows. Teaches movement, combat, looting, the shop, spending ability points, ranking the first basic skill with Monster Essence, exchanging commons for category essence, and the first passive-tree point. Quest rewards cover most of the rank-1 basic-skill cost (30 Monster Essence, 5 Training Scrolls, 20 coins) and most of the rank-1 Nature Production cost (50 Pebble, 40 Bark, 5 Earth Shard, 50 Nature Essence, 30 coins), with a short hunt still required so the grind is not skipped. Total quest XP is 440; most leveling still comes from kills (level 2 during the early fights, around level 4 by the end). NPC names are original and plain: Pell (greeter), Mara (vendor), Calden (trainer), Ila (exchange). Placeholders, to be tuned. v0.1.2-descs: `desc` is the short player-facing quest blurb. `notes` and tuning remarks stay design-only and are never shown in game.",
   "columns": [
     "id",
     "name",
@@ -11,7 +11,8 @@
     "reward_coins",
     "reward_items",
     "prerequisite",
-    "notes"
+    "notes",
+    "desc"
   ],
   "rows": [
     {
@@ -24,7 +25,8 @@
       "reward_coins": 5,
       "reward_items": "meadow_dew x3",
       "prerequisite": "—",
-      "notes": "Teaches movement and jump. Pell is the town greeter. Three Meadow Dew so early deaths stay mild."
+      "notes": "Teaches movement and jump. Pell is the town greeter. Three Meadow Dew so early deaths stay mild.",
+      "desc": "Talk to Pell, walk to the Sunny Pasture gate, and come back."
     },
     {
       "id": "sq_first_fight",
@@ -36,7 +38,8 @@
       "reward_coins": 8,
       "reward_items": "—",
       "prerequisite": "sq_welcome",
-      "notes": "Teaches basic attack (J / left click) and real-time combat. 5 mice = 50 combat XP plus this 50 quest XP, which is enough to reach level 2 (70 XP)."
+      "notes": "Teaches basic attack (J / left click) and real-time combat. 5 mice = 50 combat XP plus this 50 quest XP, which is enough to reach level 2 (70 XP).",
+      "desc": "Defeat 5 Field Mice in Sunny Pasture and return to Pell."
     },
     {
       "id": "sq_loot",
@@ -48,7 +51,8 @@
       "reward_coins": 8,
       "reward_items": "—",
       "prerequisite": "sq_first_fight",
-      "notes": "Teaches loot pickup. Any dropped items count (materials, junk, coins, essence). Leaves the player with something to sell."
+      "notes": "Teaches loot pickup. Any dropped items count (materials, junk, coins, essence). Leaves the player with something to sell.",
+      "desc": "Pick up 6 items in Sunny Pasture and talk to Pell."
     },
     {
       "id": "sq_shop",
@@ -60,7 +64,8 @@
       "reward_coins": 12,
       "reward_items": "barley_cake x1",
       "prerequisite": "sq_loot",
-      "notes": "Teaches the NPC shop and sell-back. Mara is the Meadows vendor (npc_shop). The 12-coin reward cushions the purchase. She will not buy materials or essences."
+      "notes": "Teaches the NPC shop and sell-back. Mara is the Meadows vendor (npc_shop). The 12-coin reward cushions the purchase. She will not buy materials or essences.",
+      "desc": "Sell a bit of junk to Mara, then buy a Meadow Dew or a Barley Cake."
     },
     {
       "id": "sq_spend_points",
@@ -72,7 +77,8 @@
       "reward_coins": 10,
       "reward_items": "—",
       "prerequisite": "sq_shop",
-      "notes": "Teaches spending ability points. The player should already be level 2 from sq_first_fight. Points are not auto-spent on level up."
+      "notes": "Teaches spending ability points. The player should already be level 2 from sq_first_fight. Points are not auto-spent on level up.",
+      "desc": "Open your stats (C) and spend your first ability points."
     },
     {
       "id": "sq_essence_lesson",
@@ -84,7 +90,8 @@
       "reward_coins": 20,
       "reward_items": "monster_essence x25; training_scroll x4",
       "prerequisite": "sq_spend_points",
-      "notes": "Teaches that Monster Essence drops from monsters and is used to train basic skills. Calden is the skill trainer. The reward covers most of a rank-1 basic skill (30 Monster Essence, 5 Training Scrolls, 20 coins) — the player still needs about 5 more Monster Essence and 1 Training Scroll from hunting (~25-35 pasture kills, a few minutes). Does not rank the skill yet."
+      "notes": "Teaches that Monster Essence drops from monsters and is used to train basic skills. Calden is the skill trainer. The reward covers most of a rank-1 basic skill (30 Monster Essence, 5 Training Scrolls, 20 coins) — the player still needs about 5 more Monster Essence and 1 Training Scroll from hunting (~25-35 pasture kills, a few minutes). Does not rank the skill yet.",
+      "desc": "Bring Calden a vial of Monster Essence from a Meadows monster."
     },
     {
       "id": "sq_rank_skill",
@@ -96,7 +103,8 @@
       "reward_coins": 15,
       "reward_items": "meadow_dew x2",
       "prerequisite": "sq_essence_lesson",
-      "notes": "Teaches skill ranking. Basic skills are already unlocked at the start but begin at rank 0 until paid. The previous quest's reward plus a short hunt should cover the cost without skipping the gather step. After this, the first skill rank is done."
+      "notes": "Teaches skill ranking. Basic skills are already unlocked at the start but begin at rank 0 until paid. The previous quest's reward plus a short hunt should cover the cost without skipping the gather step. After this, the first skill rank is done.",
+      "desc": "Train a basic skill to rank 1 at Calden, or press K."
     },
     {
       "id": "sq_exchange",
@@ -108,7 +116,8 @@
       "reward_coins": 20,
       "reward_items": "nature_essence x35; pebble x40; bark x30; earth_shard x5",
       "prerequisite": "sq_rank_skill",
-      "notes": "Teaches the 10:1 commons-to-category-essence exchange (see the exchange tab). Ila minds the exchange bench in town. The reward is most of a rank-1 Nature Production passive (50 Pebble, 40 Bark, 5 Earth Shard, 50 Nature Essence, 30 coins). Earth Shards are ~3% on Earth Sprite and are not realistically farmed in the first 30 minutes, so they are granted here. The player still needs about 15 Nature Essence and 10 Pebble / 10 Bark from inventory, a short hunt, or one more exchange."
+      "notes": "Teaches the 10:1 commons-to-category-essence exchange (see the exchange tab). Ila minds the exchange bench in town. The reward is most of a rank-1 Nature Production passive (50 Pebble, 40 Bark, 5 Earth Shard, 50 Nature Essence, 30 coins). Earth Shards are ~3% on Earth Sprite and are not realistically farmed in the first 30 minutes, so they are granted here. The player still needs about 15 Nature Essence and 10 Pebble / 10 Bark from inventory, a short hunt, or one more exchange.",
+      "desc": "Bring Ila 10 Nature commons and exchange them for 1 Nature Essence."
     },
     {
       "id": "sq_first_passive",
@@ -120,7 +129,8 @@
       "reward_coins": 20,
       "reward_items": "spring_draught x1",
       "prerequisite": "sq_exchange",
-      "notes": "Teaches the passive tree and the first point of essence production (rank 0 yields nothing; rank 1 starts the steep curve). Completing this should be possible around the 30-minute mark if the player hunted during the earlier quests. Rewards do not fully pay the node — a little gathering remains so the grind is not skipped. First skill rank and first passive point are both done by the end of this chain."
+      "notes": "Teaches the passive tree and the first point of essence production (rank 0 yields nothing; rank 1 starts the steep curve). Completing this should be possible around the 30-minute mark if the player hunted during the earlier quests. Rewards do not fully pay the node — a little gathering remains so the grind is not skipped. First skill rank and first passive point are both done by the end of this chain.",
+      "desc": "Open the passive tree (T) and spend your first point."
     }
   ]
 }

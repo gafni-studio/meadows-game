@@ -18,7 +18,7 @@ export function tab<T = Row>(name: string): T[] {
 
 export interface ItemDef {
   id: string; name: string; item_type: 'material' | 'gear' | 'currency' | 'misc' | 'consumable';
-  subtype_id: string | null; sellable_only: boolean; sell_price: number | null; description: string;
+  subtype_id: string | null; sellable_only: boolean; sell_price: number | null; description: string; desc?: string; notes?: string;
 }
 export interface MonsterDef {
   id: string; name: string; category_id: string; level: number; is_boss: boolean; description: string;
@@ -27,12 +27,12 @@ export interface MonsterDef {
 }
 export interface DropRow { monster_id: string; item_id: string; drop_rate: number; min_qty: number; max_qty: number; unlock_requirement_id: string | null }
 export interface ShopRow { id: string; item_id: string; role: 'sell' | 'buy'; price: number | null; currency: string; stock: string; notes: string }
-export interface GearDef { item_id: string; slot: string; class_id: string; required_stat: string | null; required_value: number; stat_multiplier: number; defense: number; weapon_damage: number; defense_min?: number; defense_max?: number; weapon_damage_min?: number; weapon_damage_max?: number }
-export interface SkillDef { id: string; class_id: string; name: string; branch: string; type: 'active' | 'buff'; unlock_stage: string; max_rank: number; per_rank_scaling: string | null; scaling_stat: string | null; damage_multiplier: number | null; duration_s: number | null; mp_cost: number; effect: string; description: string }
+export interface GearDef { item_id: string; slot: string; class_id: string; required_stat: string | null; required_value: number; stat_multiplier: number; defense: number; weapon_damage: number; defense_min?: number; defense_max?: number; weapon_damage_min?: number; weapon_damage_max?: number; description?: string; desc?: string }
+export interface SkillDef { id: string; class_id: string; name: string; branch: string; type: 'active' | 'buff'; unlock_stage: string; max_rank: number; per_rank_scaling: string | null; scaling_stat: string | null; damage_multiplier: number | null; duration_s: number | null; mp_cost: number; effect: string; description: string; desc?: string; notes?: string }
 export interface AreaDef { id: string; name: string; level_range: string; monster_ids: string; spawns: Record<string, number>; links: Record<string, string>; notes: string }
 export interface KV { key: string; value: unknown; notes: string; num: number | null }
 
-/** A consumable's effect, parsed from the sheet's item description ("Restores 40 HP", "+20% move and attack speed for 30 seconds"). */
+/** A consumable's effect, parsed from notes (and leftover description text). Never shown as flavor. */
 export interface ConsumableEffect { hp?: number; mp?: number; buff?: { speedPct: number; durationS: number } }
 
 const byId = <T extends { id: string }>(rows: T[]) => Object.fromEntries(rows.map((r) => [r.id, r])) as Record<string, T>;
@@ -44,6 +44,7 @@ export const DB = {
   shop: tab<ShopRow>('npc_shop'),
   gear: Object.fromEntries(tab<GearDef>('gear').map((g) => [g.item_id, g])) as Record<string, GearDef>,
   skills: byId(tab<SkillDef>('skills')),
+  npcs: byId(tab<NpcDef>('npcs')),
   areas: byId(tab<AreaDef>('map_layout')),
   formulas: Object.fromEntries(tab<KV>('combat_formulas').map((k) => [k.key, k])) as Record<string, KV>,
   rules: Object.fromEntries(tab<KV>('game_rules').map((k) => [k.key, k])) as Record<string, KV>,
@@ -61,13 +62,14 @@ export function dropsFor(monsterId: string): DropRow[] {
 }
 
 export function consumableEffect(itemId: string): ConsumableEffect {
-  const desc = DB.items[itemId]?.description ?? '';
+  const it = DB.items[itemId];
+  const text = [it?.notes, it?.description, it?.desc].filter(Boolean).join(' ');
   const eff: ConsumableEffect = {};
-  const hp = desc.match(/Restores (\d+) HP/i);
-  const mp = desc.match(/Restores (\d+) MP/i);
+  const hp = text.match(/Restores (\d+) HP/i);
+  const mp = text.match(/Restores (\d+) MP/i);
   if (hp) eff.hp = Number(hp[1]);
   if (mp) eff.mp = Number(mp[1]);
-  const buff = desc.match(/\+(\d+)% move and attack speed for (\d+)/i);
+  const buff = text.match(/\+(\d+)% move and attack speed for (\d+)/i);
   if (buff) eff.buff = { speedPct: Number(buff[1]), durationS: Number(buff[2]) };
   return eff;
 }
@@ -109,7 +111,12 @@ export function xpToNext(level: number): number {
   return Math.round(40 * Math.pow(level, 1.5) + 30 * level); // combat_formulas.xp_formula
 }
 
-export interface QuestRow { id: string; name: string; giver: string; reward_xp: number | null; reward_coins: number | null; reward_items: string | null; objective: string }
+export interface QuestRow { id: string; name: string; giver: string; reward_xp: number | null; reward_coins: number | null; reward_items: string | null; objective: string; desc?: string; notes?: string }
+export interface NpcDef { id: string; name: string; role: string; desc: string; notes?: string }
+/** Player-facing line. Never returns design notes. */
+export function descOf(row: { desc?: string | null; description?: string | null } | undefined): string {
+  return (row?.desc || row?.description || '').trim();
+}
 
 /** starter_quests row with parsed reward_items ("meadow_dew x3; training_scroll x4"). */
 export function quest(id: string) {

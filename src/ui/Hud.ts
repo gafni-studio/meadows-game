@@ -1,8 +1,8 @@
-import { DB, f, quest, xpToNext, shopPrice, vendorBuyPrice, consumableEffect } from '../data/db';
+import { DB, f, quest, xpToNext, shopPrice, vendorBuyPrice, consumableEffect, descOf } from '../data/db';
 import { ASSUME } from '../data/assumptions';
 import { DEV_CONSOLE } from '../config';
 import { Game } from '../systems/GameState';
-import { clearSave } from '../systems/Save';
+import { resetAndReload } from '../systems/Save';
 import { runCommand } from '../systems/Cheats';
 import * as P from '../systems/Player';
 import { HP_POTIONS, MP_POTIONS } from '../scenes/WorldScene';
@@ -110,6 +110,10 @@ export class Hud {
       if (this.held) { this.held = null; this.renderPanels(); return; }
       if (top) this.close(top); else this.open('pause');
       return;
+    }
+    if (top === 'confirm' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      if (k === 'Enter' || k === 'y' || k === 'Y') { e.preventDefault(); resetAndReload(); return; }
+      if (k === 'n' || k === 'N') { e.preventDefault(); this.close('confirm'); return; }
     }
     if ((top === 'inventory' || top === 'storage') && !e.ctrlKey && !e.altKey && !e.metaKey) {
       const cur = this.selectedEl(top);
@@ -359,11 +363,8 @@ export class Hud {
   private npc(id: string, role: string, name: string) {
     if (role === 'shop') { this.shopTab = 'buy'; this.open('shop'); return; }
     if (role === 'trainer') { this.open('skills'); return; }
-    const lines: Record<string, string> = {
-      pell: "Welcome to Meadow Town! Head east through the gate into Sunny Pasture. Mice and sheep won't bother you unless you hit them — but watch the crows further east. Press E to pick up what they drop, and sell junk to Mara. Calden trains skills — bring Monster Essence and Training Scrolls.",
-      calden: 'Bring Monster Essence and Training Scrolls to rank your basic skills, and category essence plus materials for Nature, Elemental and Spiritual skills.',
-      ila: 'The 10-for-1 essence exchange opens later in v0.2. Keep your Twigs, Bark and Wool.',
-    };
+    const lines: Record<string, string> = {};
+    for (const n of Object.values(DB.npcs ?? {})) if (n.desc) lines[n.id] = n.desc;
     let extra = '';
     const q = id === 'pell' ? quest('sq_welcome') : null;
     if (q && !Game.player.questFlags[q.id]) {
@@ -420,7 +421,7 @@ export class Hud {
     }
     if (this.stack.includes('confirm')) {
       $('#p-confirm').innerHTML = `<h3>Erase save?</h3><p>This deletes your character and starts over.</p>
-        <div class="btns"><button data-nav data-key="no" data-close="confirm">Cancel</button><button data-nav data-key="yes" data-act="erase" class="danger">Erase save</button></div>${hint('←→ select · Enter choose · Esc cancel')}`;
+        <div class="btns"><button data-nav data-key="no" data-close="confirm">Cancel</button><button data-nav data-key="yes" data-act="erase" class="danger">Erase save</button></div>${hint('Enter / Y erase · N / Esc cancel')}`;
     }
     for (const name of this.stack) this.applySelection(name);
   }
@@ -595,7 +596,7 @@ export class Hud {
     const ownedGear = isGear(id) ? P.gearCount(p, id) : 0;
     const worn = piece && Object.values(p.equipment).includes(piece.uid);
     box.innerHTML = `<div class="pv-head"><img src="${iconUrl(id)}"><div><div class="pv-name${piece?.magic ? ' magic' : ''}${piece ? ` q-${instanceQuality(piece)}` : ''}">${esc(name)}</div><div class="pv-type t-${it.item_type}">${TYPE_LABEL[it.item_type] ?? it.item_type}${piece ? ` · ${instanceQuality(piece)} roll` : ''}</div></div></div>
-      <p>${esc(it.description)}</p>
+      <p>${esc(descOf(it))}</p>
       ${lines.length ? `<div class="pv-eff">${lines.join('<br>')}</div>` : ''}
       <table class="pv-stats">
         ${buy !== null ? `<tr><td>Shop price</td><td>${buy}c</td></tr>` : ''}
@@ -627,7 +628,7 @@ export class Hud {
       : Sk.canAfford(p, costs) ? `Enter: ${known ? 'train' : 'learn'} rank ${r + 1}` : '<span class="warn">Missing materials</span>';
     const bound = Sk.barOf(p).indexOf(id);
     box.innerHTML = `<div class="pv-head"><img src="${skillIconUrl(id)}"><div><div class="pv-name">${esc(sk.name)}</div><div class="pv-type">${sk.branch} · ${sk.type} · rank ${r}/${max}${bound >= 0 ? ` · bound to ${bound + 1}` : ''}</div></div></div>
-      <p>${esc(sk.description)}</p>
+      <p>${esc(descOf(sk))}</p>
       <div class="pv-eff">${esc(sk.effect)}</div>
       <div class="pv-eff">${esc(Sk.rankPreview(id, r))} · ${sk.mp_cost} MP</div>
       ${r < max ? `<table class="pv-stats"><tr><th colspan="2">Cost for rank ${r + 1}</th></tr>${costRows}</table>` : ''}
@@ -696,8 +697,8 @@ export class Hud {
       const ok = price !== null && (uid ? !!P.removeGear(p, uid) : P.removeItem(p, d.sell));
       if (ok && price !== null) { p.coins += price; this.toast(`Sold ${DB.items[d.sell].name} for ${price}c`, 'loot'); Game.save(); }
     } else if (d.act === 'save') { Game.save(); this.toast('Saved', 'info'); }
-    else if (d.act === 'reset') { this.sel.confirm = 'no'; this.open('confirm'); }
-    else if (d.act === 'erase') { clearSave(); location.reload(); }
+    else if (d.act === 'reset') { this.sel.confirm = 'yes'; this.open('confirm'); }
+    else if (d.act === 'erase') { resetAndReload(); }
     Game.changed();
     t.blur(); // keep keyboard focus on the game
   }
