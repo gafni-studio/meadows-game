@@ -96,7 +96,14 @@ save(tile('tc177'), 'chars', 'monster_field_mouse.png')
 save(tile('tc154'), 'chars', 'monster_wool_sheep.png')
 crow = Image.new('RGBA', (32, 16)); crow.alpha_composite(tile('tc137'), (0, 0)); crow.alpha_composite(tile('tc138'), (16, 0))
 save(crow, 'chars', 'monster_crow.png')
-save(tile('tc161'), 'chars', 'monster_burrow_mole.png')  # placeholder for v0.2 (boar-ish critter)
+save(tile('tc161'), 'chars', 'monster_burrow_mole.png')
+# v0.2 areas (Dirt Banks, Meadow Shrine, Dusk Margin)
+for mid, im in {
+    'earth_sprite': tile('tc45'), 'ember_beetle': hue(tile('tc140'), 15, 1.5, 1.1),
+    'frost_moth': hue(tile('tc13'), 190, 0.7, 1.2), 'spark_bug': tile('tc141'),
+    'shrine_wisp': tile('tc90'), 'dusk_wisp': hue(tile('tc90'), 275, 0.8, 0.8), 'meadow_boar': tile('tc21'),
+}.items():
+    save(im, 'chars', f'monster_{mid}.png')
 
 # ───────── world ─────────
 save(tile('pp2'), 'world', 'grass_top.png')
@@ -113,6 +120,9 @@ save(tile('tt94'), 'world', 'hive.png')
 door = Image.new('RGBA', (18, 36)); door.alpha_composite(tile('pp130'), (0, 0)); door.alpha_composite(tile('pp150'), (0, 18))
 save(door, 'world', 'portal.png')
 save(tile('td104'), 'fx', 'sword.png')
+save(tile('td102'), 'fx', 'pebble.png')  # crow projectile
+save(tile('td89'), 'world', 'chest.png')
+save(tile('td90'), 'world', 'chest_open.png')
 
 # ───────── item icons (one per items.id; 18x18 canvas) ─────────
 G = lambda ref: tile(ref)

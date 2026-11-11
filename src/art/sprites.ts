@@ -44,6 +44,13 @@ export const SPRITES: Record<string, SpriteSlot> = {
   'monster.wool_sheep': char('monster_wool_sheep', 48, 48, 0xf2f2ee, [14, 11, 1, 3]),
   'monster.crow': char('monster_crow', 36, 36, 0x2b2b33, [10, 10, 3, 4], { frameW: 16, frameH: 16 }),
   'monster.burrow_mole': char('monster_burrow_mole', 40, 40, 0x5a4636, [12, 11, 2, 4]),
+  'monster.earth_sprite': char('monster_earth_sprite', 44, 44, 0x8a6a40, [12, 13, 2, 3]),
+  'monster.ember_beetle': char('monster_ember_beetle', 40, 40, 0xd8602a, [12, 10, 2, 5]),
+  'monster.frost_moth': char('monster_frost_moth', 40, 40, 0xbfe8ff, [10, 12, 3, 3]),
+  'monster.spark_bug': char('monster_spark_bug', 36, 36, 0xf0d040, [10, 10, 3, 4]),
+  'monster.shrine_wisp': char('monster_shrine_wisp', 36, 36, 0x9fe0ff, [10, 10, 3, 3]),
+  'monster.dusk_wisp': char('monster_dusk_wisp', 36, 36, 0x8a5ad0, [10, 10, 3, 3]),
+  'monster.meadow_boar': char('monster_meadow_boar', 52, 52, 0x7a5a40, [14, 11, 1, 4]),
   'monster.default': { w: 32, h: 32, color: 0xcc3355, shape: 'roundrect' },
 
   // World
@@ -58,11 +65,14 @@ export const SPRITES: Record<string, SpriteSlot> = {
   'deco.fence': { w: 96, h: 32, color: 0xc9a46a, file: `${A}world/fence.png` },
   'deco.sign': { w: 36, h: 36, color: 0xc9a46a, file: `${A}world/sign.png` },
   'deco.hive': { w: 32, h: 32, color: 0xe0b040, file: `${A}world/hive.png` },
+  'deco.chest': { w: 40, h: 40, color: 0xa0703a, file: `${A}world/chest.png` },
+  'deco.chest_open': { w: 40, h: 40, color: 0xa0703a, file: `${A}world/chest_open.png` },
   portal: { w: 40, h: 80, color: 0xffe08a, shape: 'roundrect', file: `${A}world/portal.png` },
 
   // Effects
   'fx.slash': { w: 64, h: 40, color: 0xffffff, shape: 'roundrect' },
   'fx.sword': { w: 36, h: 36, color: 0xdddddd, file: `${A}fx/sword.png` },
+  'fx.pebble': { w: 22, h: 22, color: 0x777777, shape: 'circle', file: `${A}fx/pebble.png` },
   'fx.glow': { w: 16, h: 16, color: 0x7dff9b, shape: 'circle' },
 };
 
