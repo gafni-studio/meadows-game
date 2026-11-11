@@ -96,10 +96,8 @@ try {
   if ((await s()).inv.meadow_dew !== 1) fail('drop 1 failed');
   await shot('inventory');
   await key('Escape');
-  await page.waitForTimeout(400);
-  // step a little away so the fly arc is visible, but stay inside pickup radius (56)
-  await page.evaluate(() => { window.__state.scene.player.x -= 14; });
-  await page.waitForTimeout(120);
+  await page.waitForTimeout(500);
+  // Do not step away: Mara is next to the player and E would talk to her if the drop is out of range.
   await shot('loot-on-ground');
   await key('e', 320);
   await shot('pickup-fly');
@@ -128,7 +126,7 @@ try {
   await key('`');
   await page.keyboard.type('whodrops hide vest'); await key('Enter', 200);
   const who = await page.evaluate(() => document.querySelector('#console-out')?.innerText ?? '');
-  if (!/Wool Sheep/i.test(who) || !/2%/.test(who)) fail(`whodrops failed: ${who.slice(-400)}`);
+  if (!/Wool Sheep/i.test(who) || !/0\.12%/.test(who)) fail(`whodrops failed: ${who.slice(-400)}`);
   await page.keyboard.type('item hide_vest'); await key('Enter');
   await page.keyboard.type('item hide_vest magic'); await key('Enter');
   await key('Escape');
@@ -147,6 +145,25 @@ try {
   await shot('inventory-gear');
   await key('Escape');
   console.log('gear/whodrops ok:', hides);
+  // hotbar: defaults on a fresh-enough bar; give a dew (chest may already hold the shop stack) and bind it to 3
+  const bar0 = await page.evaluate(() => [...window.__state.player.skillBar]);
+  if (bar0[0] !== 'power_strike' || bar0.length !== 6 || !bar0.includes('meadow_dew') || bar0[5] !== 'clear_dew') fail(`hotbar defaults: ${JSON.stringify(bar0)}`);
+  await key('`');
+  await page.keyboard.type('item meadow_dew 1'); await key('Enter');
+  await key('Escape');
+  await key('i', 250);
+  const picked = await page.evaluate(() => {
+    const t = document.querySelector('#p-inventory .tile[data-item="meadow_dew"]');
+    if (!t) return null;
+    t.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    return t.dataset.item;
+  });
+  if (picked !== 'meadow_dew') fail(`could not highlight Meadow Dew (click would drink it): ${picked}`);
+  await key('3', 200);
+  await key('Escape', 150);
+  const bar1 = await page.evaluate(() => [...window.__state.player.skillBar]);
+  if (bar1[2] !== 'meadow_dew') fail(`inventory 3 did not bind Meadow Dew: ${JSON.stringify(bar1)}`);
+  console.log('hotbar ok:', bar1);
 
 
   // ── Skill training (K / Calden): Enter trains Power Strike rank 1, pays the sheet cost ──
@@ -154,7 +171,10 @@ try {
   await page.keyboard.type('item monster_essence 30'); await key('Enter');
   await page.keyboard.type('item training_scroll 5'); await key('Enter');
   await key('Escape');
-  await key('k', 250);
+  // Close leftover panels without a second Esc (that would open the pause menu).
+  await page.evaluate(() => window.__game?.events?.emit('close-all'));
+  await page.waitForTimeout(100);
+  await key('k', 350);
   if (!(await visible()).includes('skills')) fail('K did not open the skills window');
   const sk = await page.evaluate(() => document.querySelector('#p-skills .sel')?.dataset.skill);
   if (sk !== 'power_strike') fail(`skills default is ${sk}`);
@@ -168,7 +188,7 @@ try {
   if (ranks.me !== 0 || ranks.sc !== 0 || ranks.coins !== coinsBefore - 20) fail(`train did not pay the cost: ${JSON.stringify(ranks)} coinsBefore=${coinsBefore}`);
   await shot('skills-train');
   await key('Escape');
-  if ((await visible()).length) fail('Esc did not close skills');
+  if ((await visible()).length) fail(`Esc did not close skills: ${JSON.stringify(await visible())}`);
   console.log('skills ok:', ranks);
 
 

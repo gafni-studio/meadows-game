@@ -1,4 +1,4 @@
-# Meadows — prototype v0.1.2
+# Meadows — prototype v0.1.3
 
 A 2D side-scrolling browser MMORPG prototype (MapleStory-style real-time grinding, later Travian-style offline growth).
 v0.1 is a **single-player** slice of the Meadows zone: **Meadow Town** (hub + Mara's shop) and **Sunny Pasture** (levels 1-3).
@@ -29,7 +29,7 @@ Add `?canvas` to the URL to force the Canvas renderer instead of WebGL (used by 
 | Skill 1: Power Strike | **1** |
 | Skill 2: Rage | **2** |
 | Skills 3-4 | **3 / 4** (Earthbreaker / Flame Cleave once learned; bind any skill from the K window) |
-| Skill training (ranks, bind 1-4) | **K** (or E at Calden) |
+| Skill training (ranks, bind 1-6) | **K** (or E at Calden) |
 | HP potion (first owned: Meadow Dew → Spring Draught → Barley Cake → Wild Apple) | **5** |
 | MP potion (first owned: Clear Dew → Mint Draught) | **6** or **G** |
 | Pick up nearby drops / talk to NPC / use portal | **E** |
@@ -56,7 +56,24 @@ While any window is open, gameplay keys (move, jump, F attack, skills, potions) 
 
 Hovering a tile with the mouse selects it too, and the preview panel shows the item's icon, type, description, effect, prices and how many you own.
 
-**Why these keys:** no modifier keys are used, so gameplay can't trigger browser shortcuts (Ctrl+W closes the tab, etc.). Phaser calls `preventDefault` on every bound key, and a small guard blocks stray Ctrl+letter page shortcuts (Ctrl+S, Ctrl+P, ...). Potions are on 5 and 6/G instead of the sheet's Q/R.
+**Why these keys:** no modifier keys are used, so gameplay can't trigger browser shortcuts (Ctrl+W closes the tab, etc.). Phaser calls `preventDefault` on every bound key, and a small guard blocks stray Ctrl+letter page shortcuts (Ctrl+S, Ctrl+P, ...). The hotbar is 1–6 (skills or consumables); Q and G still fire slots 5 and 6, instead of the sheet's Q/R potion keys.
+
+
+## What's new in v0.1.3 (playtest notes)
+
+1. **Gear is very rare:** about 1 piece per 150–200 kills per mob pool (mouse 0.54% / 1 in 185, sheep 0.66% / 1 in 152, crow 0.63% / 1 in 159). Individual entries are 0.06–0.18% (Crow's nine-item pool has to sit a touch under 0.1% on some mid weapons). Magic is still 1/12 of those already-rare drops. Full before/after in `docs/v0.1.3-drops.md`.
+
+2. **Damage variance:** every player hit (basic and skills) rolls a 0.75–1.25× dice on top of the weapon's rolled instance damage, then crits (1.5×) on top of that. Monsters roll uniformly in `attack_min`–`attack_max` (≈0.75–1.25× their typical attack). Damage numbers visibly vary. Documented in `assumptions.DAMAGE` and `combat_formulas`.
+
+3. **Slower movement and animation:** player speed 190 → 148 (≈−22%). Mobs another ≈28% slower (mouse 20, sheep 14, crow 27). Crow pebbles 120 px/s so the dodge ratio stays the same. Hero walk wobble is ~35% slower and follows actual move speed (mint sprig speeds it up). Attack FX are a bit slower but combat wind-ups and swing intervals are unchanged. Mob walk/idle/flap uses a per-monster `anim_speed` (Crow stays at 1, it looked fine; every other mob is 0.5, i.e. half the old frame rate).
+
+4. **Subtler STR:** attack is `weapon × multiplier × (1 + main_stat × 1%)` instead of `(weapon + STR × 2) × multiplier`. At 6 STR a wooden sword is ≈11.7 attack (was 24). HP per STR is 2 (was 3). Weapon damage and skill ranks are the main damage sources. The skill preview no longer shows "150% → 150%" for an unlearned category skill — it spells out "Learn at 150%; further ranks +12% (162% at rank 2)".
+
+5. **Drop audit:** Monster Essence is more common than category essence (36% 1–2 on every mob vs 16–20% 1–2 on themed mobs). That's a deliberate break from the original sheet draft (ME ~15%, Nature 20–30% before the v0.1.2 double), because ME fuels every basic rank and Oded wanted it the other way around; category essence is the main gate and should feel earned. Copper, common mats and scrolls stay frequent; uncommons low; rares very low. Nature and Elemental skill recipes no longer ask for Holy Dust / Soul Dust / Holy Essence — Earthbreaker uses Pebble and Heartwood, Flame Cleave uses Earth Shard and Fire Crystal. Table in `docs/v0.1.3-drops.md`.
+
+6. **XP −28%:** every monster's XP ×0.72 (Field Mouse 10 → 7). The level curve is unchanged, so about 10 mice to reach level 2 (was 7).
+
+7. **Flexible hotbar:** slots 1–6 each hold a skill or a consumable. Bind from the training window (K) or the inventory (I): select, then press the slot number (replaces whatever was there; already-bound entries swap). Icons and stack counts show on the bar. New saves (and migrated old ones) default 5 to Meadow Dew and 6 to Clear Dew. Q and G still fire slots 5 and 6.
 
 ## What's new in v0.1.2 (playtest notes)
 
@@ -86,7 +103,7 @@ Hovering a tile with the mouse selects it too, and the preview panel shows the i
 
 ## What's new in v0.2 (skill training)
 
-- **Calden** trains skills (E), and **K** opens the same window anywhere. Keyboard-first tile UI, consistent with the shop: arrows, Enter to learn/train, 1-4 to bind a known skill, Esc to close. Preview shows the next-rank effect and the material + essence + coin cost (have / need).
+- **Calden** trains skills (E), and **K** opens the same window anywhere. Keyboard-first tile UI, consistent with the shop: arrows, Enter to learn/train, 1-6 to bind a known skill (inventory 1-6 binds a consumable), Esc to close. Preview shows the next-rank effect and the material + essence + coin cost (have / need).
 - **Warrior, all 5 sheet skills** (the sheet lists 5 per class, not 6):
   - Power Strike and Rage are known at rank 0. Training rank 1+ costs 30 Monster Essence, 5 Training Scrolls and 20 Copper (× 1.6 each further rank).
   - Earthbreaker (Nature, lv 3 + 5 STR): 150% AoE slam + stun. Flame Cleave (Elemental, lv 6 + 10 STR): 200% wide swing + 3s burn (35% of the hit as DoT). Soul Guard (Spiritual, lv 8 + 15 STR): a shield absorbing 18% of max HP for 20s.
@@ -156,7 +173,7 @@ Press **`** to open, type a command, press **Enter** to run, **↑/↓** for his
 
 ## Combat-feel stats (not in the sheet yet)
 
-These live in `src/data/assumptions.ts` (`HIT`, `HIT_MONSTER`, `PLAYER_ACC`, `PLAYER_EVA`, `MONSTER_FEEL`, `RANGED`, `ATTACK_FEEL`, `PLAYER_HIT_KB`, `AI`, `REGEN`, `LOOT`) and are candidates for new sheet columns:
+These live in `src/data/assumptions.ts` (`HIT`, `HIT_MONSTER`, `PLAYER_ACC`, `PLAYER_EVA`, `MONSTER_FEEL`, `RANGED`, `ATTACK_FEEL`, `PLAYER_HIT_KB`, `AI`, `REGEN`, `LOOT`, `ANIM`, `DAMAGE`) and are candidates for new sheet columns:
 
 - **Hit chance:** clamp(base + (acc − eva) × k + (attacker level − defender level) × L, min, max)%.
   - Player attacks (`HIT`): base 85, k 1.5, L 2, 50-98% (≈90% at parity).
@@ -165,8 +182,8 @@ These live in `src/data/assumptions.ts` (`HIT`, `HIT_MONSTER`, `PLAYER_ACC`, `PL
 - **Monsters** (acc / eva / knockback resistance / contact reach / wind-up range):
   - Field Mouse: 8 / 7 / 0.0 / 4px / 250-550ms.
   - Wool Sheep: 9 / 6 / 0.6 / 4px / 320-600ms.
-  - Crow (ranged): 10 / 10 / 0.2 / keeps 150-230px, fires within 300px / 400-600ms; pebble 150 px/s, cooldown 2.2-3.6s.
-- **Speeds:** mouse 28, sheep 20, crow 38 px/s (chase ×1.6). Player 190 px/s, jump 435 px/s (≈73px).
+  - Crow (ranged): 10 / 10 / 0.2 / keeps 150-230px, fires within 300px / 400-600ms; pebble 120 px/s, cooldown 2.2-3.6s.
+- **Speeds:** mouse 20, sheep 14, crow 27 px/s (chase ×1.6). Player 148 px/s, jump 435 px/s (≈73px). Animation: hero walk period 95ms; mobs use per-monster `anim_speed` (Crow 1, others 0.5).
 - **Knockback and hitstun:** basic 420 px/s, 320ms; Power Strike 1080 px/s, 500ms; Earthbreaker 600, 900ms; Flame Cleave 700, 450ms; Rage none. Hitstun × (1 − kbRes × 0.5). The player is pushed 170 px/s when hit.
 - **AI:** recover 150-450ms after a swing, then back off (45%), hop over (35%) or pause (20%). 15% of melee wind-ups are feints. Reposition 550-1100ms, pause 250-800ms, hesitation 0-500ms.
 - **HP regen:** 0.5% max HP/s after 5s out of combat, × (1 + 0.02 × SPI).
