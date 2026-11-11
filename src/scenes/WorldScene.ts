@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { DB, f, consumableEffect, buffNumbers } from '../data/db';
+import { DB, f, consumableEffect } from '../data/db';
 import { ASSUME, TILE, ATTACK_FEEL, PLAYER_HIT_KB, REGEN, HIT_MONSTER, RANGED } from '../data/assumptions';
 import { AREAS, AreaGeometry } from '../world/areas';
 import { SPRITES, iconKey, DROP_SIZE } from '../art/sprites';
@@ -9,15 +9,17 @@ import { Controls } from '../systems/Controls';
 import { Game } from '../systems/GameState';
 import * as P from '../systems/Player';
 import { computeHit, incomingDamage, rollHit } from '../systems/Combat';
+import * as Sk from '../systems/Skills';
 import { playSfx } from '../systems/Sfx';
 import { rollDrops } from '../systems/Loot';
+import { GearInstance, displayName } from '../systems/Gear';
 
 const GROUND_H = 64;
 /** v0.1 HP/MP potion bar order (first one owned is used). */
 export const HP_POTIONS = ['meadow_dew', 'spring_draught', 'barley_cake', 'wild_apple'];
 export const MP_POTIONS = ['clear_dew', 'mint_draught'];
 
-interface Drop extends Phaser.Physics.Arcade.Image { itemId: string; qty: number; expireAt: number; rare: boolean }
+interface Drop extends Phaser.Physics.Arcade.Image { itemId: string; qty: number; expireAt: number; rare: boolean; inst?: GearInstance; picking?: boolean }
 interface Shot { img: Phaser.GameObjects.Image; vx: number; vy: number; dieAt: number; m: Monster }
 
 export class WorldScene extends Phaser.Scene {
@@ -41,6 +43,7 @@ export class WorldScene extends Phaser.Scene {
   private knockUntil = 0;
   private walkT = 0;
   private playerBaseScale = { x: 1, y: 1 };
+  private burns: { m: Monster; perTick: number; next: number; until: number }[] = [];
   private shots: Shot[] = [];
   private chestX: number | null = null;
   private chestImg?: Phaser.GameObjects.Image;
@@ -56,6 +59,7 @@ export class WorldScene extends Phaser.Scene {
     this.npcs = [];
     this.portals = [];
     this.shots = [];
+    this.burns = [];
     this.chestX = null;
     this.chestImg = undefined;
   }
@@ -220,8 +224,10 @@ export class WorldScene extends Phaser.Scene {
       if (this.controls.pressed('jump') && body.blocked.down) body.setVelocityY(-ASSUME.jumpVelocity);
 
       if (this.controls.down('attack')) this.trySwing(1.0, 0, 'basic');
-      if (this.controls.pressed('skill1')) this.usePowerStrike();
-      if (this.controls.pressed('skill2')) this.useRage();
+      if (this.controls.pressed('skill1')) this.useSkillSlot(0);
+      if (this.controls.pressed('skill2')) this.useSkillSlot(1);
+      if (this.controls.pressed('skill3')) this.useSkillSlot(2);
+      if (this.controls.pressed('skill4')) this.useSkillSlot(3);
       if (this.controls.pressed('potionHp')) this.drinkFirst(HP_POTIONS, 'HP');
       if (this.controls.pressed('potionMp')) this.drinkFirst(MP_POTIONS, 'MP');
       if (this.controls.pressed('interact')) this.interact();
@@ -247,6 +253,7 @@ export class WorldScene extends Phaser.Scene {
       else if (a === 'shoot') this.fireShot(m);
     }
     this.updateShots(time, delta);
+    this.tickBurns(time);
 
     for (const d of this.drops.getChildren() as Drop[]) if (time > d.expireAt) d.destroy();
     this.updatePrompt();
@@ -259,11 +266,16 @@ export class WorldScene extends Phaser.Scene {
   private regen(time: number, delta: number) {
     const p = Game.player;
     const max = P.maxHp(p);
+    if ((Game.buffs.soul_guard ?? 0) <= time) Game.shield = 0;
     const active = time - this.lastCombatAt > REGEN.delayMs && p.hp < max;
     Game.regenActive = active;
     this.glow.clear();
+    if (Game.shield > 0 && (Game.buffs.soul_guard ?? 0) > time) {
+      const a = 0.3 + 0.15 * Math.sin(time / 160);
+      this.glow.lineStyle(3, 0x9fe0ff, a).strokeEllipse(this.player.x, this.player.y - 22, 52, 58);
+    }
     if (!active) return;
-    const perSec = max * (REGEN.pctMaxHpPerSec / 100) * (1 + p.stats.SPI * REGEN.spiBonusPerPoint);
+    const perSec = P.hpRegenPerSec(p);
     p.hp = Math.min(max, p.hp + (perSec * delta) / 1000);
     const a = 0.25 + 0.15 * Math.sin(time / 200);
     this.glow.fillStyle(0x7dff9b, a).fillEllipse(this.player.x, this.player.y - 4, 44, 12);
@@ -303,7 +315,7 @@ export class WorldScene extends Phaser.Scene {
       this.floatText(best.x, topY, 'MISS', '#c8c8c8', 15);
       return true;
     }
-    const rage = this.buffActive('rage') ? buffNumbers('rage').dealtPct : 0;
+    const rage = this.buffActive('rage') ? Sk.rageNumbers(p).dealtPct : 0;
     const { dmg, crit } = computeHit(P.attack(p), mult, best.def.defense, P.critChance(p), rage);
     this.floatText(best.x, topY, `${dmg}`, crit ? '#ffcf33' : '#ffffff', crit ? 20 : 16);
     const feel = ATTACK_FEEL[kind];
@@ -326,30 +338,106 @@ export class WorldScene extends Phaser.Scene {
     this.tweens.add({ targets: this.player, scaleX: this.playerBaseScale.x * 1.08, duration: 60, yoyo: true });
   }
 
-  private usePowerStrike() {
-    const s = DB.skills['power_strike'];
-    const now = Game.now;
-    if ((Game.cooldowns.power_strike ?? 0) > now) return;
-    const rankBonus = 0.02 * (Game.player.skillRanks.power_strike ?? 0);
-    if (this.trySwing((s.damage_multiplier ?? 1) + rankBonus, s.mp_cost, 'power_strike')) {
-      Game.cooldowns.power_strike = now + (ASSUME.cooldownMs.power_strike ?? 1000);
-    }
+  private useSkillSlot(slot: number) {
+    const id = Sk.barOf(Game.player)[slot];
+    if (id) this.useSkill(id);
   }
 
-  private useRage() {
-    const s = DB.skills['rage'];
+  useSkill(id: string) {
+    const s = Sk.skill(id);
     const p = Game.player;
     const now = Game.now;
-    if ((Game.cooldowns.rage ?? 0) > now) { Game.toast('Rage is on cooldown', 'warn'); return; }
+    if (!s || !Sk.known(p, id)) { Game.toast('Skill not learned yet — visit Calden', 'warn'); return; }
+    if ((Game.cooldowns[id] ?? 0) > now) { Game.toast(`${s.name} is on cooldown`, 'warn'); return; }
     if (p.mp < s.mp_cost) { Game.toast('Not enough MP', 'warn'); return; }
-    p.mp -= s.mp_cost;
+
+    const kind = (['power_strike', 'earthbreaker', 'flame_cleave'].includes(id) ? id : 'basic') as keyof typeof ATTACK_FEEL;
+    const mul = Sk.damageMul(id, Sk.rankOf(p, id));
+    let ok = false;
+    if (id === 'rage') {
+      p.mp -= s.mp_cost;
+      this.lastCombatAt = now;
+      Game.buffs.rage = now + (s.duration_s ?? 60) * 1000;
+      const { dealtPct, takenPct } = Sk.rageNumbers(p);
+      Game.toast(`Rage! +${dealtPct}% dealt, +${takenPct}% taken for ${s.duration_s}s`, 'info');
+      this.player.setTint(0xff9a9a);
+      this.time.delayedCall((s.duration_s ?? 60) * 1000, () => this.player?.clearTint());
+      ok = true;
+    } else if (id === 'soul_guard') {
+      p.mp -= s.mp_cost;
+      this.lastCombatAt = now;
+      Game.shield = Sk.shieldAmount(p);
+      Game.buffs.soul_guard = now + (s.duration_s ?? 20) * 1000;
+      Game.toast(`Soul Guard: ${Game.shield} HP shield`, 'info');
+      ok = true;
+    } else if (id === 'earthbreaker') {
+      ok = this.castStrike(mul, s.mp_cost, 'earthbreaker', { aoe: 90, stun: true });
+    } else if (id === 'flame_cleave') {
+      ok = this.castStrike(mul, s.mp_cost, 'flame_cleave', { wide: 110, burnS: s.duration_s ?? 3 });
+    } else {
+      ok = this.trySwing(mul, s.mp_cost, kind === 'power_strike' ? 'power_strike' : 'basic');
+    }
+    if (ok) Game.cooldowns[id] = now + Sk.cooldownOf(id);
+    Game.changed();
+  }
+
+  /** Multi-target skill strike (Earthbreaker AoE, Flame Cleave wide swing). */
+  private castStrike(mul: number, mpCost: number, kind: keyof typeof ATTACK_FEEL, opt: { aoe?: number; wide?: number; burnS?: number; stun?: boolean }): boolean {
+    const p = Game.player;
+    const now = Game.now;
+    if (now < this.swingReadyAt) return false;
+    if (p.mp < mpCost) { Game.toast('Not enough MP', 'warn'); this.swingReadyAt = now + 300; return false; }
+    p.mp -= mpCost;
+    this.swingReadyAt = now + 250;
     this.lastCombatAt = now;
-    Game.buffs.rage = now + (s.duration_s ?? 60) * 1000;
-    Game.cooldowns.rage = now + (ASSUME.cooldownMs.rage ?? 60000);
-    const { dealtPct, takenPct } = buffNumbers('rage');
-    Game.toast(`Rage! +${dealtPct}% damage dealt, +${takenPct}% damage taken for ${s.duration_s}s`, 'info');
-    this.player.setTint(0xff9a9a);
-    this.time.delayedCall((s.duration_s ?? 60) * 1000, () => this.player?.clearTint());
+    this.swingFx(kind);
+    if (kind === 'earthbreaker') {
+      this.cameras.main.shake(120, 0.008);
+      const ring = this.add.circle(this.player.x, this.player.y - 4, 8, 0x8a6a40, 0.35).setStrokeStyle(3, 0xc9a46a, 0.9).setDepth(12);
+      this.tweens.add({ targets: ring, radius: opt.aoe, alpha: 0, duration: 320, onComplete: () => ring.destroy() });
+    }
+    if (kind === 'flame_cleave') {
+      const fx = this.add.rectangle(this.player.x + this.facing * 50, this.player.y - 24, opt.wide, 40, 0xff6a20, 0.45).setDepth(12);
+      this.tweens.add({ targets: fx, alpha: 0, scaleX: 1.4, duration: 220, onComplete: () => fx.destroy() });
+    }
+    const feel = ATTACK_FEEL[kind] ?? ATTACK_FEEL.basic;
+    const rage = this.buffActive('rage') ? Sk.rageNumbers(p).dealtPct : 0;
+    let hits = 0;
+    for (const m of this.monsters) {
+      if (!m.alive) continue;
+      const dx = m.x - this.player.x;
+      const dy = Math.abs(m.y - this.player.y);
+      const inAoe = opt.aoe != null && Math.hypot(dx, dy) <= opt.aoe + m.halfW;
+      const inWide = opt.wide != null && dx * this.facing > -20 && Math.abs(dx) <= opt.wide + m.halfW && dy < 70;
+      if (!inAoe && !inWide) continue;
+      hits++;
+      const topY = m.y - m.displayHeight - 12;
+      if (!rollHit(P.accuracy(p), m.feel.eva, p.level, m.def.level)) { this.floatText(m.x, topY, 'MISS', '#c8c8c8', 15); continue; }
+      const { dmg, crit } = computeHit(P.attack(p), mul, m.def.defense, P.critChance(p), rage);
+      this.floatText(m.x, topY, `${dmg}`, crit ? '#ffcf33' : '#ffb070', crit ? 20 : 16);
+      const stun = opt.stun ? feel.hitstunMs : feel.hitstunMs;
+      if (m.hurt(dmg, this.player.x, feel.kb, stun)) this.onKill(m);
+      else if (opt.burnS && m.alive) this.applyBurn(m, Math.max(1, Math.floor(dmg * 0.35)), opt.burnS);
+    }
+    return true; // spent MP even if nobody was in range
+  }
+
+  private applyBurn(m: Monster, total: number, seconds: number) {
+    this.burns = this.burns.filter((b) => b.m !== m);
+    const ticks = Math.max(1, Math.round(seconds / 0.5));
+    this.burns.push({ m, perTick: Math.max(1, Math.floor(total / ticks)), next: Game.now + 500, until: Game.now + seconds * 1000 });
+    m.setTint(0xff6020);
+  }
+  private tickBurns(now: number) {
+    this.burns = this.burns.filter((b) => {
+      if (!b.m.alive || now > b.until) { if (b.m.alive && !this.buffActive('rage')) b.m.clearTint(); return false; }
+      if (now >= b.next) {
+        b.next = now + 500;
+        if (b.m.hurt(b.perTick, b.m.x, 0, 0)) this.onKill(b.m);
+        else this.floatText(b.m.x, b.m.y - b.m.displayHeight - 8, `${b.perTick}`, '#ff8020', 12);
+      }
+      return true;
+    });
   }
 
   /** Ranged monsters: a slow, visible pebble aimed at chest height (jump over it or walk away). */
@@ -386,8 +474,15 @@ export class WorldScene extends Phaser.Scene {
       return;
     }
     this.lastCombatAt = Game.now;
-    const taken = this.buffActive('rage') ? buffNumbers('rage').takenPct : 0;
-    const dmg = p.cheats.god ? 0 : incomingDamage(m.def.attack, P.defense(p), taken);
+    const taken = this.buffActive('rage') ? Sk.rageNumbers(p).takenPct : 0;
+    let dmg = p.cheats.god ? 0 : incomingDamage(m.def.attack, P.defense(p), taken);
+    if (Game.shield > 0 && (Game.buffs.soul_guard ?? 0) > Game.now) {
+      const absorbed = Math.min(Game.shield, dmg);
+      Game.shield -= absorbed;
+      dmg -= absorbed;
+      this.floatText(this.player.x, this.player.y - 78, absorbed ? `shield -${absorbed}` : '', '#9fe0ff', 12);
+      if (Game.shield <= 0) { Game.shield = 0; delete Game.buffs.soul_guard; }
+    }
     p.hp -= dmg;
     Game.invulnUntil = Game.now + ASSUME.hurtInvulnMs;
     this.knockUntil = Game.now + 200;
@@ -402,7 +497,7 @@ export class WorldScene extends Phaser.Scene {
     const lv = P.gainXp(p, m.def.xp);
     this.floatText(m.x, m.y - m.displayHeight - 30, `+${m.def.xp} XP`, '#9be7ff', 13);
     if (lv > 0) this.levelUpFx(lv);
-    for (const d of rollDrops(m.def.id, p.cheats.dropMul)) this.spawnDrop(m.x, m.y - 20, d.itemId, d.qty, d.rare);
+    for (const d of rollDrops(m.def.id, p.cheats.dropMul)) this.spawnDrop(m.x, m.y - 20, d.itemId, d.qty, d.rare, d.inst);
     Game.changed();
   }
 
@@ -425,17 +520,23 @@ export class WorldScene extends Phaser.Scene {
     Game.save();
   }
 
-  /** Drop items from the bag onto the ground in front of the player (a normal pickup-able drop). */
-  dropFromBag(itemId: string, qty: number): boolean {
-    if (Game.dead || !P.removeItem(Game.player, itemId, qty)) return false;
-    const d = this.spawnDrop(this.player.x + this.facing * 26, this.player.y - 30, itemId, qty, false);
+  /** Drop a stack (or a gear instance, if `uid` is given) onto the ground. */
+  dropFromBag(itemId: string, qty: number, uid?: string): boolean {
+    if (Game.dead) return false;
+    let inst: GearInstance | undefined;
+    if (uid) {
+      inst = P.removeGear(Game.player, uid) ?? undefined;
+      if (!inst) return false;
+      itemId = inst.itemId; qty = 1;
+    } else if (!P.removeItem(Game.player, itemId, qty)) return false;
+    const d = this.spawnDrop(this.player.x + this.facing * 26, this.player.y - 30, itemId, qty, !!inst?.magic, inst);
     d.setVelocity(this.facing * 60, -180);
     Game.changed();
     Game.save();
     return true;
   }
 
-  spawnDrop(x: number, y: number, itemId: string, qty: number, rare: boolean): Drop {
+  spawnDrop(x: number, y: number, itemId: string, qty: number, rare: boolean, inst?: GearInstance): Drop {
     const key = iconKey(itemId);
     const d = this.drops.create(x + (Math.random() - 0.5) * 30, y, key) as Drop;
     fitSlot(this, d, key, { w: DROP_SIZE, h: DROP_SIZE });
@@ -443,6 +544,8 @@ export class WorldScene extends Phaser.Scene {
     d.itemId = itemId;
     d.qty = qty;
     d.rare = rare;
+    d.inst = inst;
+    if (inst?.magic) d.setTint(0x9ec8ff);
     d.expireAt = Game.now + ASSUME.dropLifetimeMs;
     d.setVelocity((Math.random() - 0.5) * 160, -260);
     d.setBounce(0.2);
@@ -497,6 +600,47 @@ export class WorldScene extends Phaser.Scene {
     Game.changed();
   }
 
+  /** Pop up, then fly to the player along a short arc (same bounce-y feel as a drop), then toast. */
+  private pickupDrop(d: Drop, delay = 0) {
+    d.picking = true;
+    const body = d.body as Phaser.Physics.Arcade.Body | undefined;
+    if (body) body.enable = false;
+    const popY = d.y - 28;
+    this.tweens.add({
+      targets: d, y: popY, duration: 140, delay, ease: 'Quad.easeOut',
+      onComplete: () => {
+        const fromX = d.x;
+        const fromY = d.y;
+        const fly = { t: 0 };
+        this.tweens.add({
+          targets: fly, t: 1, duration: 400, ease: 'Cubic.easeInOut',
+          onUpdate: () => {
+            if (!d.active) return;
+            const t = fly.t;
+            const tx = this.player.x;
+            const ty = this.player.y - 28;
+            const arc = Math.sin(t * Math.PI) * 26;
+            d.x = fromX + (tx - fromX) * t;
+            d.y = fromY + (ty - fromY) * t - arc;
+            d.setScale(1 - t * 0.28);
+            d.setAlpha(1 - t * 0.12);
+          },
+          onComplete: () => {
+            if (!d.active) return;
+            if (d.inst) P.addGear(Game.player, d.inst);
+            else P.addItem(Game.player, d.itemId, d.qty);
+            const name = d.inst ? displayName(d.inst) : (DB.items[d.itemId].name === 'Copper Coin' ? 'Copper' : DB.items[d.itemId].name);
+            const suffix = d.inst ? (d.inst.magic ? '  (magic)' : '') : ` ×${d.qty}`;
+            Game.toast(`${name}${suffix}`, d.inst?.magic || d.rare ? 'rare' : 'loot', d.itemId);
+            playSfx('pickup');
+            d.destroy();
+            Game.changed();
+          },
+        });
+      },
+    });
+  }
+
   // ───────────────────────── interaction ─────────────────────────
   private nearbyDrops(): Drop[] {
     return (this.drops.getChildren() as Drop[]).filter(
@@ -508,15 +652,9 @@ export class WorldScene extends Phaser.Scene {
   private nearPortal() { return this.portals.find((pt) => Math.abs(pt.x - this.player.x) < 34); }
 
   private interact() {
-    const drops = this.nearbyDrops();
+    const drops = this.nearbyDrops().filter((d) => !d.picking);
     if (drops.length) {
-      for (const d of drops) {
-        P.addItem(Game.player, d.itemId, d.qty);
-        Game.toast(`${DB.items[d.itemId].name === 'Copper Coin' ? 'Copper' : DB.items[d.itemId].name} ×${d.qty}`, d.rare ? 'rare' : 'loot', d.itemId);
-        d.destroy();
-      }
-      playSfx('pickup');
-      Game.changed();
+      drops.forEach((d, i) => this.pickupDrop(d, i * 40));
       return;
     }
     const npc = this.nearNpc();

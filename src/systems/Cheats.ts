@@ -2,7 +2,9 @@
  * Test/cheat console commands (enabled by DEV_CONSOLE in src/config.ts).
  * Any command that changes the game marks the save as `cheated`.
  */
-import { DB, xpToNext } from '../data/db';
+import { DB, f, xpToNext } from '../data/db';
+import * as Sk from './Skills';
+import { whoDrops, isGear, displayName, makeGear } from './Gear';
 import { AREAS } from '../world/areas';
 import { Game } from './GameState';
 import { clearSave } from './Save';
@@ -21,6 +23,14 @@ const scene = () => {
 };
 
 export const COMMANDS: Record<string, Cmd> = {
+  whodrops: {
+    usage: 'whodrops <item>', help: 'List monsters (and area) that drop an item, with chance and qty. Partial names ok.',
+    run: ([...parts]) => {
+      const q = parts.join(' ');
+      if (!q) throw new Error('Usage: whodrops <item id or name>');
+      return whoDrops(q);
+    },
+  },
   help: {
     usage: 'help', help: 'List commands',
     run: () => Object.values(COMMANDS).map((c) => `${c.usage.padEnd(24)} ${c.help}`).join('\n'),
@@ -34,14 +44,14 @@ export const COMMANDS: Record<string, Cmd> = {
     },
   },
   level: {
-    usage: 'level <n>', help: 'Set level (grants/removes 5 points per level)', cheat: true,
+    usage: 'level <n>', help: 'Set level (grants/removes ability points per level)', cheat: true,
     run: ([n]) => {
       const p = Game.player;
       const target = Math.max(1, Math.floor(num(n, 'n')));
       const delta = target - p.level;
       p.level = target;
       p.xp = 0;
-      p.unspent = Math.max(0, p.unspent + delta * 5);
+      p.unspent = Math.max(0, p.unspent + delta * f('player_points_per_level'));
       p.hp = P.maxHp(p); p.mp = P.maxMp(p);
       return `Level ${p.level}, ${p.unspent} unspent points`;
     },
@@ -52,14 +62,49 @@ export const COMMANDS: Record<string, Cmd> = {
   },
   item: {
     usage: 'item <id> [qty]', help: 'Add an item by items.id', cheat: true,
-    run: ([id, q]) => {
+    run: ([id, q, flag]) => {
       if (!id || !DB.items[id]) {
         const hits = Object.keys(DB.items).filter((k) => !id || k.includes(id)).slice(0, 12);
         throw new Error(`Unknown item. ${hits.length ? 'Try: ' + hits.join(', ') : ''}`);
       }
-      const qty = q ? Math.max(1, Math.floor(num(q, 'qty'))) : 1;
+      const magic = q === 'magic' || flag === 'magic';
+      const qty = q && q !== 'magic' ? Math.max(1, Math.floor(num(q, 'qty'))) : 1;
+      if (isGear(id)) {
+        const names: string[] = [];
+        for (let i = 0; i < qty; i++) {
+          const g = makeGear(id, { mode: 'random', magic: magic ? true : undefined });
+          P.addGear(Game.player, g);
+          names.push(displayName(g));
+        }
+        return `+${qty} ${names.join(', ')}`;
+      }
       P.addItem(Game.player, id, qty);
       return `+${qty} ${DB.items[id].name}`;
+    },
+  },
+  rank: {
+    usage: 'rank <skill> [n]', help: 'Set a skill rank (default +1, 0-10)', cheat: true,
+    run: ([id, n]) => {
+      const hits = Object.keys(DB.skills).filter((k) => !id || k.includes(id) || DB.skills[k].name.toLowerCase().includes((id ?? '').toLowerCase()));
+      if (!id || !DB.skills[id]) throw new Error(`Unknown skill. Try: ${hits.slice(0, 8).join(', ')}`);
+      const p = Game.player;
+      const cur = Sk.rankOf(p, id);
+      const target = n == null ? cur + 1 : Math.max(0, Math.min(DB.skills[id].max_rank ?? 10, Math.floor(num(n, 'n'))));
+      p.skillRanks[id] = target;
+      if (target >= 1 && DB.skills[id].branch !== 'basic') {
+        const bar = Sk.barOf(p);
+        if (!bar.includes(id)) { const i = bar.findIndex((x) => !x); if (i >= 0) bar[i] = id; }
+      }
+      return `${DB.skills[id].name} rank ${target} (${Sk.rankPreview(id, target)})`;
+    },
+  },
+  train: {
+    usage: 'train <skill>', help: 'Pay the real cost and train the next rank', cheat: true,
+    run: ([id]) => {
+      if (!id || !DB.skills[id]) throw new Error('Unknown skill (see rank)');
+      const err = Sk.train(Game.player, id);
+      if (err) throw new Error(err);
+      return `Trained ${DB.skills[id].name} to rank ${Sk.rankOf(Game.player, id)}`;
     },
   },
   hp: {

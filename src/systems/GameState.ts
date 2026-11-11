@@ -16,6 +16,8 @@ export const Game = {
   menuOpen: false,
   consoleOpen: false,
   regenActive: false,
+  /** Remaining Soul Guard HP (0 = none). */
+  shield: 0,
   storageOpen: false,
   scene: null as WorldScene | null,
   now: 0,
