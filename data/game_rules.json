@@ -9,9 +9,9 @@
   "rows": [
     {
       "key": "ability_points_per_level",
-      "value": 5,
-      "notes": "Each level grants 5 ability points, allocated freely to any stat (STR, INT, AGI, SPI).",
-      "num": 5
+      "value": 3,
+      "notes": "v0.1.2: was 5. Fewer free points so skill training is the real power-up.",
+      "num": 3
     },
     {
       "key": "combat",
@@ -39,9 +39,9 @@
     },
     {
       "key": "skill_rank_scaling",
-      "value": "basic +2%/rank; nature +8%; elemental +7%; spiritual +7% (to be tuned)",
-      "notes": "Basic skills start weaker (Power Strike 140%, Energy Blast 130%, Backstab 250%) and scale slowly so category skills overtake them. See the skills tab rationale.",
-      "num": 2
+      "value": "basic +5%/rank; nature +12%; elemental +10%; spiritual +10% (to be tuned)",
+      "notes": "v0.1.2: raised (was +2/+8/+7/+7) because per-level gains were cut — rank-ups are the main power-up. Damage skills: +N percentage points of attack per rank (Power Strike 140% → 190% at rank 10). Buffs/shields: effect × (1 + N% × rank). Basic skills are known at rank 0 (base value); category skills are learned at rank 1 (base value) and scale from rank 2.",
+      "num": 5
     },
     {
       "key": "passive_gathering",
@@ -57,9 +57,9 @@
     },
     {
       "key": "drop_rate_bands",
-      "value": "category essences 20-30% (qty 1-3, bosses more); commons 15-20%; uncommons 1-3%; rares ~0.3-1%",
-      "notes": "A monster drops its own category's essence (Nature / Elemental / Spirit) at 20-30%, quantity 1-3; bosses 40%, qty 2-5. Monster Essence (basic skills) ~15% from any monster. Early commons: Twig, Bark, Pebble, Clay, Wool, Feather, Fur, Earth Grit, Holy Dust, Soul Dust. Uncommons: Earth/Fire/Ice/Lightning Shard, Copper Nail, Leather Scrap, Stone Chunk, Branch. Training Scroll ~6%. Coins, misc, gear, Heartwood, and ultra-rares are unchanged. Placeholder.",
-      "num": 20
+      "value": "category essences 40-60% (qty 1-3, bosses more); commons 30-40%; uncommons 2-6%; rares ~0.6-2%",
+      "notes": "v0.1.2: all drop rates doubled after playtest; relative rarity unchanged.",
+      "num": 40
     },
     {
       "key": "upgrade_costs",
@@ -87,9 +87,9 @@
     },
     {
       "key": "level_up_rewards",
-      "value": "5 ability points; full HP and MP restore; brief invulnerability",
+      "value": "3 ability points; full HP and MP restore; brief invulnerability",
       "notes": "Each level grants 5 ability points, spent freely on STR, INT, AGI, or SPI (see ability_points_per_level). HP and MP are fully restored on level up. A brief ~1.5s invulnerability follows so a pack cannot finish the player mid-ding. Points are not auto-spent. Placeholder.",
-      "num": 5
+      "num": 3
     },
     {
       "key": "monster_aggro_leash",

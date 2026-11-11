@@ -1,6 +1,6 @@
 {
   "tab": "ability_stats",
-  "note": "NOTE: These are the four allocatable stats. Each level grants 5 points that can be spent freely on any of them. Effects below are v0 numbers used by combat_formulas and may pivot after playtesting.",
+  "note": "NOTE: These are the four allocatable stats. Each level grants 3 points (v0.1.2, was 5) that can be spent freely on any of them. Effects below are v0 numbers used by combat_formulas and may pivot after playtesting.",
   "columns": [
     "id",
     "name",
@@ -10,7 +10,7 @@
     {
       "id": "STR",
       "name": "Strength",
-      "description": "Warrior's main damage stat (feeds attack). Also +4 max HP per point."
+      "description": "Warrior's main damage stat (feeds attack ×2). Also +3 max HP per point."
     },
     {
       "id": "INT",

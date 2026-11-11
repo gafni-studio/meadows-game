@@ -9,9 +9,9 @@
   "rows": [
     {
       "key": "player_points_per_level",
-      "value": 5,
-      "notes": "Total points at level L = 5 × L, allocated freely (STR, INT, AGI, SPI). No hidden base stats.",
-      "num": 5
+      "value": 3,
+      "notes": "v0.1.2: was 5. Level 1 starts with 3 points. Skill training is the main power-up, levels are a subtle bonus.",
+      "num": 3
     },
     {
       "key": "hp_base_warrior",
@@ -33,27 +33,27 @@
     },
     {
       "key": "hp_per_level_warrior",
-      "value": 16,
-      "notes": "Added at each level after 1, before STR. HP = base + per_level × (level−1) + STR × 4.",
-      "num": 16
-    },
-    {
-      "key": "hp_per_level_mage",
       "value": 10,
-      "notes": "Added at each level after 1, before STR.",
+      "notes": "Added at each level after 1, before STR. HP = base + per_level × (level−1) + STR × 4.",
       "num": 10
     },
     {
-      "key": "hp_per_level_rogue",
-      "value": 13,
+      "key": "hp_per_level_mage",
+      "value": 6,
       "notes": "Added at each level after 1, before STR.",
-      "num": 13
+      "num": 6
+    },
+    {
+      "key": "hp_per_level_rogue",
+      "value": 8,
+      "notes": "Added at each level after 1, before STR.",
+      "num": 8
     },
     {
       "key": "hp_per_str",
-      "value": 4,
-      "notes": "Max HP += STR × 4.",
-      "num": 4
+      "value": 3,
+      "notes": "v0.1.2: was 4.",
+      "num": 3
     },
     {
       "key": "mp_base_warrior",
@@ -75,21 +75,21 @@
     },
     {
       "key": "mp_per_level_warrior",
-      "value": 4,
+      "value": 2,
       "notes": "MP = base + per_level × (level−1) + INT × 5.",
-      "num": 4
+      "num": 2
     },
     {
       "key": "mp_per_level_mage",
-      "value": 10,
-      "notes": "MP = base + per_level × (level−1) + INT × 5.",
-      "num": 10
-    },
-    {
-      "key": "mp_per_level_rogue",
       "value": 6,
       "notes": "MP = base + per_level × (level−1) + INT × 5.",
       "num": 6
+    },
+    {
+      "key": "mp_per_level_rogue",
+      "value": 4,
+      "notes": "MP = base + per_level × (level−1) + INT × 5.",
+      "num": 4
     },
     {
       "key": "mp_per_int",
@@ -297,44 +297,44 @@
     },
     {
       "key": "example_build",
-      "value": "STR 20, SPI 5 (all 25 points). Wooden Sword. Full cloth (defense 12).",
+      "value": "STR 12, SPI 3 (all 15 points). Wooden Sword. Full cloth (defense 12).",
       "notes": "A reasonable mid-Meadows Warrior who bought starter cloth from the town vendor.",
-      "num": 20
+      "num": 12
     },
     {
       "key": "example_player_hp",
-      "value": 264,
-      "notes": "120 + 16×4 + 20×4 = 264.",
-      "num": 264
+      "value": 196,
+      "notes": "120 base + 10 × 4 levels + 12 STR × 3",
+      "num": 196
     },
     {
       "key": "example_player_mp",
-      "value": 56,
-      "notes": "40 + 4×4 = 56. Regen = 0.5 + 5×0.15 = 1.25 MP/s. Power Strike costs 8 MP.",
-      "num": 56
+      "value": 48,
+      "notes": "40 base + 2 × 4 levels",
+      "num": 48
     },
     {
       "key": "example_player_attack",
-      "value": 55,
-      "notes": "(10 + 20×2) × 1.1 = 55.",
-      "num": 55
+      "value": 37,
+      "notes": "(10 + 12 × 2) × 1.1 = 37",
+      "num": 37
     },
     {
       "key": "example_power_strike",
-      "value": "65 damage",
-      "notes": "floor(1.4 × 55 − 12) = floor(77 − 12) = 65. No crit.",
-      "num": 65
+      "value": "39 damage",
+      "notes": "floor(1.4 × 37 − 12) = 39 (rank 0)",
+      "num": 39
     },
     {
       "key": "example_hits_to_kill",
-      "value": "7 Power Strikes",
-      "notes": "Boar HP 450 / 65 ≈ 6.9, so 7 hits. At a 1s cooldown this is about 7s if the player never misses or runs. Longer than the 3-5 hit parity target because the Boar is two levels higher; a level 7 Warrior (STR 28) deals 90 after defense and kills in 5 hits.",
-      "num": 7
+      "value": "6 Power Strikes",
+      "notes": "Boar hp 225 (v0.1.2) / 39",
+      "num": 6
     },
     {
       "key": "example_boar_hit",
-      "value": "24 damage (9% of 264 HP)",
-      "notes": "floor(36 − 12) = 24. Inside the 5-10% band. If they trade 6 hits the Warrior takes 144 and wins with about 45% HP left (or drinks a Meadow Dew for 40).",
+      "value": "24 damage (12% of 196 HP)",
+      "notes": "36 − 12 defense",
       "num": 24
     },
     {

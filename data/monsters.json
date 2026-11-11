@@ -1,6 +1,6 @@
 {
   "tab": "monsters",
-  "note": "NOTE: category_id is nature, elemental, or spiritual. A monster drops that category's materials and essence. Combat stats (hp, attack, defense, xp, respawn_s, aggression) are v0 placeholders tuned so a level-appropriate player kills a regular mob in about 3-5 basic skill hits (e.g. Power Strike 140%), bosses take about 1-2 minutes, and a same-level mob deals about 5-10% of player HP per hit after player defense. See combat_formulas for the math and a worked example (level 5 Warrior vs Meadow Boar). aggression: passive = waits to be hit; aggressive = attacks on sight. respawn_s is seconds after a kill, per map timer. Night Stump is the cursed night variant of Old Stump.",
+  "note": "NOTE: category_id is nature, elemental, or spiritual. A monster drops that category's materials and essence. Combat stats (hp, attack, defense, xp, respawn_s, aggression) are v0 placeholders tuned so a level-appropriate player kills a regular mob in about 3-5 basic skill hits (e.g. Power Strike 140%), bosses take about 1-2 minutes, and a same-level mob deals about 5-10% of player HP per hit after player defense. See combat_formulas for the math and a worked example (level 5 Warrior vs Meadow Boar). aggression: passive = waits to be hit; aggressive = attacks on sight. respawn_s is seconds after a kill, per map timer. Night Stump is the cursed night variant of Old Stump. v0.1.2: hp halved across the board after playtest (regular mobs now die in ~3-4 hits at parity). attack_type: melee = damage only on body contact; ranged = slow, visible, dodgeable projectile (Crow only in Meadows).",
   "columns": [
     "id",
     "name",
@@ -14,7 +14,8 @@
     "defense",
     "xp",
     "respawn_s",
-    "aggression"
+    "aggression",
+    "attack_type"
   ],
   "rows": [
     {
@@ -25,12 +26,13 @@
       "level": 1,
       "is_boss": false,
       "description": "A small mouse that scurries through the grass.",
-      "hp": 110,
+      "hp": 55,
       "attack": 10,
       "defense": 2,
       "xp": 10,
       "respawn_s": 15,
-      "aggression": "passive"
+      "aggression": "passive",
+      "attack_type": "melee"
     },
     {
       "id": "wool_sheep",
@@ -40,12 +42,13 @@
       "level": 2,
       "is_boss": false,
       "description": "A calm sheep that grazes in the pasture.",
-      "hp": 150,
+      "hp": 75,
       "attack": 14,
       "defense": 3,
       "xp": 16,
       "respawn_s": 15,
-      "aggression": "passive"
+      "aggression": "passive",
+      "attack_type": "melee"
     },
     {
       "id": "crow",
@@ -55,12 +58,13 @@
       "level": 3,
       "is_boss": false,
       "description": "A black crow that picks at the fields and fence posts.",
-      "hp": 190,
+      "hp": 95,
       "attack": 18,
       "defense": 4,
       "xp": 24,
       "respawn_s": 20,
-      "aggression": "aggressive"
+      "aggression": "aggressive",
+      "attack_type": "ranged"
     },
     {
       "id": "burrow_mole",
@@ -70,12 +74,13 @@
       "level": 4,
       "is_boss": false,
       "description": "A mole that digs under the meadow and turns up stones.",
-      "hp": 240,
+      "hp": 120,
       "attack": 22,
       "defense": 6,
       "xp": 32,
       "respawn_s": 20,
-      "aggression": "aggressive"
+      "aggression": "aggressive",
+      "attack_type": "melee"
     },
     {
       "id": "meadow_boar",
@@ -85,12 +90,13 @@
       "level": 7,
       "is_boss": false,
       "description": "A sturdy boar that roots through brush and old fences.",
-      "hp": 450,
+      "hp": 225,
       "attack": 36,
       "defense": 12,
       "xp": 65,
       "respawn_s": 30,
-      "aggression": "aggressive"
+      "aggression": "aggressive",
+      "attack_type": "melee"
     },
     {
       "id": "earth_sprite",
@@ -100,12 +106,13 @@
       "level": 5,
       "is_boss": false,
       "description": "A small elemental made of magical earth energy, not ordinary stone.",
-      "hp": 270,
+      "hp": 135,
       "attack": 26,
       "defense": 8,
       "xp": 42,
       "respawn_s": 25,
-      "aggression": "passive"
+      "aggression": "passive",
+      "attack_type": "melee"
     },
     {
       "id": "ember_beetle",
@@ -115,12 +122,13 @@
       "level": 4,
       "is_boss": false,
       "description": "A beetle that carries a little warmth in its shell.",
-      "hp": 230,
+      "hp": 115,
       "attack": 24,
       "defense": 5,
       "xp": 34,
       "respawn_s": 20,
-      "aggression": "aggressive"
+      "aggression": "aggressive",
+      "attack_type": "melee"
     },
     {
       "id": "frost_moth",
@@ -130,12 +138,13 @@
       "level": 6,
       "is_boss": false,
       "description": "A pale moth that comes out in the cold morning dew.",
-      "hp": 350,
+      "hp": 175,
       "attack": 28,
       "defense": 10,
       "xp": 50,
       "respawn_s": 25,
-      "aggression": "passive"
+      "aggression": "passive",
+      "attack_type": "melee"
     },
     {
       "id": "spark_bug",
@@ -145,12 +154,13 @@
       "level": 6,
       "is_boss": false,
       "description": "A bug that snaps with a little static when touched.",
-      "hp": 340,
+      "hp": 170,
       "attack": 32,
       "defense": 9,
       "xp": 54,
       "respawn_s": 25,
-      "aggression": "aggressive"
+      "aggression": "aggressive",
+      "attack_type": "melee"
     },
     {
       "id": "shrine_wisp",
@@ -160,12 +170,13 @@
       "level": 7,
       "is_boss": false,
       "description": "A faint light that lingers by the meadow shrine.",
-      "hp": 420,
+      "hp": 210,
       "attack": 34,
       "defense": 11,
       "xp": 68,
       "respawn_s": 30,
-      "aggression": "passive"
+      "aggression": "passive",
+      "attack_type": "melee"
     },
     {
       "id": "dusk_wisp",
@@ -175,12 +186,13 @@
       "level": 8,
       "is_boss": false,
       "description": "A dim wisp that drifts over the field at dusk.",
-      "hp": 500,
+      "hp": 250,
       "attack": 40,
       "defense": 14,
       "xp": 80,
       "respawn_s": 30,
-      "aggression": "aggressive"
+      "aggression": "aggressive",
+      "attack_type": "melee"
     },
     {
       "id": "old_stump",
@@ -190,12 +202,13 @@
       "level": 10,
       "is_boss": true,
       "description": "An old tree stump in the grove. The Meadows boss. The only source of Heartwood.",
-      "hp": 4200,
+      "hp": 2100,
       "attack": 50,
       "defense": 20,
       "xp": 250,
       "respawn_s": 240,
-      "aggression": "aggressive"
+      "aggression": "aggressive",
+      "attack_type": "melee"
     },
     {
       "id": "night_stump",
@@ -205,12 +218,13 @@
       "level": 10,
       "is_boss": true,
       "description": "The cursed night form of the Old Stump. Drops Cursed Dust once Heartwood is owned.",
-      "hp": 4500,
+      "hp": 2250,
       "attack": 52,
       "defense": 22,
       "xp": 280,
       "respawn_s": 300,
-      "aggression": "aggressive"
+      "aggression": "aggressive",
+      "attack_type": "melee"
     }
   ]
 }
