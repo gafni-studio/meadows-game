@@ -140,16 +140,35 @@ export function shieldAmount(p: P.PlayerData): number {
   return Math.round(P.maxHp(p) * 0.18 * effectScale('soul_guard', rankOf(p, 'soul_guard')));
 }
 
-export function defaultBar(): (string | null)[] { return ['power_strike', 'rage', null, null]; }
+export function defaultBar(): (string | null)[] { return ['power_strike', 'rage', null, null, 'meadow_dew', 'clear_dew']; }
+
+export function migrateBar(p: P.PlayerData): void {
+  const def = defaultBar();
+  if (!p.skillBar || !p.skillBar.length) { p.skillBar = def.slice(); return; }
+  if (p.skillBar.length < 6) {
+    const next = p.skillBar.slice();
+    while (next.length < 6) next.push(null);
+    if (!next[4]) next[4] = 'meadow_dew';
+    if (!next[5]) next[5] = 'clear_dew';
+    p.skillBar = next;
+  }
+}
 
 export function barOf(p: P.PlayerData): (string | null)[] {
-  if (!p.skillBar || p.skillBar.length !== 4) p.skillBar = defaultBar();
+  migrateBar(p);
   return p.skillBar;
+}
+
+export function isHotbarItem(id: string | null | undefined): boolean {
+  return !!id && !!DB.items[id] && DB.items[id].item_type === 'consumable';
+}
+export function isHotbarSkill(id: string | null | undefined): boolean {
+  return !!id && !!DB.skills[id];
 }
 
 export function assignBar(p: P.PlayerData, slot: number, id: string | null): void {
   const bar = barOf(p);
-  if (slot < 0 || slot > 3) return;
+  if (slot < 0 || slot > 5) return;
   if (id) {
     const i = bar.indexOf(id);
     if (i >= 0) bar[i] = bar[slot]; // swap if already bound
@@ -165,7 +184,17 @@ export function rankPreview(id: string, rank: number): string {
   if (!s) return '';
   const next = rank + 1;
   if (s.damage_multiplier) {
-    return `${Math.round(damageMul(id, rank) * 100)}% → ${Math.round(damageMul(id, next) * 100)}% damage`;
+    const a = Math.round(damageMul(id, rank) * 100);
+    const b = Math.round(damageMul(id, next) * 100);
+    // Category skills learn at rank 1 with the base multiplier and only scale from rank 2,
+    // so 150% → 150% at 0→1 looked broken. Spell out the first increase instead.
+    if (a === b && s.branch !== 'basic') {
+      const later = Math.round(damageMul(id, Math.max(next, 2)) * 100);
+      const pct = RANK_PCT[s.branch] ?? 5;
+      const verb = rank === 0 ? 'Learn at' : `Rank ${rank}:`;
+      return `${verb} ${a}% damage · further ranks +${pct}% each (${later}% at rank ${Math.max(next, 2)})`;
+    }
+    return `${a}% → ${b}% damage`;
   }
   if (id === 'rage') {
     const n = (rk: number) => {

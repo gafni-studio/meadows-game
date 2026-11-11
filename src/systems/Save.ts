@@ -1,4 +1,5 @@
 import { PlayerData, newPlayer, maxHp, maxMp, migrateGear } from './Player';
+import { migrateBar } from './Skills';
 import { DB } from '../data/db';
 
 const KEY = 'meadows.save.v1';
@@ -24,6 +25,7 @@ export function loadSave(): PlayerData {
     p.skillRanks ??= { power_strike: 0, rage: 0 };
     p.skillBar ??= ['power_strike', 'rage', null, null];
     migrateGear(p);
+    migrateBar(p);
     if (!DB.areas[p.area]) p.area = 'meadow_town';
     // Drop unknown item ids if the sheet removed them since the save was written.
     for (const id of Object.keys(p.inventory)) if (!DB.items[id]) delete p.inventory[id];

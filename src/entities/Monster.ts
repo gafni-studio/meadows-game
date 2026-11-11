@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { MonsterDef } from '../data/db';
-import { ASSUME, TILE, MONSTER_FEEL, AI, RANGED } from '../data/assumptions';
+import { ANIM, ASSUME, TILE, MONSTER_FEEL, AI, RANGED } from '../data/assumptions';
 import { monsterSlot, SPRITES } from '../art/sprites';
 import { fitSlot, applyBody } from '../art/SpriteFactory';
 
@@ -236,11 +236,19 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     else if (this.engaged && this.state !== 'hop') this.setFlipX(dx < 0);
     else if (Math.abs(body.velocity.x) > 1) this.setFlipX(body.velocity.x < 0);
 
-    // Tiny walk animation: crow flaps (2 frames), others wobble.
+    // Walk/idle/flap: monsters.anim_speed (Crow 1 = v0.1.2 rate; others 0.5 = 2× slower).
+    // Frame rate and wobble also scale with actual horizontal speed.
+    const anim = this.def.anim_speed ?? (this.def.id === 'crow' ? 1 : 0.5);
     const moving = Math.abs(body.velocity.x) > 5;
-    this.animT += moving ? 1 : 0;
-    if (this.texture.frameTotal > 2) this.setFrame(Math.floor(now / (moving || !body.blocked.down ? 120 : 400)) % 2);
-    this.setAngle(moving && this.state !== 'windup' ? Math.sin(this.animT * 0.35) * 6 : 0);
+    const ref = ASSUME.monsterSpeed[this.def.id] ?? ASSUME.monsterSpeed.default;
+    const walkMul = moving ? Math.max(0.35, Math.abs(body.velocity.x) / Math.max(1, ref)) : 0;
+    this.animT += walkMul * anim;
+    if (this.texture.frameTotal > 2) {
+      const base = (moving || !body.blocked.down) ? ANIM.mobFrameMoveMs : ANIM.mobFrameIdleMs;
+      const frameMs = base / Math.max(0.15, anim * (walkMul || 1));
+      this.setFrame(Math.floor(now / frameMs) % 2);
+    }
+    this.setAngle(moving && this.state !== 'windup' ? Math.sin(this.animT * ANIM.mobWobble) * 6 : 0);
 
     this.drawUi();
     return swing;

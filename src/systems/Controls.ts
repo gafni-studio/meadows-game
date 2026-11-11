@@ -14,8 +14,8 @@ export const BINDINGS = {
   skill2: ['TWO'],
   skill3: ['THREE'],
   skill4: ['FOUR'],
-  potionHp: ['FIVE'],
-  potionMp: ['SIX', 'G'],
+  skill5: ['FIVE', 'Q'],
+  skill6: ['SIX', 'G'],
 } as const;
 // Menu keys (I, C, Esc, Enter, arrows in menus, backtick console) are handled by the DOM UI (src/ui/Hud.ts).
 export type Action = keyof typeof BINDINGS;

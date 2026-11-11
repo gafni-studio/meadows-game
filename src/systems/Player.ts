@@ -30,7 +30,7 @@ export interface PlayerData {
   area: string;
   x: number;
   skillRanks: Record<string, number>;
-  /** Hotbar slots 1-4 (skill ids). */
+  /** Hotbar slots 1-6: skill id or consumable item id (null = empty). */
   skillBar: (string | null)[];
   questFlags: Record<string, boolean>;
   /** Test-console bonuses (DEV_CONSOLE). */
@@ -46,7 +46,7 @@ export function newPlayer(): PlayerData {
     version: 1, classId: 'warrior', level: 1, xp: 0, unspent: pts,
     stats: { STR: 0, INT: 0, AGI: 0, SPI: 0 }, hp: 1, mp: 1, coins: 0,
     inventory: {}, bagSlots: [], storage: {}, storageSlots: [], gearItems: {}, equipment: {}, area: 'meadow_town', x: 200,
-    skillRanks: { power_strike: 0, rage: 0 }, skillBar: ['power_strike', 'rage', null, null],
+    skillRanks: { power_strike: 0, rage: 0 }, skillBar: ['power_strike', 'rage', null, null, 'meadow_dew', 'clear_dew'],
     questFlags: {},
     cheats: { atk: 0, def: 0, maxHp: 0, dropMul: 1, god: false },
     cheated: false,
@@ -91,11 +91,14 @@ export function mainStat(p: PlayerData): number {
   return p.classId === 'warrior' ? statOf(p, 'STR') : p.classId === 'mage' ? statOf(p, 'INT') : statOf(p, 'AGI');
 }
 /** combat_formulas.attack_formula: (weapon_damage + main_stat × 2) × weapon_stat_multiplier */
+/** v0.1.3: weapon_damage × multiplier × (1 + main_stat × 1%). Variance is rolled per hit in computeHit. */
 export function attack(p: PlayerData): number {
   const w = inst(p, p.equipment.weapon);
   const dmg = w ? w.weaponDamage : ASSUME.unarmedDamage;
   const mult = w ? w.statMultiplier : ASSUME.unarmedMultiplier;
-  return Math.floor((dmg + mainStat(p) * 2) * mult) + (p.cheats?.atk ?? 0);
+  let pct = 1;
+  try { pct = f('attack_per_main_stat_pct'); } catch { pct = 1; }
+  return Math.floor(dmg * mult * (1 + mainStat(p) * (pct / 100))) + (p.cheats?.atk ?? 0);
 }
 export function defense(p: PlayerData): number {
   let d = p.cheats?.def ?? 0;

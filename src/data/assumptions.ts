@@ -24,10 +24,10 @@ export const ASSUME = {
   potionCooldownMs: 400,
   // Not in sheet: hurt invulnerability after taking a hit, monster swing interval and speeds.
   hurtInvulnMs: 700,
-  // v0.1.2: all ÷2.5 (was mouse 70, sheep 50, crow 95, default 60).
-  monsterSpeed: { field_mouse: 28, wool_sheep: 20, crow: 38, default: 24 } as Record<string, number>,
-  // Player movement (px/s, px/s², px/s).
-  playerSpeed: 190,
+  // v0.1.3: another ≈28% slower (v0.1.2 was mouse 28, sheep 20, crow 38, default 24).
+  monsterSpeed: { field_mouse: 20, wool_sheep: 14, crow: 27, default: 17 } as Record<string, number>,
+  // Player movement (px/s, px/s², px/s). v0.1.3: 148 (was 190, ≈−22%).
+  playerSpeed: 148,
   gravity: 1300,
   // v0.1.2: 435 (was 560) → jump height v²/2g ≈ 73px, 60% of the old ≈ 121px. Platforms sit 2 / 4 tiles up.
   jumpVelocity: 435,
@@ -77,7 +77,7 @@ export const MONSTER_FEEL: Record<string, MonsterFeel> = {
 export const RANGED = {
   keepPx: [150, 230] as [number, number], // preferred distance band to the player
   fireRangePx: 300,
-  projectileSpeed: 150, // px/s (player runs 190)
+  projectileSpeed: 120, // px/s (player runs 148; same 0.8× ratio as 150/190)
   projectileLifeMs: 2800,
   hitRadius: 14,
   cooldownMs: [2200, 3600] as [number, number],
@@ -138,6 +138,29 @@ export const LOOT = {
  *   Shop cloth is a stepping-stone (mid defense 6). Hide requires 3 STR; Meadow Blade requires 3 STR.
  *   Steel (17-21 × 1.25) is ultra-rare and above this target. Skill training is still the main power-up.
  *   Numbers live on the gear tab (defense_min/max, weapon_damage_min/max); mid values are the "typical" columns.
+ */
+/** Per-hit dice (v0.1.3). Applied on every player hit (basic and skills) after weapon instance damage and the +1%/stat. Crit is on top. Monsters use attack_min/max instead of a second dice. */
+/** Sprite animation (v0.1.3). Hero walk is ~35% slower than v0.1.2 and scales with actual vx. Attack FX are a bit slower but still readable (combat wind-up / swing intervals are unchanged). Mob frame rates use monsters.anim_speed (Crow 1, others 0.5). */
+export const ANIM = {
+  heroWalkPeriod: 95, // was 70; 35% slower at full playerSpeed. Multiplied by vx / playerSpeed.
+  heroSwingMs: 185,   // sword arc, was 140
+  heroSlashMs: 240,   // slash fade, was 180
+  heroLungeMs: 80,    // body punch, was 60 (yoyo)
+  mobFrameMoveMs: 120, // at anim_speed 1; actual interval is this / anim_speed, scaled by vx
+  mobFrameIdleMs: 400,
+  mobWobble: 0.35,     // angle frequency at anim_speed 1
+};
+
+export const DAMAGE = {
+  hitMul: [0.75, 1.25] as [number, number],
+};
+
+/**
+ * v0.1.3 attack: weapon_damage × multiplier × (1 + main_stat × 0.01).
+ * At level 1, 0 points, Wooden Sword mid 10 × 1.1 = 11 (same as v0.1.2).
+ * At 6 STR: 11 × 1.06 ≈ 11.7 (was (10+12)×1.1 = 24 — the old +2 flat was "insane").
+ * Mid Meadows drop set is still +45% vs basic (16 vs 11) because that comes from the weapon, not STR.
+ * Skill ranks remain the big lever (basic +5%/rank, nature +12%, etc.).
  */
 export const MAGIC = {
   /** Fraction of gear drops (and shop rolls) that come out magic. 1/12 ≈ 8.3%, in the 1/10–1/20 band. */

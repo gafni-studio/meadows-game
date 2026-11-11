@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { DB, f, consumableEffect } from '../data/db';
-import { ASSUME, TILE, ATTACK_FEEL, PLAYER_HIT_KB, REGEN, HIT_MONSTER, RANGED } from '../data/assumptions';
+import { ANIM, ASSUME, TILE, ATTACK_FEEL, PLAYER_HIT_KB, REGEN, HIT_MONSTER, RANGED } from '../data/assumptions';
 import { AREAS, AreaGeometry } from '../world/areas';
 import { SPRITES, iconKey, DROP_SIZE } from '../art/sprites';
 import { fitSlot, applyBody } from '../art/SpriteFactory';
@@ -8,16 +8,13 @@ import { Monster } from '../entities/Monster';
 import { Controls } from '../systems/Controls';
 import { Game } from '../systems/GameState';
 import * as P from '../systems/Player';
-import { computeHit, incomingDamage, rollHit } from '../systems/Combat';
+import { computeHit, incomingDamage, rollHit, rollMonsterAttack } from '../systems/Combat';
 import * as Sk from '../systems/Skills';
 import { playSfx } from '../systems/Sfx';
 import { rollDrops } from '../systems/Loot';
 import { GearInstance, displayName } from '../systems/Gear';
 
 const GROUND_H = 64;
-/** v0.1 HP/MP potion bar order (first one owned is used). */
-export const HP_POTIONS = ['meadow_dew', 'spring_draught', 'barley_cake', 'wild_apple'];
-export const MP_POTIONS = ['clear_dew', 'mint_draught'];
 
 interface Drop extends Phaser.Physics.Arcade.Image { itemId: string; qty: number; expireAt: number; rare: boolean; inst?: GearInstance; picking?: boolean }
 interface Shot { img: Phaser.GameObjects.Image; vx: number; vy: number; dieAt: number; m: Monster }
@@ -224,16 +221,19 @@ export class WorldScene extends Phaser.Scene {
       if (this.controls.pressed('jump') && body.blocked.down) body.setVelocityY(-ASSUME.jumpVelocity);
 
       if (this.controls.down('attack')) this.trySwing(1.0, 0, 'basic');
-      if (this.controls.pressed('skill1')) this.useSkillSlot(0);
-      if (this.controls.pressed('skill2')) this.useSkillSlot(1);
-      if (this.controls.pressed('skill3')) this.useSkillSlot(2);
-      if (this.controls.pressed('skill4')) this.useSkillSlot(3);
-      if (this.controls.pressed('potionHp')) this.drinkFirst(HP_POTIONS, 'HP');
-      if (this.controls.pressed('potionMp')) this.drinkFirst(MP_POTIONS, 'MP');
+      if (this.controls.pressed('skill1')) this.useHotbar(0);
+      if (this.controls.pressed('skill2')) this.useHotbar(1);
+      if (this.controls.pressed('skill3')) this.useHotbar(2);
+      if (this.controls.pressed('skill4')) this.useHotbar(3);
+      if (this.controls.pressed('skill5')) this.useHotbar(4);
+      if (this.controls.pressed('skill6')) this.useHotbar(5);
       if (this.controls.pressed('interact')) this.interact();
-      // walk wobble
-      if (vx !== 0 && body.blocked.down) { this.walkT += delta; this.player.setAngle(Math.sin(this.walkT / 70) * 5); }
-      else this.player.setAngle(0);
+      // Walk wobble: ~35% slower than v0.1.2 (period 95 vs 70) and tied to actual move speed.
+      const spd = Math.abs(body.velocity.x);
+      if (spd > 8 && body.blocked.down) {
+        this.walkT += delta * (spd / ASSUME.playerSpeed);
+        this.player.setAngle(Math.sin(this.walkT / ANIM.heroWalkPeriod) * 5);
+      } else this.player.setAngle(0);
     } else {
       this.controls.clear();
       if (!Game.dead && body.blocked.down) body.setVelocityX(0);
@@ -330,17 +330,20 @@ export class WorldScene extends Phaser.Scene {
     s.setPosition(this.player.x + this.facing * 14, this.player.y - 18);
     s.setAngle(-70 * this.facing);
     this.tweens.killTweensOf(s);
-    this.tweens.add({ targets: s, angle: 80 * this.facing, duration: 140, ease: 'Quad.easeOut', onComplete: () => s.setVisible(false) });
+    this.tweens.add({ targets: s, angle: 80 * this.facing, duration: ANIM.heroSwingMs, ease: 'Quad.easeOut', onComplete: () => s.setVisible(false) });
     const fx = this.add.image(this.player.x + this.facing * 40, this.player.y - 26, 'fx.slash').setDepth(12)
       .setAlpha(kind === 'basic' ? 0.25 : 0.55).setTint(kind === 'basic' ? 0xffffff : 0xffc04a);
-    this.tweens.add({ targets: fx, alpha: 0, scaleX: 1.3, duration: 180, onComplete: () => fx.destroy() });
+    this.tweens.add({ targets: fx, alpha: 0, scaleX: 1.3, duration: ANIM.heroSlashMs, onComplete: () => fx.destroy() });
     // lunge
-    this.tweens.add({ targets: this.player, scaleX: this.playerBaseScale.x * 1.08, duration: 60, yoyo: true });
+    this.tweens.add({ targets: this.player, scaleX: this.playerBaseScale.x * 1.08, duration: ANIM.heroLungeMs, yoyo: true });
   }
 
-  private useSkillSlot(slot: number) {
+  private useHotbar(slot: number) {
     const id = Sk.barOf(Game.player)[slot];
-    if (id) this.useSkill(id);
+    if (!id) { Game.toast('Empty slot — bind a skill or a potion from K or I', 'info'); return; }
+    if (Sk.isHotbarSkill(id)) this.useSkill(id);
+    else if (Sk.isHotbarItem(id)) this.useItem(id);
+    else Game.toast('Empty slot', 'info');
   }
 
   useSkill(id: string) {
@@ -475,7 +478,8 @@ export class WorldScene extends Phaser.Scene {
     }
     this.lastCombatAt = Game.now;
     const taken = this.buffActive('rage') ? Sk.rageNumbers(p).takenPct : 0;
-    let dmg = p.cheats.god ? 0 : incomingDamage(m.def.attack, P.defense(p), taken);
+    const matk = rollMonsterAttack(m.def.attack, m.def.attack_min, m.def.attack_max);
+    let dmg = p.cheats.god ? 0 : incomingDamage(matk, P.defense(p), taken);
     if (Game.shield > 0 && (Game.buffs.soul_guard ?? 0) > Game.now) {
       const absorbed = Math.min(Game.shield, dmg);
       Game.shield -= absorbed;
@@ -574,13 +578,6 @@ export class WorldScene extends Phaser.Scene {
       Game.events.emit('dead', false);
       this.scene.restart({ area: 'meadow_town', x: AREAS.meadow_town.spawnX });
     });
-  }
-
-  private drinkFirst(ids: string[], kind: string) {
-    const p = Game.player;
-    const id = ids.find((i) => (p.inventory[i] ?? 0) > 0);
-    if (!id) { Game.toast(`No ${kind} potions`, 'warn'); return; }
-    this.useItem(id);
   }
 
   /** Use a consumable (from hotkey or inventory). */

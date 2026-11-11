@@ -24,6 +24,9 @@ export interface MonsterDef {
   id: string; name: string; category_id: string; level: number; is_boss: boolean; description: string;
   hp: number; attack: number; defense: number; xp: number; respawn_s: number; aggression: 'passive' | 'aggressive'; zone_id?: string;
   attack_type?: 'melee' | 'ranged' | null;
+  attack_min?: number | null; attack_max?: number | null;
+  /** Walk/idle/flap multiplier (1 = v0.1.2 rate; Crow is 1, other mobs 0.5). */
+  anim_speed?: number | null;
 }
 export interface DropRow { monster_id: string; item_id: string; drop_rate: number; min_qty: number; max_qty: number; unlock_requirement_id: string | null }
 export interface ShopRow { id: string; item_id: string; role: 'sell' | 'buy'; price: number | null; currency: string; stock: string; notes: string }

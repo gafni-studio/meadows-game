@@ -5,7 +5,6 @@ import { Game } from '../systems/GameState';
 import { resetAndReload } from '../systems/Save';
 import { runCommand } from '../systems/Cheats';
 import * as P from '../systems/Player';
-import { HP_POTIONS, MP_POTIONS } from '../scenes/WorldScene';
 import { iconUrl, skillIconUrl } from '../art/sprites';
 import { displayName, formatAffix, instanceQuality, rangeOf, isGear } from '../systems/Gear';
 import * as Sk from '../systems/Skills';
@@ -60,7 +59,7 @@ export class Hud {
       <div id="hotbar"></div>
       <div id="toasts"></div>
       <div id="levelup" hidden></div>
-      <div id="help">F attack (hold) · 1 Power Strike · 2 Rage · 5 HP · 6/G MP · E pick up/talk · I inventory · C stats · K skills · Esc menu${DEV_CONSOLE ? ' · ` console' : ''}</div>
+      <div id="help">F attack (hold) · 1–6 hotbar (Q/G = 5/6) · E pick up/talk · I inventory · C stats · K skills · Esc menu${DEV_CONSOLE ? ' · ` console' : ''}</div>
       <div id="dead" hidden>Defeated…</div>
       ${PANELS.map((p) => `<div class="panel" id="p-${p}" hidden></div>`).join('')}
       <div id="console" hidden><div id="console-out"></div><input id="console-in" autocomplete="off" spellcheck="false" placeholder="type help, Enter to run, Esc to close" /></div>`;
@@ -135,12 +134,26 @@ export class Hud {
     if (!top) return;
     const dirs: Record<string, [number, number]> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
     if (dirs[k]) { e.preventDefault(); this.move(top, dirs[k]); return; }
-    if (top === 'skills' && ['1', '2', '3', '4'].includes(k)) {
+    if (top === 'skills' && ['1', '2', '3', '4', '5', '6'].includes(k)) {
       e.preventDefault();
       const cur = this.selectedEl('skills');
       if (cur?.dataset.skill && Sk.known(Game.player, cur.dataset.skill)) {
         Sk.assignBar(Game.player, Number(k) - 1, cur.dataset.skill);
+        this.toast(`Bound ${DB.skills[cur.dataset.skill].name} to ${k}`, 'info');
         Game.save(); Game.changed();
+      }
+      return;
+    }
+    if (top === 'inventory' && ['1', '2', '3', '4', '5', '6'].includes(k) && !this.held) {
+      e.preventDefault();
+      const cur = this.selectedEl('inventory');
+      const id = cur?.dataset.item;
+      if (id && DB.items[id]?.item_type === 'consumable') {
+        Sk.assignBar(Game.player, Number(k) - 1, id);
+        this.toast(`Bound ${DB.items[id].name} to ${k}`, 'info');
+        Game.save(); Game.changed();
+      } else if (id) {
+        this.toast('Only consumables and skills can be bound to the hotbar', 'warn');
       }
       return;
     }
@@ -226,22 +239,27 @@ export class Hud {
     const cd = (id: string) => Math.max(0, (Game.cooldowns[id] ?? 0) - now);
     const slot = (key: string, label: string, sub: string, cdMs: number, total: number, icon = '') =>
       `<div class="slot"><kbd>${key}</kbd>${icon ? `<img src="${icon}">` : ''}<div>${label}</div><small>${sub}</small>${cdMs > 0 ? `<em style="height:${(cdMs / total) * 100}%"></em>` : ''}</div>`;
-    const firstOwned = (ids: string[]) => ids.find((i) => (p.inventory[i] ?? 0) > 0);
-    const hpPot = firstOwned(HP_POTIONS), mpPot = firstOwned(MP_POTIONS);
     const bar = Sk.barOf(p);
-    const skillSlot = (key: string, i: number) => {
+    const barSlot = (key: string, i: number) => {
       const id = bar[i];
-      const sk = id ? DB.skills[id] : null;
-      if (!sk || !id) return slot(key, '—', 'empty', 0, 1);
-      const r = Sk.rankOf(p, id);
-      const sub = sk.damage_multiplier ? `${Math.round(Sk.damageMul(id, r) * 100)}% · ${sk.mp_cost} MP` : `${sk.mp_cost} MP · r${r}`;
-      return slot(key, `${sk.name}${r ? ` r${r}` : ''}`, sub, cd(id), Sk.cooldownOf(id), skillIconUrl(id));
+      if (!id) return slot(key, '—', 'empty', 0, 1);
+      if (Sk.isHotbarSkill(id)) {
+        const sk = DB.skills[id];
+        const r = Sk.rankOf(p, id);
+        const sub = sk.damage_multiplier ? `${Math.round(Sk.damageMul(id, r) * 100)}% · ${sk.mp_cost} MP` : `${sk.mp_cost} MP · r${r}`;
+        return slot(key, `${sk.name}${r ? ` r${r}` : ''}`, sub, cd(id), Sk.cooldownOf(id), skillIconUrl(id));
+      }
+      if (Sk.isHotbarItem(id)) {
+        const it = DB.items[id];
+        const n = p.inventory[id] ?? 0;
+        const potionCd = cd('potion');
+        return slot(key, it.name, n ? `×${n}` : 'none', potionCd, ASSUME.potionCooldownMs ?? 1000, iconUrl(id));
+      }
+      return slot(key, '—', 'empty', 0, 1);
     };
     const html =
       slot('F', 'Attack', 'hold', 0, 1) +
-      skillSlot('1', 0) + skillSlot('2', 1) + skillSlot('3', 2) + skillSlot('4', 3) +
-      slot('5', hpPot ? DB.items[hpPot].name : 'HP', hpPot ? `x${p.inventory[hpPot]}` : 'none', 0, 1, hpPot ? iconUrl(hpPot) : '') +
-      slot('6', mpPot ? DB.items[mpPot].name : 'MP', mpPot ? `x${p.inventory[mpPot]}` : 'none', 0, 1, mpPot ? iconUrl(mpPot) : '');
+      [0, 1, 2, 3, 4, 5].map((i) => barSlot(String(i + 1), i)).join('');
     const hb = $('#hotbar');
     if (hb.dataset.last !== html) { hb.innerHTML = html; hb.dataset.last = html; }
   }
@@ -488,7 +506,7 @@ export class Hud {
       <div class="tabs"><span class="label">Equipped</span><span class="coins"><img src="${iconUrl('copper_coin')}"> ${p.coins}</span></div>
       <div class="grid eq">${eq}</div>
       <div class="split"><div class="grid bag">${items}</div><div class="preview" id="inv-preview"></div></div>
-      ${hint(this.held ? 'Moving: ←↑↓→ pick a slot · Enter / M place · Esc cancel' : '←↑↓→ select · Enter use / equip / remove · M move · X drop · drag with the mouse · Esc close')}`;
+      ${hint(this.held ? 'Moving: ←↑↓→ pick a slot · Enter / M place · Esc cancel' : '←↑↓→ select · Enter use / equip / remove · 1-6 bind to hotbar · M move · X drop · drag with the mouse · Esc close')}`;
   }
 
   /** Tiles for every slot of a container (filled stacks + empty slots, all selectable and draggable). */
@@ -535,12 +553,18 @@ export class Hud {
         <img src="${skillIconUrl(sk.id)}" alt="">
         <span class="qty">${qty}</span><span class="price">${BRANCH[sk.branch] ?? sk.branch}</span></button>`;
     }).join('');
-    const bound = Sk.barOf(p).map((id, i) => `<span class="barbind"><kbd>${i + 1}</kbd>${id ? `<img src="${skillIconUrl(id)}"> ${esc(DB.skills[id].name)}` : '<i>empty</i>'}</span>`).join('');
+    const bound = Sk.barOf(p).map((id, i) => {
+      let label = '<i>empty</i>';
+      if (id && Sk.isHotbarSkill(id)) label = `<img src="${skillIconUrl(id)}"> ${esc(DB.skills[id].name)}`;
+      else if (id && Sk.isHotbarItem(id)) label = `<img src="${iconUrl(id)}"> ${esc(DB.items[id].name)}`;
+      else if (id) label = esc(id);
+      return `<span class="barbind"><kbd>${i + 1}</kbd>${label}</span>`;
+    }).join('');
     $('#p-skills').innerHTML = `<div class="frame-title">Skill training <small>(K)</small><button class="x" data-close="skills">×</button></div>
-      <p class="muted">Train at Calden, or open this window with K. Essence is the main gate; rares are only needed at ranks 5 and 10. Press 1–4 to bind the selected skill.</p>
+      <p class="muted">Train at Calden, or open this window with K. Essence is the main gate; rares are only needed at ranks 5 and 10. Press 1–6 to bind the selected skill or potion.</p>
       <div class="barbinds">${bound}</div>
       <div class="split"><div class="grid sk">${tiles}</div><div class="preview" id="skills-preview"></div></div>
-      ${hint('←↑↓→ select · Enter train / learn · 1-4 bind · Esc close')}`;
+      ${hint('←↑↓→ select · Enter train / learn · 1-6 bind · Esc close')}`;
   }
 
     /** Item preview for the hovered/selected tile. */
@@ -632,12 +656,12 @@ export class Hud {
       <div class="pv-eff">${esc(sk.effect)}</div>
       <div class="pv-eff">${esc(Sk.rankPreview(id, r))} · ${sk.mp_cost} MP</div>
       ${r < max ? `<table class="pv-stats"><tr><th colspan="2">Cost for rank ${r + 1}</th></tr>${costRows}</table>` : ''}
-      <div class="pv-act">${act}${known ? ' · 1-4: bind' : ''}</div>`;
+      <div class="pv-act">${act}${known ? ' · 1-6: bind' : ''}</div>`;
   }
 
   private renderStats() {
     const p = Game.player;
-    const desc: Record<string, string> = { STR: `+2 attack (×weapon), +${f('hp_per_str')} max HP`, INT: '+5 max MP', AGI: '+0.4% crit, faster attacks, +acc/eva', SPI: '+0.15 MP/s, faster HP regen' };
+    const desc: Record<string, string> = { STR: `+1% damage, +${f('hp_per_str')} max HP`, INT: '+5 max MP', AGI: '+0.4% crit, faster attacks, +acc/eva', SPI: '+0.15 MP/s, faster HP regen' };
     const rows = P.STATS.map((s) => `<button class="statrow" data-nav data-key="stat:${s}" data-stat="${s}" ${p.unspent ? '' : 'aria-disabled="true"'}>
       <b>${s}</b><span class="v">${p.stats[s]}</span><span class="plus">${p.unspent ? '+' : ''}</span><small>${desc[s]}</small></button>`).join('');
     const rage = Sk.rageNumbers(p);
