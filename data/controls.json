@@ -1,6 +1,6 @@
 {
   "tab": "controls",
-  "note": "DRAFT — Keyboard layout for a browser side-scroller (keyboard primary, mouse used for the basic attack and UI clicks). Keys can be remapped later; these are the v0 defaults. Number-row skill and potion hotkeys stay visible on a simple hotbar. Do not capture browser-reserved keys (Ctrl+T, Ctrl+W, F5). Placeholders.",
+  "note": "DRAFT — Keyboard layout for a browser side-scroller (keyboard primary, mouse used for the basic attack and UI clicks). Keys can be remapped later; these are the v0 defaults. Number-row skill and potion hotkeys stay visible on a simple hotbar. Do not capture browser-reserved keys (Ctrl+T, Ctrl+W, F5). Placeholders. v0.1.3: hotbar slots 1–6 each hold a skill or a consumable; 5 and 6 default to Meadow Dew and Clear Dew.",
   "columns": [
     "action",
     "keys",
@@ -48,7 +48,7 @@
       "action": "skill_1",
       "keys": 1,
       "context": "combat",
-      "notes": "Skill hotkey 1. Warrior default: Power Strike."
+      "notes": "Hotbar slot 1. Default: Power Strike. Can be rebound to any known skill or consumable (select in the skills or inventory window, press 1–6)."
     },
     {
       "action": "skill_2",
@@ -72,13 +72,13 @@
       "action": "potion_hp",
       "keys": "5 / Q",
       "context": "combat",
-      "notes": "Drink the first HP consumable in the potion bar (Meadow Dew by default if owned)."
+      "notes": "Hotbar slot 5. Default on new (and migrated) saves: Meadow Dew. Bind any consumable from the inventory."
     },
     {
       "action": "potion_mp",
-      "keys": "6 / R",
+      "keys": "6 / G",
       "context": "combat",
-      "notes": "Drink the first MP consumable in the potion bar (Clear Dew by default if owned)."
+      "notes": "Hotbar slot 6. Default: Clear Dew. Bind any consumable from the inventory."
     },
     {
       "action": "inventory",

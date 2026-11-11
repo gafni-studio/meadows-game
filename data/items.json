@@ -337,7 +337,7 @@
       "sellable_only": false,
       "sell_price": null,
       "description": "A vial of green essence drawn from living things.",
-      "notes": "DRAFT. Currency. Main gate for Nature skills and the Nature passive tree. Dropped by Nature monsters (20-30%, 1-3; bosses more). Produced by the Nature tree (steep curve). Commons (Twig, Bark, Pebble, Clay, Wool, Feather, Fur) can be exchanged at 10:1. Not the same as Monster Essence.",
+      "notes": "v0.1.3: Main gate for Nature skills and the Nature passive tree. Dropped only by Nature monsters at 18–20% (1–2; Old Stump 36% 1–3), below Monster Essence so it feels earned. Original sheet draft said 20–30% (before ×2). Commons exchange at 10:1 (Ila, later). Produced by the Nature tree (steep curve).",
       "desc": "A vial of green essence drawn from living things."
     },
     {
@@ -350,7 +350,7 @@
       "sellable_only": false,
       "sell_price": null,
       "description": "A vial of raw elemental essence.",
-      "notes": "DRAFT. Currency. Main gate for Elemental skills and the Elemental passive tree. Dropped by Elemental monsters (20-30%, 1-3). Produced by the Elemental tree (steep curve). Earth Grit and shards can be exchanged at 10:1. Not the same as Monster Essence or Earth Shard.",
+      "notes": "v0.1.3: Main gate for Elemental skills and the Elemental tree. Dropped only by Elemental monsters at 18% (1–2), below Monster Essence. Original draft 20–30% before ×2.",
       "desc": "A vial of raw elemental essence."
     },
     {
@@ -363,7 +363,7 @@
       "sellable_only": false,
       "sell_price": null,
       "description": "A vial of pale essence drawn from spirit.",
-      "notes": "DRAFT. Currency. Main gate for Spiritual skills and the Spiritual passive tree. Dropped by Spiritual monsters (20-30%, 1-3; bosses more). Produced by the Spiritual tree (steep curve). Holy Dust and Soul Dust can be exchanged at 10:1. Not the same as Monster Essence, Holy Essence, or Soul Shard.",
+      "notes": "v0.1.3: Main gate for Spiritual skills and the Spiritual tree. Dropped only by Spiritual monsters at 18% (1–2; Night Stump 36% 1–3), below Monster Essence.",
       "desc": "A vial of pale essence drawn from spirit."
     },
     {
@@ -376,7 +376,7 @@
       "sellable_only": false,
       "sell_price": 4,
       "description": "A small vial of essence left by a fallen creature.",
-      "notes": "DRAFT. Neutral currency. Used only for BASIC skills (plus Copper Coin), not for category skills or passives. Any Meadows monster can drop it (~15%). Distinct from Nature / Elemental / Spirit Essence.",
+      "notes": "v0.1.3: Neutral currency for BASIC skills (plus Copper and Training Scrolls), not category skills or passives. Dropped by every Meadows monster at 36% (1–2; bosses 40% 1–3) — more common than category essence, which is the main gate and should feel earned. Original sheet draft said ~15% (before the v0.1.2 ×2, which made it 30% and left Nature at 44–56%). We kept ME high and pulled category essence down, per playtest.",
       "desc": "A small vial of essence left by a fallen creature."
     },
     {

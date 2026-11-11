@@ -1,6 +1,6 @@
 {
   "tab": "skill_costs",
-  "note": "NOTE: Each rank costs the material recipe PLUS the matching essence (the main power gate) PLUS Copper Coin. Rank 1 is listed. For rank r > 1, quantity = round(rank_1_qty × 1.6^(r-1)). Costs scale by power/tier: basic < nature < elemental < spiritual, and within a class the stronger skill costs more (Flame Cleave / Firebolt > Earthbreaker / Thorn Bind; Holy Light is the most expensive). Basic (all): Monster Essence 30, Training Scroll 5, Copper Coin 20. Nature: Thorn Bind is a bit cheaper (NE 35); Earthbreaker and Venom Strike use NE 40 + Nature commons + Holy Dust (cross-category) + Stone Chunk/Branch. Elemental bulk is Earth Grit (not Twig/Wool), plus Soul Dust (cross-category) and a shard; Lightning Dash EE 50, Flame Cleave/Firebolt EE 60. Spiritual: Soul Guard/Shadow Mark SE 65; Holy Light SE 75. Rare drops are milestones at ranks 5 and 10 only (unchanged). Placeholders; to be tuned.",
+  "note": "NOTE: Each rank costs the material recipe PLUS the matching essence (the main power gate) PLUS Copper Coin. Rank 1 is listed. For rank r > 1, quantity = round(rank_1_qty × 1.6^(r-1)). Costs scale by power/tier: basic < nature < elemental < spiritual, and within a class the stronger skill costs more (Flame Cleave / Firebolt > Earthbreaker / Thorn Bind; Holy Light is the most expensive). Basic (all): Monster Essence 30, Training Scroll 5, Copper Coin 20. Nature: Thorn Bind is a bit cheaper (NE 35); Earthbreaker and Venom Strike use NE 40 + Nature commons + Holy Dust (cross-category) + Stone Chunk/Branch. Elemental bulk is Earth Grit (not Twig/Wool), plus Soul Dust (cross-category) and a shard; Lightning Dash EE 50, Flame Cleave/Firebolt EE 60. Spiritual: Soul Guard/Shadow Mark SE 65; Holy Light SE 75. Rare drops are milestones at ranks 5 and 10 only (unchanged). Placeholders; to be tuned. v0.1.3: Nature recipes no longer ask for Holy Dust (spirit) or Earth Crystal (elemental) — they use Pebble/Wool/Fur and Heartwood. Elemental recipes no longer ask for Soul Dust or Holy Essence — they use Earth Shard and Fire Crystal / Earth Crystal. Spiritual recipes are unchanged (Holy Dust, Soul Dust, Holy Essence, Soul Shard). Shared materials (copper, bark, grit, stones) still mix across ranks.",
   "columns": [
     "skill_id",
     "rank",
@@ -131,7 +131,7 @@
     {
       "skill_id": "thorn_bind",
       "rank": 1,
-      "material_id": "holy_dust",
+      "material_id": "wool",
       "quantity": 10
     },
     {
@@ -173,8 +173,8 @@
     {
       "skill_id": "earthbreaker",
       "rank": 1,
-      "material_id": "holy_dust",
-      "quantity": 12
+      "material_id": "pebble",
+      "quantity": 15
     },
     {
       "skill_id": "earthbreaker",
@@ -215,7 +215,7 @@
     {
       "skill_id": "venom_strike",
       "rank": 1,
-      "material_id": "holy_dust",
+      "material_id": "fur",
       "quantity": 12
     },
     {
@@ -251,8 +251,8 @@
     {
       "skill_id": "earthbreaker",
       "rank": 10,
-      "material_id": "earth_crystal",
-      "quantity": 1
+      "material_id": "heartwood",
+      "quantity": 2
     },
     {
       "skill_id": "thorn_bind",
@@ -263,7 +263,7 @@
     {
       "skill_id": "thorn_bind",
       "rank": 10,
-      "material_id": "earth_crystal",
+      "material_id": "heartwood",
       "quantity": 1
     },
     {
@@ -275,8 +275,8 @@
     {
       "skill_id": "venom_strike",
       "rank": 10,
-      "material_id": "earth_crystal",
-      "quantity": 1
+      "material_id": "heartwood",
+      "quantity": 2
     },
     {
       "skill_id": "lightning_dash",
@@ -287,8 +287,8 @@
     {
       "skill_id": "lightning_dash",
       "rank": 1,
-      "material_id": "soul_dust",
-      "quantity": 10
+      "material_id": "earth_shard",
+      "quantity": 6
     },
     {
       "skill_id": "lightning_dash",
@@ -317,8 +317,8 @@
     {
       "skill_id": "flame_cleave",
       "rank": 1,
-      "material_id": "soul_dust",
-      "quantity": 12
+      "material_id": "earth_shard",
+      "quantity": 8
     },
     {
       "skill_id": "flame_cleave",
@@ -347,8 +347,8 @@
     {
       "skill_id": "firebolt",
       "rank": 1,
-      "material_id": "soul_dust",
-      "quantity": 12
+      "material_id": "earth_shard",
+      "quantity": 8
     },
     {
       "skill_id": "firebolt",
@@ -377,7 +377,7 @@
     {
       "skill_id": "flame_cleave",
       "rank": 10,
-      "material_id": "holy_essence",
+      "material_id": "fire_crystal",
       "quantity": 1
     },
     {
@@ -389,7 +389,7 @@
     {
       "skill_id": "firebolt",
       "rank": 10,
-      "material_id": "holy_essence",
+      "material_id": "fire_crystal",
       "quantity": 1
     },
     {
@@ -401,8 +401,8 @@
     {
       "skill_id": "lightning_dash",
       "rank": 10,
-      "material_id": "holy_essence",
-      "quantity": 1
+      "material_id": "earth_crystal",
+      "quantity": 2
     },
     {
       "skill_id": "holy_light",

@@ -1,6 +1,6 @@
 {
   "source": "sheet/Game_Design_DB_v0.xlsx",
-  "exportedAt": "2026-11-11T22:59:22.399Z",
+  "exportedAt": "2026-11-11T23:40:52.227Z",
   "tabs": [
     "material_categories: 4 rows",
     "material_subtypes: 13 rows",
@@ -18,7 +18,7 @@
     "unlock_requirements: 30 rows",
     "ability_stats: 4 rows",
     "game_rules: 16 rows",
-    "combat_formulas: 56 rows",
+    "combat_formulas: 58 rows",
     "zones: 1 rows",
     "map_layout: 6 rows",
     "monsters: 13 rows",
