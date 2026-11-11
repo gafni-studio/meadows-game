@@ -16,10 +16,11 @@ export const Game = {
   menuOpen: false,
   consoleOpen: false,
   regenActive: false,
+  storageOpen: false,
   scene: null as WorldScene | null,
   now: 0,
   load() { this.player = loadSave(); },
   save() { writeSave(this.player); this.events.emit('saved'); },
   changed() { this.events.emit('changed'); },
-  toast(msg: string, kind: 'info' | 'loot' | 'rare' | 'warn' | 'level' = 'info') { this.events.emit('toast', msg, kind); },
+  toast(msg: string, kind: 'info' | 'loot' | 'rare' | 'warn' | 'level' = 'info', icon?: string) { this.events.emit('toast', msg, kind, icon); },
 };

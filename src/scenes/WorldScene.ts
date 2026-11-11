@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { DB, f, consumableEffect, buffNumbers } from '../data/db';
-import { ASSUME, TILE, ATTACK_FEEL, PLAYER_HIT_KB, REGEN } from '../data/assumptions';
+import { ASSUME, TILE, ATTACK_FEEL, PLAYER_HIT_KB, REGEN, HIT_MONSTER, RANGED } from '../data/assumptions';
 import { AREAS, AreaGeometry } from '../world/areas';
 import { SPRITES, iconKey, DROP_SIZE } from '../art/sprites';
 import { fitSlot, applyBody } from '../art/SpriteFactory';
@@ -9,6 +9,7 @@ import { Controls } from '../systems/Controls';
 import { Game } from '../systems/GameState';
 import * as P from '../systems/Player';
 import { computeHit, incomingDamage, rollHit } from '../systems/Combat';
+import { playSfx } from '../systems/Sfx';
 import { rollDrops } from '../systems/Loot';
 
 const GROUND_H = 64;
@@ -17,6 +18,7 @@ export const HP_POTIONS = ['meadow_dew', 'spring_draught', 'barley_cake', 'wild_
 export const MP_POTIONS = ['clear_dew', 'mint_draught'];
 
 interface Drop extends Phaser.Physics.Arcade.Image { itemId: string; qty: number; expireAt: number; rare: boolean }
+interface Shot { img: Phaser.GameObjects.Image; vx: number; vy: number; dieAt: number; m: Monster }
 
 export class WorldScene extends Phaser.Scene {
   private areaId = 'meadow_town';
@@ -39,6 +41,9 @@ export class WorldScene extends Phaser.Scene {
   private knockUntil = 0;
   private walkT = 0;
   private playerBaseScale = { x: 1, y: 1 };
+  private shots: Shot[] = [];
+  private chestX: number | null = null;
+  private chestImg?: Phaser.GameObjects.Image;
 
   constructor() { super('World'); }
 
@@ -50,6 +55,9 @@ export class WorldScene extends Phaser.Scene {
     this.monsters = [];
     this.npcs = [];
     this.portals = [];
+    this.shots = [];
+    this.chestX = null;
+    this.chestImg = undefined;
   }
 
   create() {
@@ -94,6 +102,13 @@ export class WorldScene extends Phaser.Scene {
       const fr = this.textures.getFrame('tile.platform');
       plat.setTileScale(ps.h / fr.height);
       platforms.add(plat);
+    }
+
+    // Storage chest (town).
+    if (this.geo.chest !== undefined) {
+      this.chestX = this.geo.chest * TILE;
+      this.chestImg = fitSlot(this, this.add.image(this.chestX, groundY, 'deco.chest').setOrigin(0.5, 1).setDepth(3), 'deco.chest');
+      this.add.text(this.chestX, groundY - 44, 'Storage', { fontFamily: 'monospace', fontSize: '11px', color: '#fff6c2', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5, 1).setDepth(4);
     }
 
     // Portals.
@@ -226,10 +241,16 @@ export class WorldScene extends Phaser.Scene {
     this.player.setAlpha(time < Game.invulnUntil && !Game.dead ? (Math.floor(time / 80) % 2 ? 0.35 : 1) : Game.dead ? 0.3 : 1);
 
     const target = { x: this.player.x, y: this.player.y, halfW: SPRITES['player.warrior'].w * 0.4, targetable: !Game.dead };
-    for (const m of this.monsters) if (m.tick(time, target)) this.monsterSwings(m);
+    for (const m of this.monsters) {
+      const a = m.tick(time, target);
+      if (a === 'swing') this.monsterSwings(m);
+      else if (a === 'shoot') this.fireShot(m);
+    }
+    this.updateShots(time, delta);
 
     for (const d of this.drops.getChildren() as Drop[]) if (time > d.expireAt) d.destroy();
     this.updatePrompt();
+    if (this.chestImg) this.chestImg.setTexture(Game.storageOpen ? 'deco.chest_open' : 'deco.chest');
     p.x = this.player.x;
     if (time - this.lastSave > ASSUME.autosaveMs) { this.lastSave = time; Game.save(); }
   }
@@ -331,10 +352,36 @@ export class WorldScene extends Phaser.Scene {
     this.time.delayedCall((s.duration_s ?? 60) * 1000, () => this.player?.clearTint());
   }
 
-  private monsterSwings(m: Monster) {
+  /** Ranged monsters: a slow, visible pebble aimed at chest height (jump over it or walk away). */
+  private fireShot(m: Monster) {
+    const dir = Math.sign(this.player.x - m.x) || 1;
+    const y = m.y - m.displayHeight * 0.55;
+    const img = fitSlot(this, this.add.image(m.x + dir * m.halfW, y, 'fx.pebble').setDepth(11), 'fx.pebble');
+    const ty = this.player.y - 24; // chest height at release time
+    const dist = Math.max(40, Math.abs(this.player.x - m.x));
+    const vy = Phaser.Math.Clamp(((ty - y) / dist) * RANGED.projectileSpeed, -80, 80);
+    this.shots.push({ img, vx: dir * RANGED.projectileSpeed, vy, dieAt: Game.now + RANGED.projectileLifeMs, m });
+  }
+
+  private updateShots(time: number, delta: number) {
+    this.shots = this.shots.filter((s) => {
+      s.img.x += (s.vx * delta) / 1000;
+      s.img.y += (s.vy * delta) / 1000;
+      s.img.angle += delta * 0.6;
+      const hit = !Game.dead && Math.abs(s.img.x - this.player.x) < RANGED.hitRadius + 6 && s.img.y > this.player.y - 46 && s.img.y < this.player.y + 2;
+      if (hit) this.monsterSwings(s.m, s.img.x);
+      if (hit || time > s.dieAt || s.img.y > this.groundY + 10) {
+        this.tweens.add({ targets: s.img, alpha: 0, scale: s.img.scale * 1.6, duration: 120, onComplete: () => s.img.destroy() });
+        return false;
+      }
+      return true;
+    });
+  }
+
+  private monsterSwings(m: Monster, fromX = m.x) {
     const p = Game.player;
     if (Game.dead || Game.now < Game.invulnUntil) return;
-    if (!rollHit(m.feel.acc, P.evasion(p), m.def.level, p.level)) {
+    if (!rollHit(m.feel.acc, P.evasion(p), m.def.level, p.level, HIT_MONSTER)) {
       this.floatText(this.player.x, this.player.y - 60, 'MISS', '#c8c8c8', 14);
       return;
     }
@@ -345,7 +392,7 @@ export class WorldScene extends Phaser.Scene {
     Game.invulnUntil = Game.now + ASSUME.hurtInvulnMs;
     this.knockUntil = Game.now + 200;
     const body = this.player.body as Phaser.Physics.Arcade.Body;
-    body.setVelocity(Math.sign(this.player.x - m.x || 1) * PLAYER_HIT_KB.vx, PLAYER_HIT_KB.vy);
+    body.setVelocity(Math.sign(this.player.x - fromX || 1) * PLAYER_HIT_KB.vx, PLAYER_HIT_KB.vy);
     this.floatText(this.player.x, this.player.y - 60, p.cheats.god ? 'GOD' : `-${dmg}`, '#ff6b6b', 16);
     if (p.hp <= 0) this.die();
   }
@@ -362,12 +409,33 @@ export class WorldScene extends Phaser.Scene {
   levelUpFx(levels: number) {
     const p = Game.player;
     Game.invulnUntil = Game.now + ASSUME.levelUpInvulnMs;
-    Game.toast(`LEVEL UP! Level ${p.level} — +${f('player_points_per_level') * levels} ability points (press C)`, 'level');
-    this.floatText(this.player.x, this.player.y - 80, 'LEVEL UP!', '#ffe066', 24);
+    Game.events.emit('levelup', p.level, f('player_points_per_level') * levels);
+    playSfx('levelup');
+    // burst: golden ring + sparks around the player
+    const cx = this.player.x, cy = this.player.y - 24;
+    const ring = this.add.circle(cx, cy, 10, 0xffe066, 0).setStrokeStyle(4, 0xffe066, 0.9).setDepth(13);
+    this.tweens.add({ targets: ring, radius: 90, alpha: 0, duration: 650, ease: 'Cubic.easeOut', onUpdate: () => ring.setStrokeStyle(4 * ring.alpha + 1, 0xffe066, ring.alpha), onComplete: () => ring.destroy() });
+    for (let i = 0; i < 22; i++) {
+      const a = (i / 22) * Math.PI * 2;
+      const sp = this.add.rectangle(cx, cy, 4, 4, i % 2 ? 0xffe066 : 0xffffff).setDepth(13);
+      this.tweens.add({ targets: sp, x: cx + Math.cos(a) * (60 + Math.random() * 40), y: cy + Math.sin(a) * (50 + Math.random() * 30) - 10, alpha: 0, angle: 180, duration: 700 + Math.random() * 300, ease: 'Cubic.easeOut', onComplete: () => sp.destroy() });
+    }
+    const beam = this.add.rectangle(cx, this.player.y, 46, 220, 0xfff2a8, 0.35).setOrigin(0.5, 1).setDepth(7);
+    this.tweens.add({ targets: beam, alpha: 0, scaleX: 0.2, duration: 900, onComplete: () => beam.destroy() });
     Game.save();
   }
 
-  private spawnDrop(x: number, y: number, itemId: string, qty: number, rare: boolean) {
+  /** Drop items from the bag onto the ground in front of the player (a normal pickup-able drop). */
+  dropFromBag(itemId: string, qty: number): boolean {
+    if (Game.dead || !P.removeItem(Game.player, itemId, qty)) return false;
+    const d = this.spawnDrop(this.player.x + this.facing * 26, this.player.y - 30, itemId, qty, false);
+    d.setVelocity(this.facing * 60, -180);
+    Game.changed();
+    Game.save();
+    return true;
+  }
+
+  spawnDrop(x: number, y: number, itemId: string, qty: number, rare: boolean): Drop {
     const key = iconKey(itemId);
     const d = this.drops.create(x + (Math.random() - 0.5) * 30, y, key) as Drop;
     fitSlot(this, d, key, { w: DROP_SIZE, h: DROP_SIZE });
@@ -383,6 +451,7 @@ export class WorldScene extends Phaser.Scene {
       d.setTint(0xffe9a8);
       this.tweens.add({ targets: d, alpha: 0.55, yoyo: true, repeat: -1, duration: 400 });
     }
+    return d;
   }
 
   private die() {
@@ -435,6 +504,7 @@ export class WorldScene extends Phaser.Scene {
     );
   }
   private nearNpc() { return this.npcs.find((n) => Math.abs(n.x - this.player.x) < 40); }
+  private nearChest() { return this.chestX !== null && Math.abs(this.chestX - this.player.x) < 36; }
   private nearPortal() { return this.portals.find((pt) => Math.abs(pt.x - this.player.x) < 34); }
 
   private interact() {
@@ -442,14 +512,16 @@ export class WorldScene extends Phaser.Scene {
     if (drops.length) {
       for (const d of drops) {
         P.addItem(Game.player, d.itemId, d.qty);
-        Game.toast(`+${d.qty} ${DB.items[d.itemId].name}`, d.rare ? 'rare' : 'loot');
+        Game.toast(`${DB.items[d.itemId].name === 'Copper Coin' ? 'Copper' : DB.items[d.itemId].name} ×${d.qty}`, d.rare ? 'rare' : 'loot', d.itemId);
         d.destroy();
       }
+      playSfx('pickup');
       Game.changed();
       return;
     }
     const npc = this.nearNpc();
     if (npc) { Game.events.emit('npc', npc.id, npc.role, npc.name); return; }
+    if (this.nearChest()) { Game.events.emit('chest'); return; }
     const portal = this.nearPortal();
     if (portal) {
       if (!portal.target) { Game.toast('That path opens in v0.2.', 'info'); return; }
@@ -466,6 +538,7 @@ export class WorldScene extends Phaser.Scene {
     let text = '';
     if (this.nearbyDrops().length) text = 'E: pick up';
     else if (this.nearNpc()) text = `E: talk to ${this.nearNpc()!.name.split(' ')[0]}`;
+    else if (this.nearChest()) text = 'E: open storage';
     else if (this.nearPortal()) text = this.nearPortal()!.target ? 'E: enter' : 'Closed (v0.2)';
     this.prompt.setText(text).setVisible(!!text && !Game.dead && !Game.menuOpen).setPosition(this.player.x, this.player.y - 56);
   }

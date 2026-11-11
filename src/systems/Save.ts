@@ -10,9 +10,13 @@ export function loadSave(): PlayerData {
     const base = newPlayer();
     const p = { ...base, ...JSON.parse(raw) } as PlayerData;
     p.cheats = { ...base.cheats, ...(p.cheats ?? {}) };
+    p.storage ??= {};
+    p.bagSlots ??= [];
+    p.storageSlots ??= [];
     if (!DB.areas[p.area]) p.area = 'meadow_town';
     // Drop unknown item ids if the sheet removed them since the save was written.
     for (const id of Object.keys(p.inventory)) if (!DB.items[id]) delete p.inventory[id];
+    for (const id of Object.keys(p.storage)) if (!DB.items[id]) delete p.storage[id];
     p.hp = Math.min(Math.max(1, p.hp), maxHp(p));
     p.mp = Math.min(Math.max(0, p.mp), maxMp(p));
     return p;

@@ -17,7 +17,12 @@ export interface PlayerData {
   hp: number;
   mp: number;
   coins: number;
-  inventory: Record<string, number>; // item_id → qty
+  inventory: Record<string, number>; // item_id → qty (authoritative counts)
+  /** Bag layout: slot index → item_id (one stack per item). Reconciled with `inventory`. */
+  bagSlots: (string | null)[];
+  /** Town storage chest (v0.1.2): counts + layout, same model as the bag. */
+  storage: Record<string, number>;
+  storageSlots: (string | null)[];
   equipment: Partial<Record<EquipSlot, string>>;
   area: string;
   x: number;
@@ -35,7 +40,7 @@ export function newPlayer(): PlayerData {
   const p: PlayerData = {
     version: 1, classId: 'warrior', level: 1, xp: 0, unspent: pts,
     stats: { STR: 0, INT: 0, AGI: 0, SPI: 0 }, hp: 1, mp: 1, coins: 0,
-    inventory: {}, equipment: { weapon: ASSUME.starterWeapon }, area: 'meadow_town', x: 200,
+    inventory: {}, bagSlots: [], storage: {}, storageSlots: [], equipment: { weapon: ASSUME.starterWeapon }, area: 'meadow_town', x: 200,
     skillRanks: { power_strike: 0, rage: 0 },
     questFlags: {},
     cheats: { atk: 0, def: 0, maxHp: 0, dropMul: 1, god: false },
@@ -173,4 +178,54 @@ export function accuracy(p: PlayerData): number {
 /** Evasion = 8 + AGI × 0.8 + level × 0.5 (assumptions.PLAYER_EVA). */
 export function evasion(p: PlayerData): number {
   return PLAYER_EVA.base + p.stats.AGI * PLAYER_EVA.perAgi + p.level * PLAYER_EVA.perLevel;
+}
+
+// ───────────── bag / storage slots (v0.1.2) ─────────────
+export const BAG_SIZE = 24;
+export const STORAGE_SIZE = 30;
+export type Container = 'bag' | 'storage';
+
+const counts = (p: PlayerData, c: Container) => (c === 'bag' ? p.inventory : p.storage);
+const slotsOf = (p: PlayerData, c: Container) => (c === 'bag' ? p.bagSlots : p.storageSlots);
+
+/** Make the slot layout match the counts: drop stale ids, place new ids in the first free slot. */
+export function layout(p: PlayerData, c: Container): (string | null)[] {
+  const cnt = counts(p, c);
+  const size = c === 'bag' ? BAG_SIZE : STORAGE_SIZE;
+  const slots = slotsOf(p, c);
+  const seen = new Set<string>();
+  for (let i = 0; i < slots.length; i++) {
+    const id = slots[i];
+    if (id && (!(cnt[id] > 0) || seen.has(id))) slots[i] = null;
+    else if (id) seen.add(id);
+  }
+  const extra = Object.keys(cnt).filter((id) => cnt[id] > 0 && !seen.has(id));
+  const need = Math.max(size, slots.filter(Boolean).length + extra.length);
+  while (slots.length < need) slots.push(null);
+  for (const id of extra) slots[slots.indexOf(null)] = id;
+  return slots;
+}
+
+/** Move/swap within a container, or move a stack (or `qty`) between bag and storage onto a target slot. */
+export function moveSlot(p: PlayerData, from: Container, fromIdx: number, to: Container, toIdx: number, qty?: number): boolean {
+  const a = layout(p, from), b = layout(p, to);
+  const id = a[fromIdx];
+  if (!id) return false;
+  if (from === to) {
+    [a[fromIdx], a[toIdx]] = [a[toIdx] ?? null, id];
+    return true;
+  }
+  const src = counts(p, from), dst = counts(p, to);
+  const n = Math.min(qty ?? src[id], src[id]);
+  if (n <= 0) return false;
+  const existing = b.indexOf(id);
+  if (existing < 0) {
+    if (toIdx < 0 || b[toIdx]) toIdx = b.indexOf(null);
+    if (toIdx < 0) return false; // full
+    b[toIdx] = id;
+  }
+  dst[id] = (dst[id] ?? 0) + n;
+  src[id] -= n;
+  if (src[id] <= 0) { delete src[id]; a[fromIdx] = null; }
+  return true;
 }
