@@ -20,7 +20,7 @@ export const ASSUME = {
   // Power Strike kills a Field Mouse in ~4 hits (sheet target: 3-5 hits).
   starterWeapon: 'wooden_sword',
   // Not in sheet: skill cooldowns. The worked example assumes a 1s Power Strike cooldown.
-  cooldownMs: { power_strike: 1000, rage: 60000 } as Record<string, number>,
+  cooldownMs: { power_strike: 1000, rage: 60000, earthbreaker: 3000, flame_cleave: 2500, soul_guard: 30000 } as Record<string, number>,
   potionCooldownMs: 400,
   // Not in sheet: hurt invulnerability after taking a hit, monster swing interval and speeds.
   hurtInvulnMs: 700,
@@ -127,4 +127,29 @@ export const REGEN = {
 export const LOOT = {
   qtySkew: 1.8, // r^1.8 → weighted toward min_qty
   maxQtyPerMul: 0.5, // droprate 3× → max_qty × 2
+};
+
+/**
+ * Gear instances (v0.1.2). Full mid-roll Meadows *drop* set vs basic, level 1, 0 ability points:
+ *   Basic: Wooden Sword (10 × 1.1) = 11 attack, 0 defense.
+ *   Drop set: Meadow Blade mid 14 × 1.15 = 16 attack (+45%), Hide armor mid defense 10
+ *     (cap 2 + vest 3 + pants 2 + boots 2 + gloves 1).
+ *   Survivability vs a Crow (attack 18): 18 dmg → 8 dmg, 56% less taken.
+ *   Shop cloth is a stepping-stone (mid defense 6). Hide requires 3 STR; Meadow Blade requires 3 STR.
+ *   Steel (17-21 × 1.25) is ultra-rare and above this target. Skill training is still the main power-up.
+ *   Numbers live on the gear tab (defense_min/max, weapon_damage_min/max); mid values are the "typical" columns.
+ */
+export const MAGIC = {
+  /** Fraction of gear drops (and shop rolls) that come out magic. 1/12 ≈ 8.3%, in the 1/10–1/20 band. */
+  chance: 1 / 12,
+  /** Given a magic item, chance it gets a second affix. */
+  secondAffixChance: 0.4,
+  /** Rolled uniformly in [min, max]. */
+  affixes: {
+    STR: [1, 3], INT: [1, 3], AGI: [1, 3], SPI: [1, 3],
+    acc: [2, 6], crit: [1, 4],
+    hp: [8, 20], mp: [5, 15],
+    hpRegen: [0.15, 0.4], // flat HP/s added to out-of-combat regen
+    mpRegen: [0.05, 0.15],
+  } as Record<string, [number, number]>,
 };

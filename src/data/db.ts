@@ -22,13 +22,13 @@ export interface ItemDef {
 }
 export interface MonsterDef {
   id: string; name: string; category_id: string; level: number; is_boss: boolean; description: string;
-  hp: number; attack: number; defense: number; xp: number; respawn_s: number; aggression: 'passive' | 'aggressive';
+  hp: number; attack: number; defense: number; xp: number; respawn_s: number; aggression: 'passive' | 'aggressive'; zone_id?: string;
   attack_type?: 'melee' | 'ranged' | null;
 }
 export interface DropRow { monster_id: string; item_id: string; drop_rate: number; min_qty: number; max_qty: number; unlock_requirement_id: string | null }
 export interface ShopRow { id: string; item_id: string; role: 'sell' | 'buy'; price: number | null; currency: string; stock: string; notes: string }
-export interface GearDef { item_id: string; slot: string; class_id: string; required_stat: string | null; required_value: number; stat_multiplier: number; defense: number; weapon_damage: number }
-export interface SkillDef { id: string; class_id: string; name: string; branch: string; type: 'active' | 'buff'; damage_multiplier: number | null; duration_s: number | null; mp_cost: number; effect: string; description: string }
+export interface GearDef { item_id: string; slot: string; class_id: string; required_stat: string | null; required_value: number; stat_multiplier: number; defense: number; weapon_damage: number; defense_min?: number; defense_max?: number; weapon_damage_min?: number; weapon_damage_max?: number }
+export interface SkillDef { id: string; class_id: string; name: string; branch: string; type: 'active' | 'buff'; unlock_stage: string; max_rank: number; per_rank_scaling: string | null; scaling_stat: string | null; damage_multiplier: number | null; duration_s: number | null; mp_cost: number; effect: string; description: string }
 export interface AreaDef { id: string; name: string; level_range: string; monster_ids: string; spawns: Record<string, number>; links: Record<string, string>; notes: string }
 export interface KV { key: string; value: unknown; notes: string; num: number | null }
 

@@ -1,6 +1,6 @@
 {
   "tab": "drop_tables",
-  "note": "NOTE: drop_rate is a percent (25 = 25%, 0.5 = 0.5%). Each row is an independent roll. v0.1.2: every rate doubled after playtest (capped at 90%), relative rarity unchanged. Bands now: copper ~70%; category essences 40-60% (qty 1-3; bosses 80%, 2-5). Monster Essence ~30%; Training Scroll ~12%. Material bands: commons 30-40%; uncommons 2-6%; crystals / Holy Essence / Soul Shard / Log ~0.6-2%; Heartwood boss-only ~4-10%; gear ~0.1-0.4%; ultra-rares ~0.02-0.1%. Healing and MP drinks are NOT on every monster — only overlapping subsets of thematically related ones, at low rates. Quantities (min_qty-max_qty, rolled weighted toward the low end): copper 1-4, essences 1-3, Monster Essence 1-2, common materials 1-3, uncommon materials 1-2, rares/gear/consumables/junk 1. Mid curios and rare high-sell junk are shared by 2-3 related monsters. unlock_requirement_id is optional (e.g. unlock_cursed_dust).",
+  "note": "NOTE: drop_rate is a percent (25 = 25%, 0.5 = 0.5%). Each row is an independent roll. v0.1.2: every rate doubled after playtest (capped at 90%), relative rarity unchanged. Bands now: copper ~70%; category essences 40-60% (qty 1-3; bosses 80%, 2-5). Monster Essence ~30%; Training Scroll ~12%. Material bands: commons 30-40%; uncommons 2-6%; crystals / Holy Essence / Soul Shard / Log ~0.6-2%; Heartwood boss-only ~4-10%; gear ~0.1-0.4%; ultra-rares ~0.02-0.1%. Healing and MP drinks are NOT on every monster — only overlapping subsets of thematically related ones, at low rates. Quantities (min_qty-max_qty, rolled weighted toward the low end): copper 1-4, essences 1-3, Monster Essence 1-2, common materials 1-3, uncommon materials 1-2, rares/gear/consumables/junk 1. Mid curios and rare high-sell junk are shared by 2-3 related monsters. unlock_requirement_id is optional (e.g. unlock_cursed_dust). v0.1.2-gear: each monster has its own gear pool (class-specific Hide / Linen / Trail sets and mid weapons in Sunny Pasture). Gear quantity is always 1 (an instance with rolled stats); magic (~1/12) is rolled on the instance, not a separate row.",
   "columns": [
     "monster_id",
     "item_id",
@@ -140,16 +140,16 @@
     },
     {
       "monster_id": "wool_sheep",
-      "item_id": "leather_vest",
-      "drop_rate": 0.12,
+      "item_id": "hide_vest",
+      "drop_rate": 2,
       "min_qty": 1,
       "max_qty": 1,
       "unlock_requirement_id": null
     },
     {
       "monster_id": "wool_sheep",
-      "item_id": "leather_boots",
-      "drop_rate": 0.12,
+      "item_id": "hide_pants",
+      "drop_rate": 1.5,
       "min_qty": 1,
       "max_qty": 1,
       "unlock_requirement_id": null
@@ -252,16 +252,16 @@
     },
     {
       "monster_id": "crow",
-      "item_id": "leather_cap",
-      "drop_rate": 0.12,
+      "item_id": "hide_cap",
+      "drop_rate": 2,
       "min_qty": 1,
       "max_qty": 1,
       "unlock_requirement_id": null
     },
     {
       "monster_id": "crow",
-      "item_id": "leather_gloves",
-      "drop_rate": 0.16,
+      "item_id": "hide_boots",
+      "drop_rate": 1.5,
       "min_qty": 1,
       "max_qty": 1,
       "unlock_requirement_id": null
@@ -1582,6 +1582,118 @@
       "monster_id": "night_stump",
       "item_id": "tarnished_ring",
       "drop_rate": 2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "field_mouse",
+      "item_id": "hide_gloves",
+      "drop_rate": 2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "field_mouse",
+      "item_id": "linen_gloves",
+      "drop_rate": 2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "field_mouse",
+      "item_id": "trail_gloves",
+      "drop_rate": 2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "wool_sheep",
+      "item_id": "linen_vest",
+      "drop_rate": 2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "wool_sheep",
+      "item_id": "linen_pants",
+      "drop_rate": 1.5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "wool_sheep",
+      "item_id": "trail_vest",
+      "drop_rate": 2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "wool_sheep",
+      "item_id": "trail_pants",
+      "drop_rate": 1.5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "linen_cap",
+      "drop_rate": 2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "linen_boots",
+      "drop_rate": 1.5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "trail_cap",
+      "drop_rate": 2,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "trail_boots",
+      "drop_rate": 1.5,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "meadow_blade",
+      "drop_rate": 1,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "grove_staff",
+      "drop_rate": 1,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "crow",
+      "item_id": "bone_knife",
+      "drop_rate": 1,
       "min_qty": 1,
       "max_qty": 1,
       "unlock_requirement_id": null
