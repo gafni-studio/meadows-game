@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { MonsterDef } from '../data/db';
-import { ASSUME, TILE, MONSTER_FEEL, AI } from '../data/assumptions';
+import { ASSUME, TILE, MONSTER_FEEL, AI, RANGED } from '../data/assumptions';
 import { monsterSlot, SPRITES } from '../art/sprites';
 import { fitSlot, applyBody } from '../art/SpriteFactory';
 
@@ -9,7 +9,11 @@ import { fitSlot, applyBody } from '../art/SpriteFactory';
  *  idle → (aggro or hit) → approach → windup (telegraph) → strike → recover
  *       → reposition (back off | hop over to the other side | short pause) → approach …
  *  hitstun interrupts anything; return = leash home (HP reset).
+ * Melee (monsters.attack_type = melee): walks to body contact; a swing only lands if still touching.
+ *   Random wind-up length, random recover, occasional feints (telegraph → back off without striking).
+ * Ranged (attack_type = ranged): keeps RANGED.keepPx distance, telegraphs, then throws a slow projectile.
  */
+export type Attack = 'swing' | 'shoot' | null;
 type State = 'idle' | 'approach' | 'windup' | 'recover' | 'backoff' | 'hop' | 'pause' | 'hitstun' | 'return' | 'dead';
 
 const rand = (r: [number, number]) => r[0] + Math.random() * (r[1] - r[0]);
@@ -34,6 +38,9 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
   private baseSY = 1;
   private animT = 0;
   private slot: string;
+  readonly ranged: boolean;
+  private nextShotAt = 0;
+  private feint = false;
 
   constructor(scene: Phaser.Scene, def: MonsterDef, x: number, groundY: number) {
     const slot = monsterSlot(def.id);
@@ -45,6 +52,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     this.spawnX = x;
     this.wanderTarget = x;
     this.speed = ASSUME.monsterSpeed[def.id] ?? ASSUME.monsterSpeed.default;
+    this.ranged = def.attack_type === 'ranged';
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.setOrigin(0.5, 1);
@@ -86,7 +94,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     const push = kb * (1 - this.feel.kbRes);
     if (push > 0 && this.state !== 'return') {
       this.body2.setVelocityX(Math.sign(this.x - fromX || 1) * push);
-      if (push > 200) this.body2.setVelocityY(-120);
+      if (push > 600) this.body2.setVelocityY(-160);
       this.set('hitstun', hitstunMs * (1 - this.feel.kbRes * 0.5));
     } else if (this.state === 'idle') {
       this.set('approach'); // passive monsters fight back once hit
@@ -117,9 +125,16 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
   /** Remove permanently (console kill/cleanup of spawned mobs). */
   kill() { if (this.alive) this.die(); }
 
-  /** AI tick. Returns true on the frame a swing lands (the scene rolls hit/miss + damage). */
-  tick(now: number, t: Target): boolean {
-    if (!this.alive) return false;
+  private startWindup(ms: number) {
+    this.body2.setVelocityX(0);
+    this.set('windup', ms);
+    this.setTint(0xff7070);
+    this.scene.tweens.add({ targets: this, scaleY: this.baseSY * 0.85, scaleX: this.baseSX * 1.1, duration: ms * 0.8 });
+  }
+
+  /** AI tick. Returns 'swing' on the frame a melee swing lands, 'shoot' when a projectile is released. */
+  tick(now: number, t: Target): Attack {
+    if (!this.alive) return null;
     const body = this.body2;
     const dx = t.x - this.x;
     const dy = Math.abs(t.y - this.y);
@@ -127,7 +142,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     const toward = Math.sign(dx) || 1;
     const aggroPx = ASSUME.aggroTiles * TILE;
     const leashPx = ASSUME.leashTiles * TILE;
-    let swing = false;
+    let swing: Attack = null;
 
     if (this.state === 'idle' && this.def.aggression === 'aggressive' && t.targetable && Math.abs(dx) < aggroPx && dy < 140) this.set('approach');
     if (this.engaged && (!t.targetable || Math.abs(this.x - this.spawnX) > leashPx)) this.set('return');
@@ -143,28 +158,45 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
         break;
       }
       case 'approach':
-        if (gap <= this.feel.range && dy < 60) {
-          body.setVelocityX(0);
-          this.set('windup', this.feel.windupMs);
-          this.setTint(0xff7070);
-          this.scene.tweens.add({ targets: this, scaleY: this.baseSY * 0.85, scaleX: this.baseSX * 1.1, duration: this.feel.windupMs * 0.8 });
+        if (now < this.until) { body.setVelocityX(0); break; } // brief random hesitation
+        if (this.ranged) {
+          const d = Math.abs(dx);
+          if (d < RANGED.keepPx[0]) body.setVelocityX(-toward * this.speed * AI.chaseSpeedMul); // too close: retreat
+          else if (d > RANGED.keepPx[1]) body.setVelocityX(toward * this.speed * AI.chaseSpeedMul);
+          else body.setVelocityX(0);
+          if (d <= RANGED.fireRangePx && dy < 80 && now >= this.nextShotAt) { this.feint = false; this.startWindup(rand(this.feel.windupMs)); }
+        } else if (gap <= this.feel.range && dy < 60) {
+          this.feint = Math.random() < AI.feintChance;
+          this.startWindup(rand(this.feel.windupMs));
         } else {
           body.setVelocityX(gap < AI.minGapPx ? -toward * this.speed : toward * this.speed * AI.chaseSpeedMul);
         }
         break;
       case 'windup':
-        body.setVelocityX(gap < AI.minGapPx ? -toward * this.speed * 0.5 : 0);
+        body.setVelocityX(!this.ranged && gap < AI.minGapPx ? -toward * this.speed * 0.5 : 0);
         if (now >= this.until) {
-          // Strike: lunge forward visually; lands only if the player is still in reach.
-          swing = gap <= this.feel.range + 12 && dy < 60;
-          body.setVelocityX(toward * 160);
-          this.set('recover', AI.recoverMs);
+          if (this.ranged) {
+            swing = 'shoot';
+            this.nextShotAt = now + rand(RANGED.cooldownMs);
+            this.set('recover', rand(AI.recoverMs));
+          } else if (this.feint) {
+            // Feint: telegraphed but no strike — hop back instead.
+            body.setVelocity(-toward * 120, -160);
+            this.dir = -toward;
+            this.set('backoff', rand(AI.repositionMs) * 0.6);
+          } else {
+            // Strike: small lunge; damage only if still touching the player.
+            swing = gap <= this.feel.range + 6 && dy < 50 ? 'swing' : null;
+            body.setVelocityX(toward * 90);
+            this.set('recover', rand(AI.recoverMs));
+          }
         }
         break;
       case 'recover':
         if (now >= this.until) {
           const r = Math.random();
-          if (r < AI.backOffChance) {
+          if (this.ranged) this.set('pause', rand(AI.idlePauseMs));
+          else if (r < AI.backOffChance) {
             this.dir = -toward;
             this.set('backoff', rand(AI.repositionMs));
           } else if (r < AI.backOffChance + AI.circleChance && body.blocked.down) {
@@ -185,7 +217,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
         break;
       case 'pause':
         body.setVelocityX(gap < AI.minGapPx ? -toward * this.speed : 0);
-        if (now >= this.until) this.set('approach');
+        if (now >= this.until) this.set('approach', rand(AI.approachDelayMs));
         break;
       case 'hitstun':
         body.setVelocityX(body.velocity.x * 0.9);
@@ -200,7 +232,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     }
 
     // Facing: engaged monsters face the player (except while backing off); art faces right.
-    if (this.state === 'backoff') this.setFlipX(this.dir < 0);
+    if (this.state === 'backoff' && !this.ranged) this.setFlipX(this.dir < 0);
     else if (this.engaged && this.state !== 'hop') this.setFlipX(dx < 0);
     else if (Math.abs(body.velocity.x) > 1) this.setFlipX(body.velocity.x < 0);
 

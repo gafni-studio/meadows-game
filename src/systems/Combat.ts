@@ -1,6 +1,8 @@
 import { f } from '../data/db';
 import { HIT } from '../data/assumptions';
 
+export type HitCfg = typeof HIT;
+
 /** combat_formulas.min_damage: max(1, floor(0.05 × skill_multiplier × attack)). */
 export function minDamage(preDefense: number): number {
   return Math.max(1, Math.floor(0.05 * preDefense));
@@ -21,11 +23,11 @@ export function incomingDamage(monsterAttack: number, playerDefense: number, tak
   return Math.floor(base * (1 + takenBonusPct / 100));
 }
 
-/** hit% = clamp(85 + (acc − eva) × 1.5 + (attackerLvl − defenderLvl) × 2, 50, 98) */
-export function hitChance(acc: number, eva: number, attackerLevel: number, defenderLevel: number): number {
-  const raw = HIT.base + (acc - eva) * HIT.perAccEva + (attackerLevel - defenderLevel) * HIT.perLevel;
-  return Math.max(HIT.min, Math.min(HIT.max, raw));
+/** hit% = clamp(base + (acc − eva) × perAccEva + (attackerLvl − defenderLvl) × perLevel, min, max). Player uses HIT, monsters HIT_MONSTER. */
+export function hitChance(acc: number, eva: number, attackerLevel: number, defenderLevel: number, cfg: HitCfg = HIT): number {
+  const raw = cfg.base + (acc - eva) * cfg.perAccEva + (attackerLevel - defenderLevel) * cfg.perLevel;
+  return Math.max(cfg.min, Math.min(cfg.max, raw));
 }
-export function rollHit(acc: number, eva: number, attackerLevel: number, defenderLevel: number): boolean {
-  return Math.random() * 100 < hitChance(acc, eva, attackerLevel, defenderLevel);
+export function rollHit(acc: number, eva: number, attackerLevel: number, defenderLevel: number, cfg: HitCfg = HIT): boolean {
+  return Math.random() * 100 < hitChance(acc, eva, attackerLevel, defenderLevel, cfg);
 }

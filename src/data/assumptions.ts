@@ -24,11 +24,13 @@ export const ASSUME = {
   potionCooldownMs: 400,
   // Not in sheet: hurt invulnerability after taking a hit, monster swing interval and speeds.
   hurtInvulnMs: 700,
-  monsterSpeed: { field_mouse: 70, wool_sheep: 50, crow: 95, default: 60 } as Record<string, number>,
+  // v0.1.2: all ÷2.5 (was mouse 70, sheep 50, crow 95, default 60).
+  monsterSpeed: { field_mouse: 28, wool_sheep: 20, crow: 38, default: 24 } as Record<string, number>,
   // Player movement (px/s, px/s², px/s).
   playerSpeed: 190,
   gravity: 1300,
-  jumpVelocity: 560,
+  // v0.1.2: 435 (was 560) → jump height v²/2g ≈ 73px, 60% of the old ≈ 121px. Platforms sit 2 / 4 tiles up.
+  jumpVelocity: 435,
   meleeReach: 70,
   // Ground drops disappear after this long (not in sheet).
   dropLifetimeMs: 120000,
@@ -37,13 +39,16 @@ export const ASSUME = {
 };
 
 /**
- * v0.1.1 combat-feel stats (accuracy/evasion, knockback, hitstun, AI timings).
+ * Combat-feel stats (accuracy/evasion, knockback, hitstun, AI timings).
  * Not in the design sheet yet — candidates for a new sheet tab.
  *
  * Hit chance (attacker → defender):
- *   hit% = clamp(85 + (acc − eva) × 1.5 + (attackerLevel − defenderLevel) × 2, 50, 98)
+ *   hit% = clamp(base + (acc − eva) × perAccEva + (attackerLevel − defenderLevel) × perLevel, min, max)
+ * v0.1.2: monsters use HIT_MONSTER — ~77-79% against an equal-level player, −3.5% per level the
+ * player is above the mob, floor 40%. The player keeps HIT (≈90% at parity).
  */
 export const HIT = { base: 85, perAccEva: 1.5, perLevel: 2, min: 50, max: 98 };
+export const HIT_MONSTER = { base: 78, perAccEva: 1, perLevel: 3.5, min: 40, max: 95 };
 
 /** Player accuracy/evasion: base + AGI × perAgi + level × perLevel. */
 export const PLAYER_ACC = { base: 10, perAgi: 1, perLevel: 0.5 };
@@ -55,11 +60,27 @@ export const PLAYER_EVA = { base: 8, perAgi: 0.8, perLevel: 0.5 };
  * the player misses them ~10%). kbRes 0 = full knockback, 1 = immovable.
  * range = attack reach in px (edge to edge, after spacing), windupMs = telegraph before a swing.
  */
-export const MONSTER_FEEL: Record<string, { acc: number; eva: number; kbRes: number; range: number; windupMs: number }> = {
-  field_mouse: { acc: 5, eva: 7, kbRes: 0.0, range: 14, windupMs: 380 },
-  wool_sheep: { acc: 6, eva: 6, kbRes: 0.6, range: 16, windupMs: 450 },
-  crow: { acc: 8, eva: 10, kbRes: 0.2, range: 18, windupMs: 400 },
-  default: { acc: 8, eva: 8, kbRes: 0.3, range: 16, windupMs: 400 },
+export interface MonsterFeel { acc: number; eva: number; kbRes: number; range: number; windupMs: [number, number] }
+export const MONSTER_FEEL: Record<string, MonsterFeel> = {
+  // range = melee contact reach (edge to edge, px). v0.1.2: contact only (was 14-18).
+  // windupMs = random telegraph per swing (v0.1.2: was fixed 380-450).
+  field_mouse: { acc: 8, eva: 7, kbRes: 0.0, range: 4, windupMs: [250, 550] },
+  wool_sheep: { acc: 9, eva: 6, kbRes: 0.6, range: 4, windupMs: [320, 600] },
+  crow: { acc: 10, eva: 10, kbRes: 0.2, range: 4, windupMs: [400, 600] },
+  default: { acc: 9, eva: 8, kbRes: 0.3, range: 4, windupMs: [300, 600] },
+};
+
+/**
+ * Ranged attackers (monsters.attack_type = ranged in the sheet): keep a distance, telegraph,
+ * then throw a slow, visible projectile that flies straight at chest height — jump or walk away to dodge.
+ */
+export const RANGED = {
+  keepPx: [150, 230] as [number, number], // preferred distance band to the player
+  fireRangePx: 300,
+  projectileSpeed: 150, // px/s (player runs 190)
+  projectileLifeMs: 2800,
+  hitRadius: 14,
+  cooldownMs: [2200, 3600] as [number, number],
 };
 
 /**
@@ -67,8 +88,11 @@ export const MONSTER_FEEL: Record<string, { acc: number; eva: number; kbRes: num
  * hitstunMs = how long the monster can't act (scaled by 1 − kbRes × 0.5).
  */
 export const ATTACK_FEEL: Record<string, { kb: number; hitstunMs: number }> = {
-  basic: { kb: 140, hitstunMs: 320 },
-  power_strike: { kb: 360, hitstunMs: 500 },
+  // v0.1.2: ×3 (was basic 140, Power Strike 360).
+  basic: { kb: 420, hitstunMs: 320 },
+  power_strike: { kb: 1080, hitstunMs: 500 },
+  earthbreaker: { kb: 600, hitstunMs: 900 }, // AoE slam; the "short stun"
+  flame_cleave: { kb: 700, hitstunMs: 450 },
   rage: { kb: 0, hitstunMs: 0 },
 };
 
@@ -77,7 +101,9 @@ export const PLAYER_HIT_KB = { vx: 170, vy: -160 };
 
 /** Monster AI timings (ms) and behaviour weights after each swing. */
 export const AI = {
-  recoverMs: 250, // pause right after a swing
+  recoverMs: [150, 450] as [number, number], // v0.1.2: random pause right after a swing (was 250)
+  feintChance: 0.15, // telegraph, then cancel and back off instead of striking
+  approachDelayMs: [0, 500] as [number, number], // random hesitation before closing in again
   repositionMs: [550, 1100] as [number, number], // how long a back-off / circle lasts
   idlePauseMs: [250, 800] as [number, number], // short idle before re-engaging
   backOffChance: 0.45, // step away from the player
@@ -86,12 +112,19 @@ export const AI = {
   backOffSpeedMul: 1.1,
   chaseSpeedMul: 1.6,
   hopVelocity: 380, // circle hop
-  minGapPx: 6, // never closer than this (edge to edge) unless hopping over
+  minGapPx: 0, // v0.1.2: melee mobs close to contact (was 6)
 };
 
 /** Out-of-combat HP regen (game_rules has none yet). */
 export const REGEN = {
   delayMs: 5000, // no damage taken and no attacks for this long
-  pctMaxHpPerSec: 2, // % of max HP per second
-  spiBonusPerPoint: 0.02, // ×(1 + SPI × 0.02)
+  pctMaxHpPerSec: 0.5, // v0.1.2: % of max HP per second (was 2, ÷4)
+  // ×(1 + SPI × 0.02): multiplicative, so the absolute SPI contribution also dropped 4× with the base.
+  spiBonusPerPoint: 0.02,
+};
+
+/** Drop quantity rolls (drop_tables min_qty/max_qty are in the sheet). */
+export const LOOT = {
+  qtySkew: 1.8, // r^1.8 → weighted toward min_qty
+  maxQtyPerMul: 0.5, // droprate 3× → max_qty × 2
 };

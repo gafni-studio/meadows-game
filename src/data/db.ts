@@ -23,6 +23,7 @@ export interface ItemDef {
 export interface MonsterDef {
   id: string; name: string; category_id: string; level: number; is_boss: boolean; description: string;
   hp: number; attack: number; defense: number; xp: number; respawn_s: number; aggression: 'passive' | 'aggressive';
+  attack_type?: 'melee' | 'ranged' | null;
 }
 export interface DropRow { monster_id: string; item_id: string; drop_rate: number; min_qty: number; max_qty: number; unlock_requirement_id: string | null }
 export interface ShopRow { id: string; item_id: string; role: 'sell' | 'buy'; price: number | null; currency: string; stock: string; notes: string }
