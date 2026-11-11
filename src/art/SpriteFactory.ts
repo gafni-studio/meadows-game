@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { SPRITES } from './sprites';
 
-/** Queue real art files (slots with `file`) in a Scene's preload(). */
+/** Queue art files for every slot that has one. */
 export function preloadSprites(scene: Phaser.Scene): void {
   for (const [key, s] of Object.entries(SPRITES)) {
     if (!s.file) continue;
@@ -10,7 +10,7 @@ export function preloadSprites(scene: Phaser.Scene): void {
   }
 }
 
-/** Generate placeholder textures for every slot that has no real art file. */
+/** Generate a placeholder texture for every slot without (loaded) art. */
 export function buildPlaceholderTextures(scene: Phaser.Scene): void {
   for (const [key, s] of Object.entries(SPRITES)) {
     if (scene.textures.exists(key)) continue;
@@ -19,16 +19,34 @@ export function buildPlaceholderTextures(scene: Phaser.Scene): void {
     if (s.shape === 'circle') g.fillCircle(s.w / 2, s.h / 2, Math.min(s.w, s.h) / 2);
     else if (s.shape === 'roundrect') g.fillRoundedRect(0, 0, s.w, s.h, Math.min(8, s.w / 4, s.h / 4));
     else g.fillRect(0, 0, s.w, s.h);
-    // A darker outline so shapes read on any background.
-    g.lineStyle(2, Phaser.Display.Color.ValueToColor(s.color).darken(35).color, 1);
-    if (s.shape === 'circle') g.strokeCircle(s.w / 2, s.h / 2, Math.min(s.w, s.h) / 2 - 1);
-    else g.strokeRect(1, 1, s.w - 2, s.h - 2);
-    if (key.startsWith('player.') || key.startsWith('npc.') || key.startsWith('monster.')) {
-      // Eye so facing direction is visible (sprites face right; flipX for left).
-      g.fillStyle(0x111111, 1);
-      g.fillCircle(s.w * 0.72, s.h * 0.3, Math.max(2, s.w / 12));
-    }
     g.generateTexture(key, s.w, s.h);
     g.destroy();
+    delete s.body; // body hints are for the real art
+    s.frameW = undefined;
   }
+}
+
+/** Source (unscaled) frame size of a slot's texture. */
+export function sourceSize(scene: Phaser.Scene, key: string): { w: number; h: number } {
+  const s = SPRITES[key];
+  if (s?.frameW && s.frameH) return { w: s.frameW, h: s.frameH };
+  const f = scene.textures.getFrame(key);
+  return { w: f?.width ?? s?.w ?? 16, h: f?.height ?? s?.h ?? 16 };
+}
+
+/** Scale a game object so it renders at its slot's fixed size. */
+export function fitSlot<T extends Phaser.GameObjects.Components.Transform>(scene: Phaser.Scene, go: T, key: string, size?: { w: number; h: number }): T {
+  const s = SPRITES[key];
+  const src = sourceSize(scene, key);
+  const w = size?.w ?? s?.w ?? src.w;
+  const h = size?.h ?? s?.h ?? src.h;
+  go.setScale(w / src.w, h / src.h);
+  return go;
+}
+
+/** Apply the slot's body hint (in source px) to an arcade sprite. */
+export function applyBody(sprite: Phaser.Physics.Arcade.Sprite | Phaser.Physics.Arcade.Image, key: string): void {
+  const b = SPRITES[key]?.body;
+  const body = sprite.body as Phaser.Physics.Arcade.Body;
+  if (b) { body.setSize(b[0], b[1], false); body.setOffset(b[2], b[3]); }
 }

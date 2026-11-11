@@ -16,10 +16,8 @@ export const BINDINGS = {
   skill4: ['FOUR'],
   potionHp: ['FIVE'],
   potionMp: ['SIX', 'G'],
-  inventory: ['I'],
-  stats: ['C'],
-  shopClose: ['ESC'],
 } as const;
+// Menu keys (I, C, Esc, Enter, arrows in menus, backtick console) are handled by the DOM UI (src/ui/Hud.ts).
 export type Action = keyof typeof BINDINGS;
 
 export class Controls {
@@ -38,6 +36,9 @@ export class Controls {
       });
     }
   }
+
+  /** Forget presses (used while a menu is open so nothing fires on close). */
+  clear(): void { this.latched.clear(); }
 
   down(a: Action): boolean {
     // A tap shorter than a frame still counts once as "down".

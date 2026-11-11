@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { PlayerData } from './Player';
 import { loadSave, writeSave } from './Save';
+import type { WorldScene } from '../scenes/WorldScene';
 
 /** Shared runtime state + event bus between the world scene and the DOM UI. */
 export const Game = {
@@ -11,6 +12,11 @@ export const Game = {
   buffs: {} as Record<string, number>, // buff id → expires at (ms)
   invulnUntil: 0,
   dead: false,
+  /** A DOM menu/dialog is open: gameplay keys are ignored. */
+  menuOpen: false,
+  consoleOpen: false,
+  regenActive: false,
+  scene: null as WorldScene | null,
   now: 0,
   load() { this.player = loadSave(); },
   save() { writeSave(this.player); this.events.emit('saved'); },

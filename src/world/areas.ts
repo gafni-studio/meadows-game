@@ -25,8 +25,9 @@ export const AREAS: Record<string, AreaGeometry> = {
     spawnX: 260,
     platforms: [],
     decor: [
-      { slot: 'deco.house', x: 6 }, { slot: 'deco.house', x: 17 }, { slot: 'deco.well', x: 24 },
-      { slot: 'deco.house', x: 30 }, { slot: 'deco.fence', x: 38 }, { slot: 'deco.fence', x: 39 },
+      { slot: 'deco.tree_round', x: 2 }, { slot: 'deco.house_red', x: 8 }, { slot: 'deco.sign', x: 12 }, { slot: 'deco.bush', x: 14 },
+      { slot: 'deco.house_stone', x: 19 }, { slot: 'deco.hive', x: 24 }, { slot: 'deco.tree_tall', x: 25 },
+      { slot: 'deco.house_red', x: 31 }, { slot: 'deco.fence', x: 39 }, { slot: 'deco.bush', x: 41 },
     ],
     npcs: [
       { id: 'mara', name: 'Mara (Shop)', x: 10, role: 'shop' },
@@ -48,8 +49,9 @@ export const AREAS: Record<string, AreaGeometry> = {
       { x: 98, y: 3, w: 5 }, { x: 104, y: 6, w: 5 },
     ],
     decor: [
-      { slot: 'deco.tree', x: 14 }, { slot: 'deco.fence', x: 30 }, { slot: 'deco.fence', x: 31 },
-      { slot: 'deco.tree', x: 60 }, { slot: 'deco.tree', x: 88 }, { slot: 'deco.fence', x: 112 }, { slot: 'deco.tree', x: 120 },
+      { slot: 'deco.sign', x: 4 }, { slot: 'deco.tree_round', x: 14 }, { slot: 'deco.bush', x: 18 }, { slot: 'deco.fence', x: 31 },
+      { slot: 'deco.tree_tall', x: 40 }, { slot: 'deco.tree_round', x: 60 }, { slot: 'deco.bush', x: 70 }, { slot: 'deco.tree_tall', x: 88 },
+      { slot: 'deco.fence', x: 112 }, { slot: 'deco.tree_round', x: 120 }, { slot: 'deco.bush', x: 125 },
     ],
     npcs: [],
     portals: [{ x: 1, dir: 'west', arriveX: 40 }, { x: 128, dir: 'east', arriveX: 3 }],

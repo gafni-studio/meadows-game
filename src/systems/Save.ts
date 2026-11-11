@@ -7,7 +7,9 @@ export function loadSave(): PlayerData {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return newPlayer();
-    const p = { ...newPlayer(), ...JSON.parse(raw) } as PlayerData;
+    const base = newPlayer();
+    const p = { ...base, ...JSON.parse(raw) } as PlayerData;
+    p.cheats = { ...base.cheats, ...(p.cheats ?? {}) };
     if (!DB.areas[p.area]) p.area = 'meadow_town';
     // Drop unknown item ids if the sheet removed them since the save was written.
     for (const id of Object.keys(p.inventory)) if (!DB.items[id]) delete p.inventory[id];

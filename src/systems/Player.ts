@@ -1,5 +1,5 @@
 import { DB, f, xpToNext, ConsumableEffect } from '../data/db';
-import { ASSUME } from '../data/assumptions';
+import { ASSUME, PLAYER_ACC, PLAYER_EVA } from '../data/assumptions';
 
 export type Stat = 'STR' | 'INT' | 'AGI' | 'SPI';
 export const STATS: Stat[] = ['STR', 'INT', 'AGI', 'SPI'];
@@ -23,6 +23,10 @@ export interface PlayerData {
   x: number;
   skillRanks: Record<string, number>;
   questFlags: Record<string, boolean>;
+  /** Test-console bonuses (DEV_CONSOLE). */
+  cheats: { atk: number; def: number; maxHp: number; dropMul: number; god: boolean };
+  /** True once any console command changed this save. */
+  cheated: boolean;
   savedAt?: number;
 }
 
@@ -34,6 +38,8 @@ export function newPlayer(): PlayerData {
     inventory: {}, equipment: { weapon: ASSUME.starterWeapon }, area: 'meadow_town', x: 200,
     skillRanks: { power_strike: 0, rage: 0 },
     questFlags: {},
+    cheats: { atk: 0, def: 0, maxHp: 0, dropMul: 1, god: false },
+    cheated: false,
   };
   p.hp = maxHp(p);
   p.mp = maxMp(p);
@@ -43,7 +49,7 @@ export function newPlayer(): PlayerData {
 const cls = (p: PlayerData) => p.classId;
 
 export function maxHp(p: PlayerData): number {
-  return f(`hp_base_${cls(p)}`) + f(`hp_per_level_${cls(p)}`) * (p.level - 1) + p.stats.STR * f('hp_per_str');
+  return f(`hp_base_${cls(p)}`) + f(`hp_per_level_${cls(p)}`) * (p.level - 1) + p.stats.STR * f('hp_per_str') + (p.cheats?.maxHp ?? 0);
 }
 export function maxMp(p: PlayerData): number {
   return f(`mp_base_${cls(p)}`) + f(`mp_per_level_${cls(p)}`) * (p.level - 1) + p.stats.INT * f('mp_per_int');
@@ -59,10 +65,10 @@ export function attack(p: PlayerData): number {
   const w = p.equipment.weapon ? DB.gear[p.equipment.weapon] : undefined;
   const dmg = w ? w.weapon_damage : ASSUME.unarmedDamage;
   const mult = w ? w.stat_multiplier : ASSUME.unarmedMultiplier;
-  return Math.floor((dmg + mainStat(p) * 2) * mult);
+  return Math.floor((dmg + mainStat(p) * 2) * mult) + (p.cheats?.atk ?? 0);
 }
 export function defense(p: PlayerData): number {
-  let d = 0;
+  let d = p.cheats?.def ?? 0;
   for (const s of EQUIP_SLOTS) {
     const id = p.equipment[s];
     if (id && s !== 'weapon') d += DB.gear[id]?.defense ?? 0;
@@ -158,4 +164,13 @@ export function spendPoint(p: PlayerData, s: Stat): void {
 export function applyConsumable(p: PlayerData, eff: ConsumableEffect): void {
   if (eff.hp) p.hp = Math.min(maxHp(p), p.hp + eff.hp);
   if (eff.mp) p.mp = Math.min(maxMp(p), p.mp + eff.mp);
+}
+
+/** Accuracy = 10 + AGI × 1 + level × 0.5 (assumptions.PLAYER_ACC). */
+export function accuracy(p: PlayerData): number {
+  return PLAYER_ACC.base + p.stats.AGI * PLAYER_ACC.perAgi + p.level * PLAYER_ACC.perLevel;
+}
+/** Evasion = 8 + AGI × 0.8 + level × 0.5 (assumptions.PLAYER_EVA). */
+export function evasion(p: PlayerData): number {
+  return PLAYER_EVA.base + p.stats.AGI * PLAYER_EVA.perAgi + p.level * PLAYER_EVA.perLevel;
 }
