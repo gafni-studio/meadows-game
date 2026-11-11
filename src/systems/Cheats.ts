@@ -7,7 +7,7 @@ import * as Sk from './Skills';
 import { whoDrops, isGear, displayName, makeGear } from './Gear';
 import { AREAS } from '../world/areas';
 import { Game } from './GameState';
-import { clearSave } from './Save';
+import { resetAndReload } from './Save';
 import * as P from './Player';
 
 type Cmd = { usage: string; help: string; run: (args: string[]) => string; cheat?: boolean };
@@ -165,7 +165,7 @@ export const COMMANDS: Record<string, Cmd> = {
   },
   reset: {
     usage: 'reset', help: 'Erase the save and restart',
-    run: () => { clearSave(); setTimeout(() => location.reload(), 300); return 'Save erased, reloading…'; },
+    run: () => { resetAndReload(); return 'Save erased, reloading…'; },
   },
 };
 

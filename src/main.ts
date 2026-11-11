@@ -5,6 +5,7 @@ import { WorldScene } from './scenes/WorldScene';
 import { Hud } from './ui/Hud';
 import { installCtrlGuard } from './systems/Controls';
 import { Game } from './systems/GameState';
+import { isWiping } from './systems/Save';
 
 installCtrlGuard();
 
@@ -21,6 +22,6 @@ const game = new Phaser.Game({
 });
 
 new Hud();
-window.addEventListener('beforeunload', () => { if (Game.player) Game.save(); });
+window.addEventListener('beforeunload', () => { if (Game.player && !isWiping()) Game.save(); });
 (window as unknown as { __game: Phaser.Game; __state: typeof Game }).__game = game;
 (window as unknown as { __state: typeof Game }).__state = Game;

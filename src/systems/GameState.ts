@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { PlayerData } from './Player';
-import { loadSave, writeSave } from './Save';
+import { loadSave, writeSave, isWiping } from './Save';
 import type { WorldScene } from '../scenes/WorldScene';
 
 /** Shared runtime state + event bus between the world scene and the DOM UI. */
@@ -22,7 +22,7 @@ export const Game = {
   scene: null as WorldScene | null,
   now: 0,
   load() { this.player = loadSave(); },
-  save() { writeSave(this.player); this.events.emit('saved'); },
+  save() { if (isWiping() || !this.player) return; writeSave(this.player); this.events.emit('saved'); },
   changed() { this.events.emit('changed'); },
   toast(msg: string, kind: 'info' | 'loot' | 'rare' | 'warn' | 'level' = 'info', icon?: string) { this.events.emit('toast', msg, kind, icon); },
 };

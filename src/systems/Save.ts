@@ -2,6 +2,14 @@ import { PlayerData, newPlayer, maxHp, maxMp, migrateGear } from './Player';
 import { DB } from '../data/db';
 
 const KEY = 'meadows.save.v1';
+const KEY_PREFIX = 'meadows';
+
+/** Set while a reset is in flight so autosave / beforeunload cannot rewrite the old character. */
+let wiping = false;
+
+export function isWiping(): boolean {
+  return wiping;
+}
 
 export function loadSave(): PlayerData {
   try {
@@ -29,10 +37,24 @@ export function loadSave(): PlayerData {
 }
 
 export function writeSave(p: PlayerData): void {
+  if (wiping || !p) return;
   p.savedAt = Date.now();
   localStorage.setItem(KEY, JSON.stringify(p));
 }
 
+/** Clear every meadows.* key (current and any leftover versioned keys) and arm the wipe flag. */
 export function clearSave(): void {
-  localStorage.removeItem(KEY);
+  wiping = true;
+  const keys: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith(KEY_PREFIX)) keys.push(k);
+  }
+  for (const k of keys) localStorage.removeItem(k);
+}
+
+/** Clear every game key and reload onto a fresh character. Safe against beforeunload autosave. */
+export function resetAndReload(): void {
+  clearSave();
+  location.reload();
 }
