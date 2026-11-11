@@ -23,18 +23,18 @@ Add `?canvas` to the URL to force the Canvas renderer instead of WebGL (used by 
 | --- | --- |
 | Move | **A / D** or **← / →** |
 | Jump | **Space** or **↑** |
-| Attack (basic swing, 100%) | **Ctrl** (hold to keep swinging). **J** also works |
+| Attack (basic swing, 100%) | **F** (hold to keep swinging) |
 | Skill 1: Power Strike | **1** |
 | Skill 2: Rage | **2** |
 | Skills 3-4 | **3 / 4** (empty in v0.1) |
-| HP potion (first owned: Meadow Dew → Spring Draught → Barley Cake → Wild Apple) | **5** or **F** |
+| HP potion (first owned: Meadow Dew → Spring Draught → Barley Cake → Wild Apple) | **5** |
 | MP potion (first owned: Clear Dew → Mint Draught) | **6** or **G** |
 | Pick up nearby drops / talk to NPC / use portal | **E** |
 | Inventory (use, equip, sell when the shop is open) | **I** |
 | Character / ability points | **C** |
 | Close window / menu (save, new game) | **Esc** |
 
-**Why these keys:** attack is on **Ctrl**, so nothing is bound to a letter that the browser hijacks when combined with Ctrl and that a page *cannot* block (Ctrl+**W** closes the tab, Ctrl+**T**/**N** open tabs and windows, Ctrl+**Q** quits Chrome on Linux, Ctrl+**R** reloads). That's why **W** is not a jump key and the potions are on **F/G** instead of the sheet's Q/R. Phaser calls `preventDefault` on every bound key (including Ctrl), and a small guard blocks the remaining Ctrl+letter combos (Ctrl+S, Ctrl+P, ...).
+**Why these keys:** no modifier keys are used, so gameplay can't trigger browser shortcuts (Ctrl+W closes the tab, etc.). Phaser calls `preventDefault` on every bound key, and a small guard blocks stray Ctrl+letter page shortcuts (Ctrl+S, Ctrl+P, ...). Potions are on 5 and 6/G instead of the sheet's Q/R.
 
 ## What's in v0.1
 

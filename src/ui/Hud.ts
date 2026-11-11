@@ -31,7 +31,7 @@ export class Hud {
       </div>
       <div id="hotbar"></div>
       <div id="toasts"></div>
-      <div id="help">Ctrl attack · 1 Power Strike · 2 Rage · 5/F HP · 6/G MP · E pick up/talk · I inventory · C stats · Esc menu</div>
+      <div id="help">F attack (hold) · 1 Power Strike · 2 Rage · 5 HP · 6/G MP · E pick up/talk · I inventory · C stats · Esc menu</div>
       <div id="dead" hidden>Defeated…</div>
       <div class="panel" id="p-inventory" hidden></div>
       <div class="panel" id="p-stats" hidden></div>
@@ -89,7 +89,7 @@ export class Hud {
     const firstOwned = (ids: string[]) => ids.find((i) => (p.inventory[i] ?? 0) > 0);
     const hpPot = firstOwned(HP_POTIONS), mpPot = firstOwned(MP_POTIONS);
     const html =
-      slot('Ctrl', 'Attack', '100%', 0, 1) +
+      slot('F', 'Attack', '100%', 0, 1) +
       slot('1', ps.name, `${Math.round((ps.damage_multiplier ?? 1) * 100)}% · ${ps.mp_cost} MP`, cd('power_strike'), ASSUME.cooldownMs.power_strike) +
       slot('2', rg.name, `${rg.mp_cost} MP`, cd('rage'), ASSUME.cooldownMs.rage) +
       slot('3', '—', '', 0, 1) + slot('4', '—', '', 0, 1) +

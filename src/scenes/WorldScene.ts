@@ -166,7 +166,7 @@ export class WorldScene extends Phaser.Scene {
       if (vx !== 0) { this.facing = vx; this.player.setFlipX(vx < 0); }
       if (this.controls.pressed('jump') && body.blocked.down) body.setVelocityY(-ASSUME.jumpVelocity);
 
-      // Combat (held Ctrl keeps swinging at the attack interval).
+      // Combat (held F keeps swinging at the attack interval).
       if (this.controls.down('attack')) this.trySwing(1.0, 0, 'basic');
       if (this.controls.pressed('skill1')) this.usePowerStrike();
       if (this.controls.pressed('skill2')) this.useRage();

@@ -1,21 +1,20 @@
 import Phaser from 'phaser';
 
 /**
- * Keyboard bindings. ATTACK is Ctrl (Oded's choice). Keys that combine badly
- * with a held Ctrl in browsers (Ctrl+W/T/N close/open tabs, Ctrl+Q quits on Linux,
- * Ctrl+R reloads) are deliberately NOT bound to any game action.
+ * Keyboard bindings. ATTACK is F (hold to keep swinging). No modifier keys are
+ * used, so browser shortcuts (Ctrl+W/T/N, ...) can't be triggered by gameplay.
  */
 export const BINDINGS = {
   left: ['A', 'LEFT'],
   right: ['D', 'RIGHT'],
   jump: ['SPACE', 'UP'],
-  attack: ['CTRL', 'J'],
+  attack: ['F'],
   interact: ['E'],
   skill1: ['ONE'],
   skill2: ['TWO'],
   skill3: ['THREE'],
   skill4: ['FOUR'],
-  potionHp: ['FIVE', 'F'],
+  potionHp: ['FIVE'],
   potionMp: ['SIX', 'G'],
   inventory: ['I'],
   stats: ['C'],
@@ -52,15 +51,13 @@ export class Controls {
 }
 
 /**
- * Phaser already calls preventDefault for every bound key (enableCapture), which also
- * covers Ctrl itself and Ctrl+<game key> (Ctrl+D bookmark, Ctrl+F find, ...).
- * This guard handles the remaining Ctrl+<letter> combos a player may hit while holding
- * attack (Ctrl+S save page, Ctrl+P print, Ctrl+H history, ...). It must NOT touch keys
- * Phaser handles: Phaser ignores events that are already defaultPrevented.
- * Browsers never let pages block Ctrl+W/T/N, which is why those letters are unbound.
+ * Phaser already calls preventDefault for every bound key (enableCapture).
+ * This guard only blocks stray Ctrl+<letter> page shortcuts (Ctrl+S, Ctrl+P, ...) and
+ * the context menu. It must NOT touch keys Phaser handles: Phaser ignores events that
+ * are already defaultPrevented.
  */
 export function installCtrlGuard(): void {
-  const phaserKeys = new Set(['control', 'a', 'd', 'e', 'f', 'g', 'i', 'c', 'j', ' ', 'arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'escape', '1', '2', '3', '4', '5', '6']);
+  const phaserKeys = new Set(['a', 'd', 'e', 'f', 'g', 'i', 'c', ' ', 'arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'escape', '1', '2', '3', '4', '5', '6']);
   window.addEventListener('keydown', (e) => {
     if (e.ctrlKey && !phaserKeys.has(e.key.toLowerCase())) e.preventDefault();
   });

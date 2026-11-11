@@ -36,7 +36,7 @@ try {
   console.log('after gate:', await s());
   if ((await s()).area !== 'sunny_pasture') throw new Error('Did not reach Sunny Pasture');
 
-  // Fight: step toward the nearest living monster, hold Ctrl, use Power Strike (1), pick up (E).
+  // Fight: step toward the nearest living monster, hold F (attack), use Power Strike (1), pick up (E).
   const nearestDir = () => page.evaluate(() => {
     const sc = window.__game.scene.getScene('World');
     const alive = sc.monsters.filter((m) => m.alive);
@@ -49,7 +49,7 @@ try {
     const dir = await nearestDir();
     const key = dir < 0 ? 'ArrowLeft' : 'ArrowRight';
     await page.keyboard.down(key); await page.waitForTimeout(Math.abs(dir) < 1 ? 30 : 250); await page.keyboard.up(key);
-    await page.keyboard.down('Control'); await page.waitForTimeout(500); await page.keyboard.up('Control');
+    await page.keyboard.down('f'); await page.waitForTimeout(500); await page.keyboard.up('f');
     await page.keyboard.press('1');
     await page.keyboard.press('e');
   }
