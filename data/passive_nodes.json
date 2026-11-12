@@ -1,6 +1,6 @@
 {
   "tab": "passive_nodes",
-  "note": "DRAFT — Each tree has one production node that yields only that tree's essence (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none), plus an efficiency node (+% category material and category-essence drop rate while hunting). Hunter's Luck is a general looting node (+1% bonus drop-roll chance per rank, max 10). Item-source Mastery, slot, and discovery nodes — and the gathering_sources tab — are DEPRECATED and kept for reference only. Upgrade time: 10 × 1.6^(rank-1) minutes. May change as we lay this out.",
+  "note": "DRAFT — Each tree has one production node that yields only that tree's essence (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none), plus an efficiency node (+% category material and category-essence drop rate while hunting). Hunter's Luck is a general looting node (+1% bonus drop-roll chance per rank, max 10). Item-source Mastery, slot, and discovery nodes — and the gathering_sources tab — are DEPRECATED and kept for reference only. Upgrade time: 10 × 1.6^(rank-1) minutes. May change as we lay this out.  v0.2.2: Nature and Elemental trees are live (production + efficiency). Spiritual and Hunter's Luck stay parked. `desc` is player-facing; `notes` is design-only. Offline production uses timestamps. Ila's 10:1 bench is open.",
   "columns": [
     "id",
     "tree_id",
@@ -13,7 +13,8 @@
     "subtype_id",
     "source_id",
     "unlock_requirement_id",
-    "notes"
+    "notes",
+    "desc"
   ],
   "rows": [
     {
@@ -24,11 +25,12 @@
       "effect_per_rank": "Produces Nature Essence; rate = 1.5 × 1.6^(rank-1) /h (rank 0 = none; r5 ≈ 9.8, r10 ≈ 103)",
       "max_rank": 10,
       "upgrade_time_per_rank": "10 × 1.6^(rank-1) min",
-      "status": "draft",
+      "status": "live",
       "subtype_id": null,
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "The tree produces only this category essence. Rank 0 yields nothing. Steep curve: 1.5/h at rank 1, ~9.8/h at rank 5, ~103/h at rank 10. To be tuned."
+      "notes": "The tree produces only this category essence. Rank 0 yields nothing. Steep curve: 1.5/h at rank 1, ~9.8/h at rank 5, ~103/h at rank 10. To be tuned.",
+      "desc": "Slowly produces Nature Essence while you play or are away. Rank 0 yields nothing."
     },
     {
       "id": "nature_mastery_wood",
@@ -42,7 +44,8 @@
       "subtype_id": "wood",
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "nature_mastery_stone",
@@ -56,7 +59,8 @@
       "subtype_id": "stone",
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "nature_mastery_iron",
@@ -70,7 +74,8 @@
       "subtype_id": "iron",
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "nature_mastery_hide",
@@ -84,7 +89,8 @@
       "subtype_id": "hide",
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "nature_slots",
@@ -98,7 +104,8 @@
       "subtype_id": null,
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "nature_disc_old_grove",
@@ -112,7 +119,8 @@
       "subtype_id": "wood",
       "source_id": "src_old_grove",
       "unlock_requirement_id": "unlock_old_grove",
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "nature_disc_hide_rack",
@@ -126,7 +134,8 @@
       "subtype_id": "hide",
       "source_id": "src_hide_rack",
       "unlock_requirement_id": "unlock_hide_rack",
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "nature_eff_drops",
@@ -136,11 +145,12 @@
       "effect_per_rank": "+2% Nature material and Nature Essence drop rate per rank while hunting",
       "max_rank": 10,
       "upgrade_time_per_rank": "10 × 1.6^(rank-1) min",
-      "status": "draft",
+      "status": "live",
       "subtype_id": null,
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "Applies to Nature materials and Nature Essence found on monsters, not Monster Essence or Neutral drops. To be tuned."
+      "notes": "Applies to Nature materials and Nature Essence found on monsters, not Monster Essence or Neutral drops. To be tuned.",
+      "desc": "While hunting, Nature materials and Nature Essence drop a little more often."
     },
     {
       "id": "elemental_prod",
@@ -150,11 +160,12 @@
       "effect_per_rank": "Produces Elemental Essence; rate = 1.5 × 1.6^(rank-1) /h (rank 0 = none; r5 ≈ 9.8, r10 ≈ 103)",
       "max_rank": 10,
       "upgrade_time_per_rank": "10 × 1.6^(rank-1) min",
-      "status": "draft",
+      "status": "live",
       "subtype_id": null,
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "The tree produces only this category essence. Rank 0 yields nothing. Steep curve: 1.5/h at rank 1, ~9.8/h at rank 5, ~103/h at rank 10. To be tuned."
+      "notes": "The tree produces only this category essence. Rank 0 yields nothing. Steep curve: 1.5/h at rank 1, ~9.8/h at rank 5, ~103/h at rank 10. To be tuned.",
+      "desc": "Slowly produces Elemental Essence while you play or are away. Rank 0 yields nothing."
     },
     {
       "id": "elemental_mastery_fire",
@@ -168,7 +179,8 @@
       "subtype_id": "fire",
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "elemental_mastery_ice",
@@ -182,7 +194,8 @@
       "subtype_id": "ice",
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "elemental_mastery_lightning",
@@ -196,7 +209,8 @@
       "subtype_id": "lightning",
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "elemental_mastery_earth",
@@ -210,7 +224,8 @@
       "subtype_id": "earth",
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "elemental_slots",
@@ -224,7 +239,8 @@
       "subtype_id": null,
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "elemental_disc_shard_vein",
@@ -238,7 +254,8 @@
       "subtype_id": "earth",
       "source_id": "src_shard_vein",
       "unlock_requirement_id": "unlock_shard_vein",
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "elemental_eff_drops",
@@ -248,11 +265,12 @@
       "effect_per_rank": "+2% Elemental material and Elemental Essence drop rate per rank while hunting",
       "max_rank": 10,
       "upgrade_time_per_rank": "10 × 1.6^(rank-1) min",
-      "status": "draft",
+      "status": "live",
       "subtype_id": null,
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "Applies to Elemental materials and Elemental Essence found on monsters, not Monster Essence or Neutral drops. To be tuned."
+      "notes": "Applies to Elemental materials and Elemental Essence found on monsters, not Monster Essence or Neutral drops. To be tuned.",
+      "desc": "While hunting, Elemental materials and Elemental Essence drop a little more often."
     },
     {
       "id": "spiritual_prod",
@@ -266,7 +284,8 @@
       "subtype_id": null,
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "The tree produces only this category essence. Rank 0 yields nothing. Steep curve: 1.5/h at rank 1, ~9.8/h at rank 5, ~103/h at rank 10. To be tuned."
+      "notes": "The tree produces only this category essence. Rank 0 yields nothing. Steep curve: 1.5/h at rank 1, ~9.8/h at rank 5, ~103/h at rank 10. To be tuned.",
+      "desc": "Slowly produces Spirit Essence while you play or are away. Rank 0 yields nothing."
     },
     {
       "id": "spiritual_mastery_holy",
@@ -280,7 +299,8 @@
       "subtype_id": "holy",
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "spiritual_mastery_arcane",
@@ -294,7 +314,8 @@
       "subtype_id": "arcane",
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "spiritual_mastery_curse",
@@ -308,7 +329,8 @@
       "subtype_id": "curse",
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "spiritual_mastery_soul",
@@ -322,7 +344,8 @@
       "subtype_id": "soul",
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "spiritual_slots",
@@ -336,7 +359,8 @@
       "subtype_id": null,
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "spiritual_disc_shrine_spring",
@@ -350,7 +374,8 @@
       "subtype_id": "holy",
       "source_id": "src_shrine_spring",
       "unlock_requirement_id": "unlock_shrine_spring",
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "spiritual_disc_dusk_hollow",
@@ -364,7 +389,8 @@
       "subtype_id": "soul",
       "source_id": "src_dusk_hollow",
       "unlock_requirement_id": "unlock_dusk_hollow",
-      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference."
+      "notes": "DEPRECATED — Item sources and gathering slots are retired. Trees now produce category essence directly. Kept for reference.",
+      "desc": null
     },
     {
       "id": "spiritual_eff_drops",
@@ -378,7 +404,8 @@
       "subtype_id": null,
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "Applies to Spiritual materials and Spirit Essence found on monsters, not Monster Essence or Neutral drops. To be tuned."
+      "notes": "Applies to Spiritual materials and Spirit Essence found on monsters, not Monster Essence or Neutral drops. To be tuned.",
+      "desc": "While hunting, Spiritual materials and Spirit Essence drop a little more often."
     },
     {
       "id": "hunters_luck",
@@ -392,7 +419,8 @@
       "subtype_id": null,
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "Shared looting node. Rank 10 = +10% chance a kill makes one extra roll on the same drop table. Independent of essence production. Costs a mix of all three category essences + coins. To be tuned."
+      "notes": "Shared looting node. Rank 10 = +10% chance a kill makes one extra roll on the same drop table. Independent of essence production. Costs a mix of all three category essences + coins. To be tuned.",
+      "desc": "A small extra chance of a bonus drop roll, of any kind."
     }
   ]
 }

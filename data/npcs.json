@@ -33,9 +33,9 @@
     {
       "id": "ila",
       "name": "Ila",
-      "role": "soon",
-      "desc": "I'm not exchanging essence just yet. Hold on to your Twigs, Bark and Wool.",
-      "notes": "Essence exchange (10:1) is later. Do not mention version numbers or design milestones in desc."
+      "role": "exchange",
+      "desc": "Ten of a common material for one essence. Nature, Elemental, or Spirit — look at what you're holding.",
+      "notes": "v0.2.2: 10:1 essence bench is open (exchange tab). role=exchange opens the bench. desc is player-facing; kept even though the window opens directly, for documentation."
     }
   ]
 }
