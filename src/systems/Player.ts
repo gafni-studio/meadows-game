@@ -120,9 +120,9 @@ export function defense(p: PlayerData): number {
 export function critChance(p: PlayerData): number {
   return f('crit_base_chance') + statOf(p, 'AGI') * f('crit_per_agi') + affixBonus(p, 'crit');
 }
-/** attack_interval = 1.0 / (1 + AGI × 0.005) seconds */
+/** attack_interval = 0.83 / (1 + AGI × 0.005) seconds (v0.2.5: 17% faster base). */
 export function attackIntervalMs(p: PlayerData): number {
-  return 1000 / (1 + statOf(p, 'AGI') * 0.005);
+  return 830 / (1 + statOf(p, 'AGI') * 0.005);
 }
 
 export function addItem(p: PlayerData, id: string, qty: number, opts?: { magic?: boolean }): void {

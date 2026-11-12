@@ -14,6 +14,7 @@ import { playSfx } from '../systems/Sfx';
 import { rollDrops } from '../systems/Loot';
 import { GearInstance, displayName } from '../systems/Gear';
 import * as Q from '../systems/Quests';
+import * as Fx from '../systems/CombatFx';
 
 const GROUND_H = 64;
 
@@ -310,13 +311,18 @@ export class WorldScene extends Phaser.Scene {
     const active = time - this.lastCombatAt > REGEN.delayMs && p.hp < max;
     Game.regenActive = active;
     this.glow.clear();
-    if (Game.shield > 0 && (Game.buffs.soul_guard ?? 0) > time) {
-      const a = 0.3 + 0.15 * Math.sin(time / 160);
+    // Buff visuals must use wall-clock (Date.now), same as Game.buffs. Using the
+    // scene clock here left Dig In's aura on forever after v0.2.1 (Date.now() >> scene time).
+    const wall = Date.now();
+    if (Game.shield > 0 && (Game.buffs.soul_guard ?? 0) > wall) {
+      const a = 0.3 + 0.15 * Math.sin(wall / 160);
       this.glow.lineStyle(3, 0x9fe0ff, a).strokeEllipse(this.player.x, this.player.y - 22, 52, 58);
     }
-    if ((Game.buffs.dig_in ?? 0) > time) {
-      const a = 0.4 + 0.2 * Math.sin(time / 90);
-      this.glow.lineStyle(4, 0xc4a06a, a).strokeEllipse(this.player.x, this.player.y - 18, 56, 50);
+    if ((Game.buffs.dig_in ?? 0) > wall) {
+      const a = 0.35 + 0.2 * Math.sin(wall / 180);
+      this.glow.lineStyle(4, 0xc4a06a, a).strokeEllipse(this.player.x, this.player.y - 18, 60, 52);
+      this.glow.fillStyle(0xc4a06a, 0.08 + 0.05 * Math.sin(wall / 180));
+      this.glow.fillEllipse(this.player.x, this.player.y - 18, 60, 52);
     }
     if (!active) return;
     const perSec = P.hpRegenPerSec(p);
@@ -341,34 +347,51 @@ export class WorldScene extends Phaser.Scene {
     p.mp -= mpCost;
     this.swingReadyAt = now + P.attackIntervalMs(p) / atkSpeed;
     this.lastCombatAt = now;
+    const facing = this.facing;
     this.swingFx(kind);
+    // Damage lands on the slash's impact frame, when the trail reaches the hit range.
+    const impactMs = kind === 'power_strike' ? Fx.FX.smashImpactMs : Fx.FX.basicImpactMs;
+    this.time.delayedCall(impactMs, () => this.resolveSwing(mult, kind, facing));
+    return true;
+  }
 
-    // Single target: nearest living monster in front within reach.
+  /** Hit detection at the moment the slash/smash connects. */
+  private resolveSwing(mult: number, kind: 'basic' | 'power_strike', facing: number): void {
+    if (Game.dead || !this.player) return;
+    const p = Game.player;
     let best: Monster | null = null;
     let bestD = Infinity;
     for (const m of this.monsters) {
       if (!m.alive) continue;
-      const dx = (m.x - this.player.x) * this.facing;
+      const dx = (m.x - this.player.x) * facing;
       const reach = ASSUME.meleeReach + m.halfW;
       if (dx < -18 || dx > reach || Math.abs(m.y - this.player.y) > 60) continue;
       if (dx < bestD) { bestD = dx; best = m; }
     }
     if (!best) {
       if (this.postInMelee()) this.hitPost(mult, kind);
-      return true;
+      return;
     }
     const topY = best.y - best.displayHeight - 12;
+    const hitX = best.x, hitY = best.y - best.displayHeight * 0.45;
     if (!rollHit(P.accuracy(p), best.feel.eva, p.level, best.def.level)) {
       this.floatText(best.x, topY, 'MISS', '#c8c8c8', 15);
-      return true;
+      return;
     }
     const rage = this.buffActive('rage') ? Sk.rageNumbers(p).dealtPct : 0;
     const { dmg, crit } = computeHit(P.attack(p), mult, best.def.defense, P.critChance(p), rage);
     this.floatText(best.x, topY, `${dmg}`, crit ? '#ffcf33' : '#ffffff', crit ? 20 : 16);
     const feel = ATTACK_FEEL[kind];
     if (best.hurt(dmg, this.player.x, feel.kb, feel.hitstunMs)) this.onKill(best);
-    if (kind === 'power_strike') this.cameras.main.shake(80, 0.004);
-    return true;
+    Fx.hitSparks(this, hitX, hitY, crit);
+    if (kind === 'power_strike') {
+      Fx.impactFlash(this, hitX, hitY, 0xffe066, 34);
+      Fx.hitStop(this, crit ? Fx.FX.hitstopSmash + 20 : Fx.FX.hitstopSmash);
+      Fx.shake(this, crit ? 110 : 90, crit ? 0.007 : 0.005);
+    } else {
+      Fx.hitStop(this, crit ? Fx.FX.hitstopCrit : Fx.FX.hitstopBasic);
+      if (crit) { Fx.impactFlash(this, hitX, hitY, 0xffe066, 24); Fx.shake(this, 70, 0.0045); }
+    }
   }
 
   private swingFx(kind: string) {
@@ -376,22 +399,51 @@ export class WorldScene extends Phaser.Scene {
     this.tweens.killTweensOf(s);
     this.tweens.killTweensOf(this.player);
     this.player.setScale(this.playerBaseScale.x, this.playerBaseScale.y);
-    s.setVisible(true).setFlipX(this.facing < 0).setTint(kind === 'basic' ? 0xffffff : 0xffc04a);
-    s.setPosition(this.player.x + this.facing * 14, this.player.y - 18);
-    s.setAngle(-55 * this.facing);
-    this.tweens.add({
-      targets: s, angle: 75 * this.facing, duration: ANIM.heroSwingMs, ease: 'Cubic.easeInOut',
-      onComplete: () => s.setVisible(false),
-    });
-    const fx = this.add.image(this.player.x + this.facing * 40, this.player.y - 26, 'fx.slash').setDepth(12)
-      .setAlpha(kind === 'basic' ? 0.28 : 0.6).setTint(kind === 'basic' ? 0xffffff : 0xffc04a);
-    this.tweens.add({ targets: fx, alpha: 0, scaleX: 1.25, duration: ANIM.heroSlashMs, ease: 'Sine.easeOut', onComplete: () => fx.destroy() });
-    // short, non-sticky lunge — always restores the base scale so frames don't freeze mid-squash
+    const ox = this.player.x;
+    const oy = this.player.y - 26;
+    const reach = ASSUME.meleeReach;
+    if (kind === 'power_strike') {
+      s.setVisible(false);
+      Fx.overheadSmash(this, ox, oy, this.facing, reach);
+      this.tweens.add({
+        targets: this.player,
+        scaleX: this.playerBaseScale.x * 1.08,
+        scaleY: this.playerBaseScale.y * 0.94,
+        duration: Fx.FX.smashWindupMs,
+        yoyo: true,
+        ease: 'Cubic.easeIn',
+        onComplete: () => this.player.setScale(this.playerBaseScale.x, this.playerBaseScale.y),
+      });
+      return;
+    }
+    if (kind === 'basic') {
+      s.setVisible(true).setFlipX(this.facing < 0).setTint(0xffffff);
+      s.setPosition(this.player.x + this.facing * 14, this.player.y - 18);
+      s.setAngle(-80 * this.facing);
+      // Sword and trail share the same duration; impact is midway, when the blade is near horizontal.
+      this.tweens.add({
+        targets: s, angle: 70 * this.facing, duration: Fx.FX.basicMs, ease: 'Cubic.easeIn',
+        onComplete: () => s.setVisible(false),
+      });
+      Fx.slashArc(this, ox, oy, this.facing, { reach, duration: Fx.FX.basicMs });
+      this.tweens.add({
+        targets: this.player,
+        scaleX: this.playerBaseScale.x * 1.06,
+        scaleY: this.playerBaseScale.y * 0.97,
+        duration: Math.floor(Fx.FX.basicMs * 0.45),
+        yoyo: true,
+        ease: 'Sine.easeInOut',
+        onComplete: () => this.player.setScale(this.playerBaseScale.x, this.playerBaseScale.y),
+      });
+      return;
+    }
+    // Skills draw their own FX in castStrike; keep a short body punch so the character reacts.
+    s.setVisible(false);
     this.tweens.add({
       targets: this.player,
       scaleX: this.playerBaseScale.x * 1.05,
-      scaleY: this.playerBaseScale.y * 0.98,
-      duration: Math.floor(ANIM.heroLungeMs * 0.7),
+      scaleY: this.playerBaseScale.y * 0.97,
+      duration: 70,
       yoyo: true,
       ease: 'Sine.easeInOut',
       onComplete: () => this.player.setScale(this.playerBaseScale.x, this.playerBaseScale.y),
@@ -437,6 +489,7 @@ export class WorldScene extends Phaser.Scene {
       Game.buffs.rage = now + (s.duration_s ?? 60) * 1000;
       const { dealtPct, takenPct } = Sk.rageNumbers(p);
       Game.toast(`Rage! +${dealtPct}% dealt, +${takenPct}% taken for ${s.duration_s}s`, 'info');
+      Fx.rageBurst(this, this.player.x, this.player.y - 22);
       ok = true;
     } else if (id === 'soul_guard') {
       p.mp -= s.mp_cost;
@@ -455,8 +508,9 @@ export class WorldScene extends Phaser.Scene {
       p.mp -= s.mp_cost;
       this.lastCombatAt = Game.now;
       const ms = Sk.digInWindowMs(p);
-      Game.buffs.dig_in = now + ms;
-      Game.toast(`Dig In! +100% defense, knockback-immune for ${(ms / 1000).toFixed(2)}s`, 'info');
+      Game.buffs.dig_in = now + ms; // wall clock, same as buffActive
+      Game.toast(`Dig In! +50% defense for ${Math.round(ms / 1000)}s`, 'info');
+      Fx.digStamp(this, this.player.x, this.groundY);
       ok = true;
     } else {
       ok = this.trySwing(mul, s.mp_cost, kind === 'power_strike' ? 'power_strike' : 'basic');
@@ -480,42 +534,46 @@ export class WorldScene extends Phaser.Scene {
     p.mp -= mpCost;
     this.swingReadyAt = now + 250;
     this.lastCombatAt = now;
+    const facing = this.facing;
     this.swingFx(kind);
-    if (kind === 'earthbreaker') {
-      this.cameras.main.shake(120, 0.008);
-      const ring = this.add.circle(this.player.x, this.player.y - 4, 8, 0x8a6a40, 0.35).setStrokeStyle(3, 0xc9a46a, 0.9).setDepth(12);
-      this.tweens.add({ targets: ring, radius: opt.aoe, alpha: 0, duration: 320, onComplete: () => ring.destroy() });
-    }
-    if (kind === 'flame_cleave') {
-      const fx = this.add.rectangle(this.player.x + this.facing * 50, this.player.y - 24, opt.wide, 40, 0xff6a20, 0.45).setDepth(12);
-      this.tweens.add({ targets: fx, alpha: 0, scaleX: 1.4, duration: 220, onComplete: () => fx.destroy() });
-    }
-    if (kind === 'root_lash') {
-      const fx = this.add.rectangle(this.player.x + this.facing * 55, this.player.y - 22, opt.wide, 28, opt.tint ?? 0x5a8a3a, 0.5).setDepth(12);
-      this.tweens.add({ targets: fx, alpha: 0, scaleX: 1.5, duration: 280, onComplete: () => fx.destroy() });
-    }
+    if (kind === 'earthbreaker') Fx.earthShock(this, this.player.x, this.groundY, facing, opt.aoe ?? 90);
+    if (kind === 'flame_cleave') Fx.flameArc(this, this.player.x, this.player.y - 24, facing, opt.wide ?? 110);
+    if (kind === 'root_lash') Fx.rootWhip(this, this.player.x, this.groundY, facing, opt.wide ?? 110);
+    const impactMs = kind === 'earthbreaker' ? Fx.FX.earthImpactMs : kind === 'flame_cleave' ? Fx.FX.flameImpactMs : Fx.FX.rootImpactMs;
+    this.time.delayedCall(impactMs, () => this.resolveStrike(mul, kind, facing, opt));
+    return true; // spent MP even if nobody was in range
+  }
+
+  private resolveStrike(mul: number, kind: keyof typeof ATTACK_FEEL, facing: number, opt: { aoe?: number; wide?: number; burnS?: number; stun?: boolean; tint?: number; kbIf?: (m: Monster) => boolean }): void {
+    if (Game.dead || !this.player) return;
+    const p = Game.player;
     const feel = ATTACK_FEEL[kind] ?? ATTACK_FEEL.basic;
     const rage = this.buffActive('rage') ? Sk.rageNumbers(p).dealtPct : 0;
-    let hits = 0;
+    let any = false;
+    let anyCrit = false;
     for (const m of this.monsters) {
       if (!m.alive) continue;
       const dx = m.x - this.player.x;
       const dy = Math.abs(m.y - this.player.y);
       const inAoe = opt.aoe != null && Math.hypot(dx, dy) <= opt.aoe + m.halfW;
-      const inWide = opt.wide != null && dx * this.facing > -20 && Math.abs(dx) <= opt.wide + m.halfW && dy < 70;
+      const inWide = opt.wide != null && dx * facing > -20 && Math.abs(dx) <= opt.wide + m.halfW && dy < 70;
       if (!inAoe && !inWide) continue;
-      hits++;
       const topY = m.y - m.displayHeight - 12;
+      const hitX = m.x, hitY = m.y - m.displayHeight * 0.45;
       if (!rollHit(P.accuracy(p), m.feel.eva, p.level, m.def.level)) { this.floatText(m.x, topY, 'MISS', '#c8c8c8', 15); continue; }
       const { dmg, crit } = computeHit(P.attack(p), mul, m.def.defense, P.critChance(p), rage);
       this.floatText(m.x, topY, `${dmg}`, crit ? '#ffcf33' : '#ffb070', crit ? 20 : 16);
-      const stun = opt.stun ? feel.hitstunMs : feel.hitstunMs;
+      const stun = feel.hitstunMs;
       const kb = opt.kbIf && !opt.kbIf(m) ? 0 : feel.kb;
       if (m.hurt(dmg, this.player.x, kb, stun)) this.onKill(m);
       else if (opt.burnS && m.alive) this.applyBurn(m, Math.max(1, Math.floor(dmg * 0.35)), opt.burnS);
+      Fx.hitSparks(this, hitX, hitY, crit, kind === 'flame_cleave' ? 0xff8020 : kind === 'root_lash' ? 0x8abc4a : 0xe8d2a0);
+      if (kind === 'earthbreaker') Fx.impactFlash(this, hitX, this.groundY - 8, 0xdbc08a, 26);
+      any = true;
+      if (crit) anyCrit = true;
     }
-    if (this.postInStrike(opt)) this.hitPost(mul, kind);
-    return true; // spent MP even if nobody was in range
+    if (any) Fx.hitStop(this, anyCrit ? Fx.FX.hitstopSkill + 20 : Fx.FX.hitstopSkill);
+    if (this.postInStrike(opt)) this.hitPost(mul, kind === 'basic' || kind === 'power_strike' ? kind : 'basic');
   }
 
   private applyBurn(m: Monster, total: number, seconds: number) {
@@ -573,8 +631,8 @@ export class WorldScene extends Phaser.Scene {
     const taken = this.buffActive('rage') ? Sk.rageNumbers(p).takenPct : 0;
     const digging = this.buffActive('dig_in');
     const matk = rollMonsterAttack(m.def.attack, m.def.attack_min, m.def.attack_max);
-    let dmg = p.cheats.god ? 0 : incomingDamage(matk, P.defense(p) * (digging ? 2 : 1), taken);
-    if (Game.shield > 0 && (Game.buffs.soul_guard ?? 0) > Game.now) {
+    let dmg = p.cheats.god ? 0 : incomingDamage(matk, P.defense(p) * (digging ? 1.5 : 1), taken);
+    if (Game.shield > 0 && (Game.buffs.soul_guard ?? 0) > Date.now()) {
       const absorbed = Math.min(Game.shield, dmg);
       Game.shield -= absorbed;
       dmg -= absorbed;
@@ -585,8 +643,8 @@ export class WorldScene extends Phaser.Scene {
     Game.invulnUntil = Game.now + ASSUME.hurtInvulnMs;
     this.knockUntil = Game.now + 200;
     const body = this.player.body as Phaser.Physics.Arcade.Body;
-    if (!digging) body.setVelocity(Math.sign(this.player.x - fromX || 1) * PLAYER_HIT_KB.vx, PLAYER_HIT_KB.vy);
-    this.floatText(this.player.x, this.player.y - 60, p.cheats.god ? 'GOD' : digging ? `-${dmg} (dug in)` : `-${dmg}`, digging ? '#c4a06a' : '#ff6b6b', 16);
+    body.setVelocity(Math.sign(this.player.x - fromX || 1) * PLAYER_HIT_KB.vx, PLAYER_HIT_KB.vy);
+    this.floatText(this.player.x, this.player.y - 60, p.cheats.god ? 'GOD' : `-${dmg}`, digging ? '#c4a06a' : '#ff6b6b', 16);
     if (p.hp <= 0) this.die();
   }
 
@@ -787,8 +845,13 @@ export class WorldScene extends Phaser.Scene {
   /** Spawn a named quest foe only while its kill-step is active and it is not already here. */
   private ensureNamed() {
     for (const n of this.geo.namedSpawns ?? []) {
-      if (this.monsters.some((m) => m.def.id === n.id)) continue;
-      if (Q.shouldSpawn(Game.player, n.id)) this.spawnMonster(n.id, n.x * TILE);
+      if (this.monsters.some((m) => m.def.id === n.id && m.alive)) continue;
+      if (Q.shouldSpawn(Game.player, n.id)) {
+        this.spawnMonster(n.id, n.x * TILE);
+        if (n.id === 'bank_cracker') Game.toast('Bank-Cracker claws out of the bank.', 'rare');
+        if (n.id === 'cinderback') Game.toast('Cinderback stirs in the warm dirt.', 'rare');
+        if (n.id === 'wool_shoulder') Game.toast('Wool-Shoulder shoulders out of the flock.', 'rare');
+      }
     }
   }
 

@@ -36,7 +36,39 @@ const fail = (msg) => { throw new Error(msg); };
   const copper = Object.fromEntries(drops.filter((r) => r.item_id === 'copper_coin').map((r) => [r.monster_id, r.drop_rate]));
   const wantCu = { crow: 80, burrow_mole: 80, earth_sprite: 80, ember_beetle: 82, spark_bug: 80, frost_moth: 80, field_mouse: 70 };
   for (const [id, n] of Object.entries(wantCu)) if (copper[id] !== n) fail(`sheet copper ${id} is ${copper[id]}, expected ${n}`);
-  console.log('sheet mp/copper ok');
+  const wantDrop = {
+    'field_mouse:strawberry': [10, 1, 1],
+    'wool_sheep:blueberry': [12, 1, 1],
+    'burrow_mole:blueberry': [12, 1, 1],
+    'earth_sprite:stone_chunk': [8, 1, 3],
+    'crow:monster_essence': [40, 1, 3],
+    'burrow_mole:monster_essence': [46, 1, 3],
+    'earth_sprite:monster_essence': [46, 1, 3],
+    'ember_beetle:monster_essence': [46, 1, 4],
+    'wool_sheep:nature_essence': [24, 1, 2],
+    'crow:nature_essence': [30, 1, 3],
+    'burrow_mole:nature_essence': [30, 1, 3],
+    'crow:training_scroll': [20, 1, 3],
+    'burrow_mole:training_scroll': [16, 1, 3],
+    'burrow_mole:tough_root': [8, 1, 2],
+    'earth_sprite:tough_root': [6, 1, 2],
+    'crow:branch': [4, 1, 1],
+    'meadow_boar:branch': [8, 1, 2],
+    'old_stump:branch': [10, 1, 2],
+    'burrow_mole:earth_shard': [8, 1, 2],
+  };
+  const dropKey = Object.fromEntries(drops.map((r) => [`${r.monster_id}:${r.item_id}`, [r.drop_rate, r.min_qty, r.max_qty]]));
+  for (const [k, v] of Object.entries(wantDrop)) {
+    const have = dropKey[k];
+    if (!have || have[0] !== v[0] || have[1] !== v[1] || have[2] !== v[2]) fail(`drop ${k} is ${JSON.stringify(have)}, expected ${v}`);
+  }
+  const costs = JSON.parse(readFileSync('data/skill_costs.json', 'utf8')).rows;
+  const eb1 = costs.filter((r) => r.skill_id === 'earthbreaker' && r.rank === 1).map((r) => r.material_id);
+  if (!eb1.includes('clay') || !eb1.includes('earth_shard')) fail(`earthbreaker r1 missing clay/earth_shard: ${eb1}`);
+  if (eb1.includes('bark') || eb1.includes('branch')) fail(`earthbreaker r1 still has bark/branch: ${eb1}`);
+  const dig = skills.find((r) => r.id === 'dig_in');
+  if (!dig || dig.duration_s !== 60) fail(`dig_in duration_s is ${dig?.duration_s}, expected 60`);
+  console.log('sheet mp/copper/drops/recipe ok');
 }
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/bin/google-chrome' });
@@ -53,6 +85,13 @@ try {
   const visible = () => page.evaluate(() => [...document.querySelectorAll('.panel')].filter((p) => !p.hidden).map((p) => p.id.replace('p-', '')));
   const key = async (k, wait = 120) => { await page.keyboard.press(k); await page.waitForTimeout(wait); };
   const shot = async (name) => { if (SHOTS) await page.screenshot({ path: `${SHOTS}/${name}.png` }); };
+  const dismissDialog = async () => {
+    for (let i = 0; i < 12; i++) {
+      if (!(await visible()).includes('dialog')) return;
+      await key('Enter', 180);
+    }
+    if ((await visible()).includes('dialog')) fail('dialog did not close after Enter');
+  };
   console.log('boot:', await s());
 
   // ── Test console ──
@@ -223,7 +262,8 @@ try {
   const dlg = await page.evaluate(() => document.querySelector('#p-dialog')?.innerText ?? '');
   if (!/Twig|practice|blow|That will do/i.test(dlg)) fail(`Calden turn-in dialog unexpected: ${dlg.slice(0, 400)}`);
   await shot('calden-quest');
-  await key('Enter', 250);
+  await shot('dialogue-box');
+  await dismissDialog();
   const q3 = await page.evaluate(() => ({ q: window.__state.player.questLog?.ql_weight, twig: window.__state.player.inventory.twig ?? 0 }));
   if (!q3.q || q3.q.step !== 3) fail(`Twig turn-in did not advance: ${JSON.stringify(q3)}`);
   if (q3.twig !== 0) fail(`Twigs were not consumed: ${JSON.stringify(q3)}`);
@@ -344,7 +384,18 @@ try {
     await page.keyboard.down('f'); await page.waitForTimeout(500); await page.keyboard.up('f');
     await page.keyboard.press('1');
     await page.keyboard.press('e');
-    if (i === 20) await shot('pasture-combat');
+    if (i === 20) {
+      await shot('pasture-combat');
+      // v0.2.5: slash trail at the impact frame, and a Power Strike smash.
+      await page.keyboard.down('f');
+      await page.waitForTimeout(75);
+      await shot('attack-slash');
+      await page.keyboard.up('f');
+      await page.waitForTimeout(200);
+      await page.keyboard.press('1');
+      await page.waitForTimeout(180);
+      await shot('skill-power-strike');
+    }
   }
   const end = await s();
   console.log('after fighting:', end);
@@ -522,6 +573,98 @@ try {
   await shot('passive-yield');
   console.log('passives ok:', r1, 'gained', gained);
 
+  // ── v0.2.5 The Quiet Work (Ila, after Weight; guides first passive) ──
+  await page.evaluate(() => window.__game?.events?.emit('close-all'));
+  const qw0 = await page.evaluate(() => window.__state.player.questLog?.ql_quiet_work);
+  if (!qw0 || qw0.done || qw0.step < 1) fail(`Quiet Work did not start after Weight: ${JSON.stringify(qw0)}`);
+  // After the passives block they already spent a first point, so step 3 can complete once 1–2 are talked through.
+  if ((await s()).area !== 'meadow_town') {
+    await key('`'); await page.keyboard.type('tp meadow_town'); await key('Enter'); await key('Escape', 200);
+    await page.waitForFunction(() => window.__state.player.area === 'meadow_town' && window.__game?.scene.isActive('World'), null, { timeout: 10000 });
+  }
+  await page.evaluate(() => { window.__state.scene.player.x = 27 * 32; }); // Ila
+  await page.waitForTimeout(200);
+  await key('e', 400);
+  if (!(await visible()).includes('dialog')) fail('Ila did not open The Quiet Work dialog');
+  const ilaDlg = await page.evaluate(() => document.querySelector('#p-dialog')?.innerText ?? '');
+  if (!/swing|root|twig|tree|slower/i.test(ilaDlg)) fail(`Ila Quiet Work dialog unexpected: ${ilaDlg.slice(0, 400)}`);
+  await shot('dialogue-ila');
+  await dismissDialog();
+  const qw1 = await page.evaluate(() => window.__state.player.questLog?.ql_quiet_work);
+  if (!qw1 || qw1.step !== 2) fail(`Ila talk did not advance Quiet Work to step 2: ${JSON.stringify(qw1)}`);
+  await key('`');
+  await page.keyboard.type('item twig 8'); await key('Enter');
+  await page.keyboard.type('item bark 4'); await key('Enter');
+  await key('Escape', 150);
+  await page.evaluate(() => window.__game?.events?.emit('close-all'));
+  await page.evaluate(() => { window.__state.scene.player.x = 27 * 32; });
+  await page.waitForTimeout(150);
+  await key('e', 400);
+  if (!(await visible()).includes('dialog')) fail('Ila did not open the cuttings turn-in');
+  await dismissDialog();
+  const qw2 = await page.evaluate(() => ({
+    q: window.__state.player.questLog?.ql_quiet_work,
+    ne: window.__state.player.inventory.nature_essence ?? 0,
+    bark: window.__state.player.inventory.bark ?? 0,
+    pebble: window.__state.player.inventory.pebble ?? 0,
+  }));
+  if (!qw2.q || qw2.q.step !== 3) fail(`Ila kit turn-in did not advance: ${JSON.stringify(qw2)}`);
+  // kit is 50 NE, 40 bark (they spent 4), 50 pebble, 5 shard, 30c — they may already have had some NE from passives
+  if (qw2.pebble < 50) fail(`Ila kit missing pebble: ${JSON.stringify(qw2)}`);
+  await page.evaluate(() => { window.__state.scene.player.x = 27 * 32; });
+  await key('e', 400);
+  if (!(await visible()).includes('dialog')) fail('Ila did not open the Quiet Work finish');
+  const ilaDone = await page.evaluate(() => document.querySelector('#p-dialog')?.innerText ?? '');
+  if (!/root is in the dirt|Pell|yield/i.test(ilaDone)) fail(`Ila finish dialog unexpected: ${ilaDone.slice(0, 400)}`);
+  await dismissDialog();
+  const qw3 = await page.evaluate(() => window.__state.player.questLog?.ql_quiet_work);
+  if (!qw3?.done) fail(`Quiet Work not complete: ${JSON.stringify(qw3)}`);
+  console.log('quiet work ok:', qw3);
+
+  // ── v0.2.5 A Warm Coat (Mara, pasture resources + Hide Vest) ──
+  const wc0 = await page.evaluate(() => window.__state.player.questLog?.ql_warm_coat);
+  if (!wc0 || wc0.step < 1) fail(`Warm Coat did not start after Quiet Work: ${JSON.stringify(wc0)}`);
+  await page.evaluate(() => {
+    const mara = window.__state.scene.npcs?.find((n) => n.id === 'mara');
+    if (mara) window.__state.scene.player.x = mara.x;
+    window.__game?.events?.emit('close-all');
+  });
+  await page.waitForTimeout(150);
+  await key('e', 400);
+  if (!(await visible()).includes('dialog')) fail('Mara did not open A Warm Coat dialog');
+  await dismissDialog();
+  const wc1 = await page.evaluate(() => window.__state.player.questLog?.ql_warm_coat);
+  if (!wc1 || wc1.step !== 2) fail(`Mara talk did not advance Warm Coat: ${JSON.stringify(wc1)}`);
+  await key('`');
+  await page.keyboard.type('item wool 8'); await key('Enter');
+  await page.keyboard.type('item fur 6'); await key('Enter');
+  await key('Escape', 150);
+  await page.evaluate(() => {
+    const mara = window.__state.scene.npcs?.find((n) => n.id === 'mara');
+    if (mara) window.__state.scene.player.x = mara.x;
+    window.__game?.events?.emit('close-all');
+  });
+  await page.waitForTimeout(150);
+  await key('e', 400);
+  if (!(await visible()).includes('dialog')) fail('Mara did not open the Warm Coat turn-in');
+  await dismissDialog();
+  const wc2 = await page.evaluate(() => {
+    const p = window.__state.player;
+    const vest = Object.values(p.gearItems ?? {}).filter((g) => g.itemId === 'hide_vest');
+    return {
+      done: !!p.questLog?.ql_warm_coat?.done,
+      vest: vest.length,
+      def: vest[0]?.defense,
+      berries: p.inventory.blueberry ?? 0,
+      wool: p.inventory.wool ?? 0,
+    };
+  });
+  if (!wc2.done) fail(`Warm Coat not complete: ${JSON.stringify(wc2)}`);
+  if (wc2.vest < 1) fail(`Warm Coat did not grant Hide Vest: ${JSON.stringify(wc2)}`);
+  if (wc2.wool !== 0) fail(`Wool was not consumed: ${JSON.stringify(wc2)}`);
+  if (wc2.berries < 4) fail(`Warm Coat blueberries missing: ${JSON.stringify(wc2)}`);
+  console.log('warm coat ok:', wc2);
+
   // Ila 10:1 — Dry Root and Twig
   await page.evaluate(() => { window.__state.scene.player.x = 27 * 32; window.__game.events.emit('close-all'); });
   await page.waitForTimeout(200);
@@ -572,10 +715,9 @@ try {
   await key('e', 450);
   if (!(await visible()).includes('dialog')) fail('Pell did not open The Dirt Path dialog');
   const pellDlg = await page.evaluate(() => document.querySelector('#p-dialog')?.innerText ?? '');
-  if (!/crow|dirt path|banks/i.test(pellDlg)) fail(`Pell Dirt Path dialog unexpected: ${pellDlg.slice(0, 500)}`);
+  if (!/growing|crow|dirt path|banks|pasture/i.test(pellDlg)) fail(`Pell Dirt Path dialog unexpected: ${pellDlg.slice(0, 500)}`);
   await shot('pell-dirt-path');
-  await key('Enter', 250);
-  await key('Escape', 150);
+  await dismissDialog();
   const dpTalk = await page.evaluate(() => window.__state.player.questLog?.ql_dirt_path);
   if (!dpTalk || dpTalk.step !== 2) fail(`Pell talk did not advance Dirt Path to step 2: ${JSON.stringify(dpTalk)}`);
 
@@ -617,7 +759,7 @@ try {
   if (!(await visible()).includes('dialog')) fail('Pell did not open the Dirt Path return dialog');
   const pellDone = await page.evaluate(() => document.querySelector('#p-dialog')?.innerText ?? '');
   if (!/banks are yours|root and stone/i.test(pellDone)) fail(`Pell complete dialog unexpected: ${pellDone.slice(0, 500)}`);
-  await key('Enter', 300);
+  await dismissDialog();
   const afterRew = await page.evaluate(() => {
     const p = window.__state.player;
     const q = p.questLog?.ql_dirt_path;
@@ -635,6 +777,42 @@ try {
   if (afterRew.ee - beforeRew.ee !== 5) fail(`Dirt Path Elemental Essence ${beforeRew.ee} → ${afterRew.ee}`);
   if (afterRew.dew - beforeRew.dew !== 2) fail(`Dirt Path Meadow Dew ${beforeRew.dew} → ${afterRew.dew}`);
   console.log('dirt path ok:', afterRew);
+
+  // ── v0.2.5 What the Dirt Keeps (Pell, after Dirt Path; Stone Club) ──
+  const dk0 = await page.evaluate(() => window.__state.player.questLog?.ql_dirt_keeps);
+  if (!dk0 || dk0.done || dk0.step < 1) fail(`What the Dirt Keeps did not start after Dirt Path: ${JSON.stringify(dk0)}`);
+  await page.evaluate(() => { window.__game?.events?.emit('close-all'); window.__state.scene.player.x = 36 * 32; });
+  await page.waitForTimeout(200);
+  await key('e', 400);
+  if (!(await visible()).includes('dialog')) fail('Pell did not open What the Dirt Keeps');
+  const dkDlg = await page.evaluate(() => document.querySelector('#p-dialog')?.innerText ?? '');
+  if (!/banks|grit|stone|earth/i.test(dkDlg)) fail(`Dirt Keeps dialog unexpected: ${dkDlg.slice(0, 400)}`);
+  await dismissDialog();
+  await key('`');
+  await page.keyboard.type('item earth_grit 8'); await key('Enter');
+  await page.keyboard.type('item stone_chunk 4'); await key('Enter');
+  await key('Escape', 150);
+  await page.evaluate(() => { window.__game?.events?.emit('close-all'); window.__state.scene.player.x = 36 * 32; });
+  await page.waitForTimeout(150);
+  await key('e', 400);
+  if (!(await visible()).includes('dialog')) fail('Pell did not open the Dirt Keeps turn-in');
+  await dismissDialog();
+  const dk2 = await page.evaluate(() => {
+    const p = window.__state.player;
+    const club = Object.values(p.gearItems ?? {}).filter((g) => g.itemId === 'stone_club');
+    return {
+      done: !!p.questLog?.ql_dirt_keeps?.done,
+      club: club.length,
+      wd: club[0]?.weaponDamage,
+      ne: p.inventory.nature_essence ?? 0,
+      grit: p.inventory.earth_grit ?? 0,
+    };
+  });
+  if (!dk2.done) fail(`What the Dirt Keeps not complete: ${JSON.stringify(dk2)}`);
+  if (dk2.club < 1) fail(`Dirt Keeps did not grant Stone Club: ${JSON.stringify(dk2)}`);
+  if (dk2.grit !== 0) fail(`Earth Grit was not consumed: ${JSON.stringify(dk2)}`);
+  console.log('dirt keeps ok:', dk2);
+
 
 
   // ── v0.2.3 recheck of the 21 playtest notes ──
@@ -668,7 +846,22 @@ try {
     if (!shopIds.includes('strawberry') || !shopIds.includes('blueberry')) fail(`shop missing berries: ${shopIds}`);
     if (!shopIds.includes('short_sword')) fail(`shop missing Short Sword: ${shopIds}`);
     const sells = await page.evaluate(() => /Sells for/.test(document.querySelector('#p-shop')?.innerText ?? ''));
-    if (sells) fail('shop tooltip still shows Sells for');
+    if (sells) fail('shop BUY tab should not show Sells for');
+    // Sell tab: Mara's pay price SHOULD show
+    await key('Tab', 200);
+    const sellTab = await page.evaluate(() => {
+      const on = document.querySelector('#p-shop .tabs .on')?.textContent;
+      // pick a junk/consumable they own if listed, else first sell tile
+      const t = document.querySelector('#p-shop [data-item][data-mode="sell"], #p-shop .tile[data-mode="sell"]')
+        ?? document.querySelector('#p-shop [data-item]');
+      t?.click();
+      const pv = document.querySelector('#shop-preview, #p-shop .preview')?.innerText ?? document.querySelector('#p-shop')?.innerText ?? '';
+      return { on, pv, has: /Sells for/.test(pv) };
+    });
+    if (!/sell/i.test(sellTab.on ?? '')) fail(`shop did not switch to Sell: ${JSON.stringify(sellTab)}`);
+    if (!sellTab.has) fail(`shop SELL tab missing Sells for: ${JSON.stringify(sellTab).slice(0, 400)}`);
+    await key('Escape', 100);
+    await key('e', 300); // reopen on buy for the Short Sword checks below
     // walk to short sword if on buy tab
     const hasSword = await page.evaluate(() => !!document.querySelector('#p-shop [data-buy="short_sword"], #p-shop [data-item="short_sword"]'));
     if (!hasSword) fail('short_sword tile missing from shop');
@@ -825,6 +1018,16 @@ try {
   // Wooden sword 11 at 0 STR, 12 at 2 STR — they may have short_sword in bag not equipped, still wooden.
   if (a0 !== '11') fail(`attack at 0 STR should be 11 (wooden), got ${a0} (atk0 ${JSON.stringify(atk0)})`);
   if (a2 !== '12') fail(`attack at 2 STR should be 12, got ${a2}`);
+  // Rage must not appear on the character sheet when the buff is off (even if the skill is known).
+  const rageSheet = await page.evaluate(() => {
+    const text = document.querySelector('#p-stats')?.innerText ?? '';
+    const active = (window.__state.buffs?.rage ?? 0) > Date.now();
+    return { text, active, has: /\bRage\b/.test(text) };
+  });
+  if (!rageSheet.active && rageSheet.has) fail(`Rage shown on character window while inactive: ${rageSheet.text.slice(0, 500)}`);
+  if (!(await visible()).includes('stats')) { await key('c', 200); }
+  await shot('character-no-rage');
+  await key('Escape', 80);
   console.log('attack formula ok', a0, a2);
 
   // Quest-gated skills: Earthbreaker visible once Crack is discovered, still rank 0; completing must not grant r1.
@@ -846,6 +1049,32 @@ try {
   if (skillsVis.fc) fail('Flame Cleave visible before Hot Edge is discovered');
   if (skillsVis.rank !== 0) fail(`Earthbreaker already ranked: ${skillsVis.rank}`);
   await key('Escape', 80);
+  // Bank-Cracker must appear in the Dirt Banks from Crack step 2 onward.
+  await page.evaluate(() => {
+    const p = window.__state.player;
+    p.questLog ??= {};
+    p.questLog.ql_crack = { step: 2, done: false, killed: false };
+    window.__state.save?.();
+  });
+  await key('`');
+  await page.keyboard.type('tp dirt_banks'); await key('Enter');
+  await key('Escape', 300);
+  await page.waitForFunction(() => window.__state.player.area === 'dirt_banks' && window.__game?.scene.isActive('World'), null, { timeout: 10000 });
+  await page.waitForTimeout(600);
+  const cracker = await page.evaluate(() => {
+    const sc = window.__state.scene;
+    const named = sc.monsters.filter((m) => m.alive && m.def.id === 'bank_cracker');
+    if (named[0]) sc.player.x = named[0].x - 48;
+    return { n: named.length, name: named[0]?.def?.name, ids: [...new Set(sc.monsters.filter((m) => m.alive).map((m) => m.def.id))] };
+  });
+  if (cracker.n < 1) fail(`Bank-Cracker did not spawn on Crack step 2: ${JSON.stringify(cracker)}`);
+  await page.waitForTimeout(250);
+  await shot('bank-cracker');
+  console.log('bank-cracker spawn ok:', cracker);
+  await key('`');
+  await page.keyboard.type('tp meadow_town'); await key('Enter');
+  await key('Escape', 250);
+  await page.waitForFunction(() => window.__state.player.area === 'meadow_town', null, { timeout: 10000 });
   // Complete Crack via the cheat (same complete() path as talking to Calden).
   await key('`');
   await page.keyboard.type('quest complete ql_crack'); await key('Enter');

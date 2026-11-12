@@ -20,7 +20,7 @@ export const ASSUME = {
   // Power Strike kills a Field Mouse in ~4 hits (sheet target: 3-5 hits).
   starterWeapon: 'wooden_sword',
   // Not in sheet: skill cooldowns. The worked example assumes a 1s Power Strike cooldown.
-  cooldownMs: { power_strike: 1000, rage: 60000, earthbreaker: 3000, flame_cleave: 2500, soul_guard: 30000, root_lash: 2000, dig_in: 4000 } as Record<string, number>,
+  cooldownMs: { power_strike: 800, rage: 60000, earthbreaker: 2400, flame_cleave: 2000, soul_guard: 30000, root_lash: 1600, dig_in: 4000 } as Record<string, number>,
   potionCooldownMs: 400,
   // Not in sheet: hurt invulnerability after taking a hit, monster swing interval and speeds.
   hurtInvulnMs: 700,
@@ -66,18 +66,19 @@ export interface MonsterFeel { acc: number; eva: number; kbRes: number; range: n
 export const MONSTER_FEEL: Record<string, MonsterFeel> = {
   // range = melee contact reach (edge to edge, px). v0.1.2: contact only (was 14-18).
   // windupMs = random telegraph per swing (v0.1.2: was fixed 380-450).
-  field_mouse: { acc: 8, eva: 7, kbRes: 0.0, range: 4, windupMs: [250, 550] },
-  wool_sheep: { acc: 9, eva: 6, kbRes: 0.6, range: 4, windupMs: [320, 600] },
-  crow: { acc: 10, eva: 10, kbRes: 0.2, range: 4, windupMs: [400, 600] },
-  burrow_mole: { acc: 10, eva: 6, kbRes: 0.5, range: 4, windupMs: [350, 650] },
-  earth_sprite: { acc: 11, eva: 11, kbRes: 0.15, range: 4, windupMs: [280, 550] },
-  ember_beetle: { acc: 10, eva: 8, kbRes: 0.35, range: 4, windupMs: [300, 580] },
-  spark_bug: { acc: 12, eva: 11, kbRes: 0.2, range: 4, windupMs: [260, 520] },
-  frost_moth: { acc: 11, eva: 13, kbRes: 0.1, range: 4, windupMs: [320, 600] },
-  wool_shoulder: { acc: 11, eva: 7, kbRes: 0.7, range: 4, windupMs: [320, 620] },
-  bank_cracker: { acc: 12, eva: 7, kbRes: 0.65, range: 4, windupMs: [360, 680] },
-  cinderback: { acc: 12, eva: 9, kbRes: 0.55, range: 4, windupMs: [320, 600] },
-  default: { acc: 9, eva: 8, kbRes: 0.3, range: 4, windupMs: [300, 600] },
+  field_mouse: { acc: 8, eva: 7, kbRes: 0.0, range: 4, windupMs: [225, 495] },
+  wool_sheep: { acc: 9, eva: 6, kbRes: 0.6, range: 4, windupMs: [288, 540] },
+  crow: { acc: 10, eva: 10, kbRes: 0.2, range: 4, windupMs: [360, 540] },
+  burrow_mole: { acc: 10, eva: 6, kbRes: 0.5, range: 4, windupMs: [315, 585] },
+  earth_sprite: { acc: 11, eva: 11, kbRes: 0.15, range: 24, windupMs: [252, 495] },
+  ember_beetle: { acc: 10, eva: 8, kbRes: 0.35, range: 22, windupMs: [270, 522] },
+  spark_bug: { acc: 12, eva: 11, kbRes: 0.2, range: 18, windupMs: [234, 468] },
+  frost_moth: { acc: 11, eva: 13, kbRes: 0.1, range: 4, windupMs: [288, 540] },
+  wool_shoulder: { acc: 11, eva: 7, kbRes: 0.7, range: 4, windupMs: [288, 558] },
+  bank_cracker: { acc: 12, eva: 7, kbRes: 0.65, range: 20, windupMs: [324, 612] },
+  cinderback: { acc: 12, eva: 9, kbRes: 0.55, range: 4, windupMs: [288, 540] },
+  meadow_boar: { acc: 11, eva: 7, kbRes: 0.55, range: 28, windupMs: [288, 540] },
+  default: { acc: 9, eva: 8, kbRes: 0.3, range: 4, windupMs: [270, 540] },
 };
 
 
@@ -115,9 +116,9 @@ export const PLAYER_HIT_KB = { vx: 170, vy: -160 };
 
 /** Monster AI timings (ms) and behaviour weights after each swing. */
 export const AI = {
-  recoverMs: [150, 450] as [number, number], // v0.1.2: random pause right after a swing (was 250)
+  recoverMs: [125, 375] as [number, number], // v0.2.5: ~17% faster (was [150, 450])
   feintChance: 0.15, // telegraph, then cancel and back off instead of striking
-  approachDelayMs: [0, 500] as [number, number], // random hesitation before closing in again
+  approachDelayMs: [0, 415] as [number, number], // v0.2.5: ~17% shorter hesitation
   repositionMs: [550, 1100] as [number, number], // how long a back-off / circle lasts
   idlePauseMs: [250, 800] as [number, number], // short idle before re-engaging
   backOffChance: 0.45, // step away from the player
@@ -157,8 +158,8 @@ export const LOOT = {
 /** Sprite animation (v0.1.3). Hero walk is ~35% slower than v0.1.2 and scales with actual vx. Attack FX are a bit slower but still readable (combat wind-up / swing intervals are unchanged). Mob frame rates use monsters.anim_speed (Crow 1, others 0.5). */
 export const ANIM = {
   heroWalkPeriod: 95, // was 70; 35% slower at full playerSpeed. Multiplied by vx / playerSpeed.
-  heroSwingMs: 185,   // sword arc, was 140
-  heroSlashMs: 240,   // slash fade, was 180
+  heroSwingMs: 130,   // v0.2.5 snappier (was 185); timed with CombatFx.basicMs
+  heroSlashMs: 160,   // v0.2.5, kept in sync with the trail
   heroLungeMs: 80,    // body punch, was 60 (yoyo)
   mobFrameMoveMs: 120, // at anim_speed 1; actual interval is this / anim_speed, scaled by vx
   mobFrameIdleMs: 400,

@@ -44,6 +44,8 @@ export class Hud {
   private lastSettleAt = 0;
   private areaName = '';
   private dialogHtml = '';
+  private dialogTalk: Q.TalkResult | null = null;
+  private dialogPage = 0;
   private consoleHistory: string[] = [];
   private historyIdx = -1;
   /** Stack picked up for moving (keyboard M or mouse drag). */
@@ -449,28 +451,25 @@ export class Hud {
     this.stack.push(p);
     this.renderPanels();
   }
-  private close(p: Panel) { this.stack = this.stack.filter((x) => x !== p); this.renderPanels(); }
+  private close(p: Panel) { if (p === 'dialog') this.dialogTalk = null; this.stack = this.stack.filter((x) => x !== p); this.renderPanels(); }
   private toggle(p: Panel) { if (this.stack.includes(p)) this.close(p); else this.open(p); }
 
   private npc(id: string, role: string, name: string) {
-    if (role === 'shop') { this.shopTab = 'buy'; this.open('shop'); return; }
-    if (role === 'exchange') { this.open('exchange'); return; }
+    if (role === 'shop') {
+      if (Q.wantsTalk(Game.player, id)) { this.openTalk(Q.talk(Game.player, id)); return; }
+      this.shopTab = 'buy'; this.open('shop'); return;
+    }
+    if (role === 'exchange') {
+      if (Q.wantsTalk(Game.player, id)) { this.openTalk(Q.talk(Game.player, id)); return; }
+      this.open('exchange'); return;
+    }
     if (role === 'trainer') {
-      if (Q.wantsTalk(Game.player, id)) {
-        const words = Q.talk(Game.player, id) ?? '…';
-        this.dialogHtml = `<h3>${esc(name)}</h3><p>${esc(words)}</p>`;
-        this.sel.dialog = undefined;
-        this.open('dialog');
-        return;
-      }
+      if (Q.wantsTalk(Game.player, id)) { this.openTalk(Q.talk(Game.player, id)); return; }
       this.open('skills');
       return;
     }
     if (id === 'pell' && Q.wantsTalk(Game.player, 'pell')) {
-      const words = Q.talk(Game.player, 'pell') ?? '…';
-      this.dialogHtml = `<h3>${esc(name)}</h3><p>${esc(words)}</p>`;
-      this.sel.dialog = undefined;
-      this.open('dialog');
+      this.openTalk(Q.talk(Game.player, 'pell'));
       return;
     }
     const lines: Record<string, string> = {};
@@ -489,9 +488,52 @@ export class Hud {
       this.toast(`Quest: ${q.name} — ${got}`, 'rare');
       Game.save();
     }
+    const greet = Q.greeting(id);
+    if (greet) {
+      if (extra) greet.pages = [extra.replace(/<[^>]+>/g, ''), ...greet.pages];
+      this.openTalk(greet);
+      return;
+    }
     this.dialogHtml = `<h3>${esc(name)}</h3><p>${esc(lines[id] ?? '...')}</p>${extra}`;
     this.sel.dialog = undefined;
     this.open('dialog');
+  }
+
+  /** Open a multi-page talk. Enter or click advances; the last page runs onFinish. Esc closes without finishing. */
+  private openTalk(talk: Q.TalkResult | null): void {
+    if (!talk || !talk.pages.length) return;
+    this.dialogTalk = talk;
+    this.dialogPage = 0;
+    this.paintTalk();
+    this.sel.dialog = undefined;
+    this.open('dialog');
+  }
+
+  private paintTalk(): void {
+    const talk = this.dialogTalk;
+    if (!talk) { this.dialogHtml = ''; return; }
+    const n = talk.pages.length;
+    const i = Math.min(this.dialogPage, n - 1);
+    const last = i >= n - 1;
+    this.dialogHtml = `<h3>${esc(talk.speaker)}</h3>
+      <p class="dlg-line">${esc(talk.pages[i] ?? '')}</p>
+      ${n > 1 ? `<div class="dlg-pager">${i + 1} / ${n}</div>` : ''}
+      <div class="btns"><button data-nav data-key="ok" data-dlg="next">${last ? 'OK' : 'Continue'}</button></div>
+      ${hint(last ? 'Enter or click: OK · Esc close' : 'Enter or click: continue · Esc close')}`;
+  }
+
+  private advanceTalk(): void {
+    const talk = this.dialogTalk;
+    if (!talk) { this.close('dialog'); return; }
+    if (this.dialogPage < talk.pages.length - 1) {
+      this.dialogPage += 1;
+      this.paintTalk();
+      this.renderPanels();
+      return;
+    }
+    this.dialogTalk = null;
+    this.close('dialog');
+    talk.onFinish?.();
   }
 
   private renderPanels() {
@@ -524,7 +566,10 @@ export class Hud {
         <div class="btns">${!piece && n > 1 ? '<button data-nav data-key="drop1" data-act="drop1">Drop 1</button>' : ''}<button data-nav data-key="dropall" data-act="dropall" class="danger">Drop ${!piece && n > 1 ? `all ×${n}` : ''}</button><button data-nav data-key="no" data-close="drop">Cancel</button></div>${hint('←→ select · Enter choose · Esc cancel')}`;
       }
     }
-    if (this.stack.includes('dialog')) $('#p-dialog').innerHTML = `${this.dialogHtml}<div class="btns"><button data-nav data-key="ok" data-close="dialog">OK</button></div>${hint('Enter OK · Esc close')}`;
+    if (this.stack.includes('dialog')) {
+      if (this.dialogTalk) $('#p-dialog').innerHTML = this.dialogHtml;
+      else $('#p-dialog').innerHTML = `${this.dialogHtml}<div class="btns"><button data-nav data-key="ok" data-close="dialog">OK</button></div>${hint('Enter OK · Esc close')}`;
+    }
     if (this.stack.includes('pause')) {
       const saved = p.savedAt ? new Date(p.savedAt).toLocaleTimeString() : 'never';
       $('#p-pause').innerHTML = `<h3>Menu</h3><p>Last saved: ${saved}${p.cheated ? ' · <span class="warn">test console used</span>' : ''}</p>
@@ -768,7 +813,8 @@ export class Hud {
       <p>${esc(descOf(it))}</p>
       ${lines.length ? `<div class="pv-eff">${lines.join('<br>')}</div>` : ''}
       <table class="pv-stats">
-        ${buy !== null && (mode === 'buy' || mode === 'sell' || panel === 'shop') ? `<tr><td>Shop price</td><td>${buy}c</td></tr>` : ''}
+        ${mode === 'buy' && buy !== null ? `<tr><td>Shop price</td><td>${buy}c</td></tr>` : ''}
+        ${mode === 'sell' && vendorBuyPrice(id) !== null ? `<tr><td>Sells for</td><td>${vendorBuyPrice(id)}c</td></tr>` : ''}
         <tr><td>Owned</td><td>${isGear(id) ? `${ownedGear} piece${ownedGear === 1 ? '' : 's'}${worn ? ' (this one equipped)' : ''}` : `${p.inventory[id] ?? 0}${p.storage[id] ? ` · ${p.storage[id]} in storage` : ''}`}</td></tr>
       </table>
       ${btns.length ? `<div class="pv-btns">${btns.join('')}</div>` : ''}
@@ -990,18 +1036,22 @@ export class Hud {
         <tr><td>MP regen</td><td>${P.mpRegenPerSec(p).toFixed(2)}/s</td></tr>
         <tr><td>Crit chance</td><td>${P.critChance(p).toFixed(1)}%</td></tr>
         <tr><td>Attack interval</td><td>${(P.attackIntervalMs(p) / 1000).toFixed(2)}s</td></tr>
-        ${Sk.known(p, 'rage') ? `<tr><td>Rage</td><td>+${rage.dealtPct}% dealt / +${rage.takenPct}% taken when active</td></tr>` : ''}
+        ${(Game.buffs.rage ?? 0) > Date.now() ? `<tr><td>Rage</td><td>+${rage.dealtPct}% dealt / +${rage.takenPct}% taken <em>(active)</em></td></tr>` : ''}
       </table>${hint('↑↓ select · Enter +1 point · Esc close')}`;
   }
 
   private onClick(e: MouseEvent) {
     const t = (e.target as HTMLElement).closest('button') as HTMLButtonElement | null;
-    if (!t) return;
+    if (!t) {
+      if (this.dialogTalk && (e.target as HTMLElement).closest('#p-dialog')) this.advanceTalk();
+      return;
+    }
     const p = Game.player;
     const d = t.dataset;
     const panel = t.closest('.panel')?.id.replace('p-', '') as Panel | undefined;
     if (panel && d.key) this.sel[panel] = d.key;
     if (this.held && d.idx !== undefined) { this.placeHeld(t); t.blur(); return; }
+    if (d.dlg === 'next') { this.advanceTalk(); t.blur(); return; }
     if (d.close) this.close(d.close as Panel);
     else if (d.xfer) this.transfer(t);
     else if (d.train) {

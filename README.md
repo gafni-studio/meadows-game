@@ -1,4 +1,4 @@
-# Meadows — prototype v0.2.4
+# Meadows — prototype v0.2.5
 
 A 2D side-scrolling browser MMORPG prototype (MapleStory-style real-time grinding, later Travian-style offline growth).
 v0.2 is a **single-player** slice of the Meadows zone: **Meadow Town** (hub + Mara's shop), **Sunny Pasture** (levels 1-3), and **Dirt Banks** (levels 3-6), reached by the east path from the pasture.
@@ -58,6 +58,10 @@ Hovering a tile with the mouse selects it too, and the preview panel shows the i
 
 **Why these keys:** no modifier keys are used, so gameplay can't trigger browser shortcuts (Ctrl+W closes the tab, etc.). Phaser calls `preventDefault` on every bound key, and a small guard blocks stray Ctrl+letter page shortcuts (Ctrl+S, Ctrl+P, ...). The hotbar is 1–6 (skills or consumables); Q and G still fire slots 5 and 6, instead of the sheet's Q/R potion keys.
 
+
+## What's new in v0.2.5 (feel, drops, quests, talk)
+
+Playtest notes on v0.2.4: a satisfying slash (trail to the real hit range, damage on the impact frame, hit-stop, crit shake, sparks) and a distinct animation for each skill; drop-rate pass; Earthbreaker trains with Earth Shard and Clay; Dig In is a simple 1-minute +50% defense buff; Rage is gone from the character sheet unless it's actually on; Bank-Cracker shows up in the Dirt Banks during A Crack in the Dirt; slightly faster swings and shorter attacking-skill cooldowns; a few longer mob reaches; three new quests (Ila's tree, Mara's coat, Pell's banks) with multi-line dialogue. Write-up in `docs/v0.2.5.md`.
 
 ## What's new in v0.2.4 (The Dirt Path)
 

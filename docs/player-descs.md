@@ -191,3 +191,11 @@ The sheet is the source of truth. `desc` is shown in game (tooltips and NPC/ques
 - **Frost Moth.** A pale moth that comes out in the cold morning dew.
 - **Spark Shell.** A shell that still holds a faint snap.
 - **Pale Wing.** A moth wing, cool to the touch.
+
+
+## v0.2.5 — Dig In, new quests
+
+- **Dig In.** Set your feet. For a minute, blows land softer.
+- **The Quiet Work.** Ila has something slower than a swing to show you.
+- **A Warm Coat.** Mara has a coat in mind, if the pasture will spare the wool.
+- **What the Dirt Keeps.** Pell wants to know what the banks are holding, under the loose earth.

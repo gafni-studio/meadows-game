@@ -236,15 +236,13 @@ export function rankPreview(id: string, rank: number): string {
     return `Shield ${k(rank)}% max HP → ${k(next)}%`;
   }
   if (id === 'dig_in') {
-    const w = (rk: number) => 0.5 + 0.05 * scalingRanks(s, rk);
-    return `${w(rank).toFixed(2)}s window, +100% def → ${w(next).toFixed(2)}s`;
+    return `+50% defense for 60s`;
   }
   return s.effect;
 }
 
-/** Dig In window in ms (0.5s at rank 1, +0.05s per scaling rank). */
-export function digInWindowMs(p: P.PlayerData): number {
+/** Dig In duration in ms (v0.2.5: a flat 60s buff, from skills.duration_s). */
+export function digInWindowMs(_p: P.PlayerData): number {
   const s = skill('dig_in');
-  const base = (s?.duration_s ?? 0.5) * 1000;
-  return base + 50 * scalingRanks(s ?? { branch: 'nature' } as SkillDef, rankOf(p, 'dig_in'));
+  return (s?.duration_s ?? 60) * 1000;
 }

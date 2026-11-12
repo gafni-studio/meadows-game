@@ -62,10 +62,11 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     this.baseSY = this.scaleY;
     applyBody(this, slot);
     this.y = groundY;
-    const NAMED: Record<string, number> = { wool_shoulder: 0xffe08a, bank_cracker: 0xc4a070, cinderback: 0xff7040 };
+    const NAMED: Record<string, number> = { wool_shoulder: 0xffe08a, bank_cracker: 0xd0d8e4, cinderback: 0xff7040 };
     if (NAMED[def.id]) {
       this.namedTint = NAMED[def.id];
-      this.setScale(this.scaleX * 1.18, this.scaleY * 1.18);
+      const grow = def.id === 'bank_cracker' ? 1.36 : 1.18;
+      this.setScale(this.scaleX * grow, this.scaleY * grow);
       this.baseSX = this.scaleX;
       this.baseSY = this.scaleY;
       this.setTint(this.namedTint);

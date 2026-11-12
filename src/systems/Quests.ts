@@ -9,6 +9,7 @@ import { DB, tab, descOf } from '../data/db';
 import * as P from './Player';
 import { Game } from './GameState'
 import { playSfx } from './Sfx';
+import { isGear, makeGear } from './Gear';
 
 export interface QuestStepRow {
   id: string; line_id: string; step: number; name: string; desc: string; objective: string;
@@ -32,6 +33,9 @@ const COLLECT: Record<string, Record<string, number>> = {
   'ql_crack:3': { pebble: 8, earth_grit: 6 },
   'ql_hot:2': { warm_grain: 6 },
   'ql_hot:3': { live_ember: 1 },
+  'ql_quiet_work:2': { twig: 8, bark: 4 },
+  'ql_warm_coat:2': { wool: 8, fur: 6 },
+  'ql_dirt_keeps:2': { earth_grit: 8, stone_chunk: 4 },
 };
 
 /** Named mob that must die on this step. */
@@ -173,7 +177,14 @@ function complete(p: P.PlayerData, line: string): void {
   }
   if (coins) p.coins += coins;
   const items = parseItems(last?.reward_items);
-  for (const it of items) P.addItem(p, it.id, it.qty);
+  for (const it of items) {
+    if (isGear(it.id)) {
+      // Quest gifts are a fixed mid roll, not a random drop (keeps the 150–200 band honest).
+      for (let n = 0; n < it.qty; n++) P.addGear(p, makeGear(it.id, { mode: 'mid', magic: false }));
+    } else {
+      P.addItem(p, it.id, it.qty);
+    }
+  }
   const got = [
     skillRewardLabel(line, last),
     xp ? `${xp} XP` : '',
@@ -184,6 +195,7 @@ function complete(p: P.PlayerData, line: string): void {
   Game.events.emit('quest', line);
   Game.events.emit('quest-complete', lineName(line), got);
   playSfx('quest');
+  offerFollowups(p, false);
   Game.changed();
   Game.save();
 }
@@ -206,6 +218,16 @@ export function onLevel(p: P.PlayerData, silent = false): void {
     if (m && p.level >= Number(m[1])) start(p, line, silent);
   }
   offerDirtPath(p, silent);
+  offerFollowups(p, silent);
+}
+
+/** Start lines whose trigger is `quest:<other>` once that other line is done. */
+function offerFollowups(p: P.PlayerData, silent = false): void {
+  for (const line of LINES) {
+    const trig = String(rowsOf(line)[0]?.trigger ?? '');
+    const m = trig.match(/^quest:(.+)$/);
+    if (m && isDone(p, m[1])) start(p, line, silent);
+  }
 }
 
 /** True once the last starter lesson is done: a first passive point spent, or the stub flag. */
@@ -252,20 +274,26 @@ export function shouldSpawn(p: P.PlayerData, monsterId: string): boolean {
   const k = KILL_LINE[monsterId];
   if (!k) return false;
   const s = state(p, k.line);
-  return isActive(p, k.line) && s.step === k.step && !s.killed;
+  if (!isActive(p, k.line) || s.killed) return false;
+  // Bank-Cracker is present from the moment you enter the Banks on A Crack in the Dirt
+  // (step 2 Reach, step 3 collect, step 4 the formal hunt) so the named foe is actually visible.
+  if (monsterId === 'bank_cracker') return s.step >= 2 && s.step <= k.step;
+  return s.step === k.step;
 }
 
 export function onKill(p: P.PlayerData, monsterId: string): void {
   const k = KILL_LINE[monsterId];
   if (k) {
     const s = state(p, k.line);
-    if (isActive(p, k.line) && s.step === k.step) {
+    if (isActive(p, k.line) && (s.step === k.step || (monsterId === 'bank_cracker' && s.step >= 2 && s.step <= k.step))) {
       setState(p, k.line, { ...s, killed: true });
       if (monsterId === 'cinderback') {
         P.addItem(p, 'live_ember', 1);
         Game.toast('Live Ember — take it to Calden', 'rare', 'live_ember');
       }
-      Game.toast(`${DB.monsters[monsterId]?.name ?? monsterId} falls. Return to Calden.`, 'info');
+      const who = k.line === 'ql_blood' || k.line === 'ql_crack' || k.line === 'ql_hot' ? 'Calden' : 'town';
+      if (s.step === k.step) Game.toast(`${DB.monsters[monsterId]?.name ?? monsterId} falls. Return to ${who}.`, 'info');
+      else Game.toast(`${DB.monsters[monsterId]?.name ?? monsterId} falls. Calden will want to hear it.`, 'info');
       Game.changed();
       Game.save();
     }
@@ -337,76 +365,251 @@ function hasCollect(p: P.PlayerData, need: Record<string, number>): boolean {
 }
 
 /** Calden (or another giver) talk. Returns dialog text if the journal should open a dialog instead of the skills window. */
-export function talk(p: P.PlayerData, npc: string): string | null {
-  // Prefer a step this NPC can actually advance, then a reminder.
+export interface TalkResult {
+  speaker: string;
+  pages: string[];
+  onFinish?: () => void;
+}
+
+function speakerOf(npc: string): string {
+  return DB.npcs[npc]?.name ?? npc;
+}
+
+function say(npc: string, pages: string[], onFinish?: () => void): TalkResult {
+  return { speaker: speakerOf(npc), pages, onFinish };
+}
+
+/** Short, spoken lines. One thought per page. Enter or click advances. */
+const TALK: Record<string, string[]> = {
+  // Calden — gruff, patient, a real blow matters.
+  'ql_weight:2:ok': [
+    'Twigs. Good. You went and got them, you didn’t wave at the grass.',
+    'Now come back to the post and hit it properly. F. Not a skill. A real blow.',
+  ],
+  'ql_weight:2:wait': [],
+  'ql_weight:3:done': [
+    'There. That is a real blow.',
+    'Power Strike is yours. Bind it from this window, or with 1–6.',
+    'Come back when you want to rank it up. Ila, over by the bench — she has slower work, if you’ve the patience.',
+  ],
+  'ql_blood:1:ok': [
+    'Rage is a bargain.',
+    'You hit harder. So does everything that hits you.',
+    'Walk to the east end of the pasture, near the dirt path. A stubborn sheep is waiting. Stay in the fight.',
+  ],
+  'ql_blood:3:wait': [
+    'The sheep is still out there. East pasture, near the path. Don’t come back until you’ve stood in it.',
+  ],
+  'ql_blood:3:done': [
+    'You stayed in it.',
+    'Rage is yours. Remember the other half of the bargain.',
+  ],
+  'ql_crack:1:ok': [
+    'This stone wants to break more than itself.',
+    'The Dirt Banks will finish the lesson. Go east, through the pasture, and take the dirt path.',
+    'A thing lives in those banks that splits the earth with its shoulders. You will know it when it stands up.',
+  ],
+  'ql_crack:1:gate': [
+    'I can see what you’ve brought. You’re not ready to finish this yet.',
+    'Keep the stone safe. Come back when you’re stronger.',
+  ],
+  'ql_crack:3:ok': [
+    'Pebble and grit. The banks gave them up.',
+    'Now the named one. Bank-Cracker. It is already in the dirt, if you walked there once.',
+    'Put it down, and come back to me.',
+  ],
+  'ql_crack:3:wait': [],
+  'ql_crack:4:wait': [
+    'Bank-Cracker is still in the banks. Look for the pale, heavy one — bigger than a mole, the color of cracked stone.',
+  ],
+  'ql_crack:4:done': [
+    'The ground answered.',
+    'Earthbreaker training is open. Come back with Nature Essence, Earth Shard, and Clay when you want to learn it.',
+  ],
+  'ql_hot:1:ok': [
+    'Still warm. Good.',
+    'Bring me Warm Grain from the Ember Beetles in the Dirt Banks. Then we will talk fire.',
+  ],
+  'ql_hot:1:gate': [
+    'I can feel the heat on that scale. You’re not ready for the rest of it.',
+    'Keep it. Come back when your arm can carry the lesson.',
+  ],
+  'ql_hot:2:ok': [
+    'Warm grain, still smelling of the beetle.',
+    'Cinderback is next. In the eastern banks, where the dirt holds a little fire. Bring me its Live Ember.',
+  ],
+  'ql_hot:2:wait': [],
+  'ql_hot:3:wait': [
+    'Cinderback first. The ember comes off its shell. Don’t lose it on the walk back.',
+  ],
+  'ql_hot:3:done': [
+    'A clean, hot edge.',
+    'Flame Cleave training is open. Elemental Essence will teach it.',
+  ],
+
+  // Pell — warm, folksy, knows the paths.
+  'ql_dirt_path:1:ok': [
+    'You look like you’ve set something growing. Good.',
+    'The dirt path at the far east of the pasture goes on to the banks.',
+    'Clear the crows that keep it — four of them — then walk through.',
+    'Hunt the moles, and the warm beetles. Come back when you have.',
+  ],
+  'ql_dirt_path:4:wait': [
+    'Still short of a proper first hunt. Moles and the warm beetles. The banks will wait.',
+  ],
+  'ql_dirt_path:4:done': [
+    'The banks are yours to hunt.',
+    'Root and stone, and a little warmth — bring what you find back to town.',
+    'I may have another question for the dirt, later. For now, walk it as you like.',
+  ],
+  'ql_dirt_keeps:1:ok': [
+    'You’ve walked the banks once. Good. They keep things, under the loose earth.',
+    'Bring me eight pinches of Earth Grit, and four honest Stone Chunks.',
+    'I want to feel what the place is holding. Then I have something for your hand.',
+  ],
+  'ql_dirt_keeps:2:wait': [],
+  'ql_dirt_keeps:2:done': [
+    'Grit and stone. That’s the banks, all right.',
+    'This club came out of packed dirt and a stubborn idea. It should sit well in a warrior’s hand.',
+    'If it asks for more strength than you have today, keep it. The banks aren’t going anywhere.',
+  ],
+
+  // Ila — quiet, growing-things metaphors.
+  'ql_quiet_work:1:ok': [
+    'You have a swing now. That’s the loud work.',
+    'There is slower work, too. Roots, underfoot. They grow while you walk, and while you sleep.',
+    'Bring me eight Twigs and four strips of Bark. Pasture cuttings. Then I’ll show you the tree.',
+  ],
+  'ql_quiet_work:2:wait': [],
+  'ql_quiet_work:2:ok': [
+    'These will do.',
+    'Here. Essence, bark, pebble, a few shards, and a little copper — enough to set a first rank going.',
+    'Press T. Look at Nature Essence. Start the upgrade. It takes a little time. That’s the point.',
+    'Come back to me when you’ve set it.',
+  ],
+  'ql_quiet_work:3:wait': [
+    'The tree is T. Nature Essence, first rank. I’ve given you what it costs. Set it going, then come back.',
+  ],
+  'ql_quiet_work:3:done': [
+    'There. A root is in the dirt.',
+    'It will yield while you hunt, and while you’re away. One upgrade at a time — don’t rush the second.',
+    'When you’re ready for a path, talk to Pell at the east gate. He has a walk that wants walking.',
+  ],
+
+  // Mara — practical, wry, talks useful things.
+  'ql_warm_coat:1:ok': [
+    'You look like you’ll be out in the pasture a while.',
+    'Bring me eight Wool and six Fur. Sheep and mice. I don’t need a whole flock — just enough to cut a vest.',
+    'I’ll see you paid in more than copper.',
+  ],
+  'ql_warm_coat:2:wait': [],
+  'ql_warm_coat:2:done': [
+    'This will keep a blow off your ribs. Not a knight’s coat. A good one.',
+    'A few berries for the road. If you want to sell me junk, the shop is still here.',
+  ],
+};
+
+const ILA_KIT: [string, number][] = [
+  ['pebble', 50], ['bark', 40], ['earth_shard', 5], ['nature_essence', 50],
+];
+const ILA_KIT_COPPER = 30;
+
+function waitPages(line: string, step: number, fallback: string): string[] {
+  return TALK[`${line}:${step}:wait`]?.length ? TALK[`${line}:${step}:wait`] : [fallback];
+}
+
+/** Calden (or another giver) talk. Multi-line; the step advances when the last page is closed. */
+export function talk(p: P.PlayerData, npc: string): TalkResult | null {
   for (const line of LINES) {
     if (!isActive(p, line)) continue;
     const s = state(p, line);
     const r = row(line, s.step);
     if (!r || (r.giver && r.giver !== npc)) continue;
     const key = `${line}:${s.step}`;
+    const last = (rowsOf(line).slice(-1)[0])!.step;
 
-    // The Dirt Path step 1: Pell sends you to the east pasture.
-    if (line === 'ql_dirt_path' && s.step === 1) {
-      advance(p, line, 'Defeat 4 Crows at the east end of Sunny Pasture.');
-      return 'The dirt path at the far east of the pasture goes on to the banks. Clear the crows that keep it — four of them — then walk through and hunt moles and the warm beetles. Come back when you have.';
+    // Talk-only first steps.
+    if ((line === 'ql_dirt_path' || line === 'ql_blood' || line === 'ql_quiet_work'
+      || line === 'ql_warm_coat' || line === 'ql_dirt_keeps') && s.step === 1) {
+      return say(npc, TALK[`${line}:1:ok`] ?? [r.objective], () => {
+        const toast = line === 'ql_dirt_path' ? 'Defeat 4 Crows at the east end of Sunny Pasture.'
+          : line === 'ql_blood' ? 'Rage is a bargain — hit harder, get hit harder. Walk to the east pasture.'
+          : undefined;
+        advance(p, line, toast);
+      });
     }
+
     const hunt = HUNT[key];
     if (hunt && r.giver === npc) {
-      if (!huntDone(hunt, s.kills)) return `Still short. ${huntLabel(hunt, s.kills)}. ${r.objective}`;
-      if (s.step === (rowsOf(line).slice(-1)[0])!.step) {
-        complete(p, line);
-        return lastWords(line);
+      if (!huntDone(hunt, s.kills)) {
+        return say(npc, waitPages(line, s.step, `Still short. ${huntLabel(hunt, s.kills)}. ${r.objective}`));
       }
-      advance(p, line);
-      return 'That will do. ' + (row(line, s.step + 1)?.objective ?? '');
+      if (s.step === last) {
+        return say(npc, TALK[`${line}:${s.step}:done`] ?? [lastWords(line)], () => complete(p, line));
+      }
+      return say(npc, TALK[`${line}:${s.step}:ok`] ?? ['That will do.'], () => advance(p, line));
     }
 
-    // Talk-only step (Blood Up 1).
-    if (line === 'ql_blood' && s.step === 1) {
-      advance(p, line, 'Rage is a bargain — hit harder, get hit harder. Walk to the east pasture.');
-      return 'Rage is a bargain. You hit harder, and so does everything that hits you. Walk to the east end of the pasture, near the dirt path. A stubborn sheep is waiting. Stay in the fight.';
-    }
-
-    // Gate-checked hand-in (stone / scale).
     if (r.trigger?.startsWith('item:') || (s.step === 1 && (line === 'ql_crack' || line === 'ql_hot'))) {
       const g = gateOk(p, line);
-      if (!g.ok) return `I can see what you've brought. ${g.reason}. Come back when you're ready — keep it safe.`;
-      advance(p, line);
-      if (line === 'ql_crack') return 'This stone wants to break more than itself. The Dirt Banks will finish the lesson. Go east, through the pasture.';
-      return 'Still warm. Good. Bring me Warm Grain from the Ember Beetles in the Dirt Banks, then we will talk fire.';
+      if (!g.ok) return say(npc, TALK[`${line}:1:gate`] ?? [`I can see what you've brought. ${g.reason}. Come back when you're ready — keep it safe.`]);
+      return say(npc, TALK[`${line}:1:ok`] ?? [r.objective], () => advance(p, line));
     }
 
     const need = COLLECT[key];
     if (need) {
-      // Hot Edge last step also needs the kill + live ember.
       if (KILL[key] && !s.killed) {
-        return `You still have to face ${DB.monsters[KILL[key]]?.name ?? 'the named foe'}. ${r.objective}`;
+        return say(npc, waitPages(line, s.step, `You still have to face ${DB.monsters[KILL[key]]?.name ?? 'the named foe'}. ${r.objective}`));
       }
       if (!hasCollect(p, need)) {
         const miss = Object.entries(need).filter(([id, n]) => (p.inventory[id] ?? 0) < n)
           .map(([id, n]) => `${n}× ${DB.items[id].name}`).join(', ');
-        return `Bring me ${miss}. ${r.objective}`;
+        const baked = TALK[`${line}:${s.step}:wait`];
+        return say(npc, baked?.length ? baked : [`Bring me ${miss}. ${r.objective}`]);
       }
-      for (const [id, n] of Object.entries(need)) P.removeItem(p, id, n);
-      if (s.step === (rowsOf(line).slice(-1)[0])!.step) {
-        complete(p, line);
-        return lastWords(line);
-      }
-      advance(p, line);
-      return 'That will do. ' + (row(line, s.step + 1)?.objective ?? 'See your journal (J) for the next step.');
+      const finish = () => {
+        for (const [id, n] of Object.entries(need)) P.removeItem(p, id, n);
+        if (line === 'ql_quiet_work' && s.step === 2) {
+          for (const [id, n] of ILA_KIT) P.addItem(p, id, n);
+          p.coins += ILA_KIT_COPPER;
+          Game.toast('Ila’s kit — enough for a first rank', 'rare');
+        }
+        if (s.step === last) complete(p, line);
+        else advance(p, line);
+      };
+      if (s.step === last) return say(npc, TALK[`${line}:${s.step}:done`] ?? [lastWords(line)], finish);
+      return say(npc, TALK[`${line}:${s.step}:ok`] ?? ['That will do.'], finish);
     }
 
     if (KILL[key]) {
-      if (!s.killed) return `You still have to face ${DB.monsters[KILL[key]]?.name}. ${r.objective}`;
-      // Blood Up / Crack last step: kill is enough, then return (no extra item except Hot Edge, handled above).
-      if (s.step === (rowsOf(line).slice(-1)[0])!.step) {
-        complete(p, line);
-        return lastWords(line);
-      }
-      advance(p, line);
-      return 'Well fought. ' + (row(line, s.step + 1)?.objective ?? '');
+      if (!s.killed) return say(npc, waitPages(line, s.step, `You still have to face ${DB.monsters[KILL[key]]?.name}. ${r.objective}`));
+      if (s.step === last) return say(npc, TALK[`${line}:${s.step}:done`] ?? [lastWords(line)], () => complete(p, line));
+      return say(npc, TALK[`${line}:${s.step}:ok`] ?? ['Well fought.'], () => advance(p, line));
     }
+
+    // Quiet Work last step: spend a first point, then talk.
+    if (line === 'ql_quiet_work' && s.step === 3) {
+      if (!hasDirtPathPrereq(p)) return say(npc, TALK['ql_quiet_work:3:wait']);
+      return say(npc, TALK['ql_quiet_work:3:done'], () => complete(p, line));
+    }
+  }
+  return null;
+}
+
+/** A few lore lines when Pell (or another hint NPC) is spoken to with no quest to advance. */
+export function greeting(npc: string): TalkResult | null {
+  if (npc === 'pell') {
+    return say('pell', [
+      'Meadow Town sits easy, for now. The pasture to the east is honest work — mice and sheep leave you be unless you hit them. Watch the crows.',
+      'The dirt path at the far end goes on to the Banks. Loose earth, moles, a little warmth in the beetles.',
+      'Sell junk to Mara. Train with Calden. If you want something slower than a swing, Ila’s bench is the place.',
+    ]);
+  }
+  if (npc === 'calden') {
+    return say('calden', [
+      'A swing is a conversation. The post doesn’t lie, and neither do I.',
+      'Bring Monster Essence and Training Scrolls when you want a rank. Nature, Elemental, Spiritual — those want their own essence.',
+    ]);
   }
   return null;
 }
@@ -421,11 +624,8 @@ function skillRewardLabel(line: string, last: { unlock_skill?: string | null } |
 }
 
 function lastWords(line: string): string {
-  if (line === 'ql_weight') return 'There. That is a real blow. Power Strike is yours — bind it from this window, or with 1–6. Come back when you want to rank it up.';
-  if (line === 'ql_blood') return 'You stayed in it. Rage is yours. Remember the other half of the bargain.';
-  if (line === 'ql_crack') return 'The ground answered. Earthbreaker training is open — come back to Calden with Nature Essence when you want to learn it.';
-  if (line === 'ql_hot') return 'A clean, hot edge. Flame Cleave training is open — Elemental Essence will teach it.';
-  if (line === 'ql_dirt_path') return 'The banks are yours to hunt. Root and stone, and a little warmth — bring what you find back to town.';
+  const done = TALK[`${line}:${(rowsOf(line).slice(-1)[0])?.step}:done`];
+  if (done?.length) return done[done.length - 1]!;
   return `${lineName(line)} is done.`;
 }
 
@@ -437,12 +637,12 @@ export function wantsTalk(p: P.PlayerData, npc: string): boolean {
     const r = row(line, s.step);
     if (!r || (r.giver && r.giver !== npc)) return false;
     const key = `${line}:${s.step}`;
-    if (line === 'ql_blood' && s.step === 1) return true;
-    if (line === 'ql_dirt_path' && s.step === 1) return true;
-    if (s.step === 1 && (line === 'ql_crack' || line === 'ql_hot')) return true;
+    if (s.step === 1) return true; // every line’s opener is a talk
     const hunt = HUNT[key];
-    if (hunt && huntDone(hunt, s.kills)) return true;
+    if (hunt && huntDone(hunt, s.kills) && r.giver === npc) return true;
+    if (hunt && r.giver === npc) return true; // reminder
     if (COLLECT[key] || KILL[key]) return true;
+    if (line === 'ql_quiet_work' && s.step === 3) return true;
     return false;
   });
 }
