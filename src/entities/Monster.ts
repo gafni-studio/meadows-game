@@ -41,6 +41,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
   readonly ranged: boolean;
   private nextShotAt = 0;
   private feint = false;
+  private namedTint: number | null = null;
 
   constructor(scene: Phaser.Scene, def: MonsterDef, x: number, groundY: number) {
     const slot = monsterSlot(def.id);
@@ -61,9 +62,17 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     this.baseSY = this.scaleY;
     applyBody(this, slot);
     this.y = groundY;
+    const NAMED: Record<string, number> = { wool_shoulder: 0xffe08a, bank_cracker: 0xc4a070, cinderback: 0xff7040 };
+    if (NAMED[def.id]) {
+      this.namedTint = NAMED[def.id];
+      this.setScale(this.scaleX * 1.18, this.scaleY * 1.18);
+      this.baseSX = this.scaleX;
+      this.baseSY = this.scaleY;
+      this.setTint(this.namedTint);
+    }
     (this.body as Phaser.Physics.Arcade.Body).setCollideWorldBounds(true);
     this.bar = scene.add.graphics().setDepth(20);
-    const color = def.aggression === 'aggressive' ? '#ffd2d2' : '#ffffff';
+    const color = NAMED[def.id] ? '#ffe08a' : def.aggression === 'aggressive' ? '#ffd2d2' : '#ffffff';
     this.label = scene.add
       .text(x, groundY, `Lv${def.level} ${def.name}`, { fontFamily: 'monospace', fontSize: '11px', color, stroke: '#000', strokeThickness: 3 })
       .setOrigin(0.5, 1).setDepth(20);
@@ -81,7 +90,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     this.state = state;
     this.until = this.scene.time.now + ms;
     this.alert.setVisible(state === 'windup');
-    if (state !== 'windup') { this.clearTint(); this.setScale(this.baseSX, this.baseSY); }
+    if (state !== 'windup') { this.restoreTint(); this.setScale(this.baseSX, this.baseSY); }
   }
 
   /** Damage + knockback. Returns true if it died. */
@@ -89,7 +98,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     if (!this.alive) return false;
     this.hp -= dmg;
     this.setTintFill(0xffffff);
-    this.scene.time.delayedCall(70, () => { if (this.state !== 'windup') this.clearTint(); });
+    this.scene.time.delayedCall(70, () => { if (this.state !== 'windup') this.restoreTint(); });
     if (this.hp <= 0) { this.die(); return true; }
     const push = kb * (1 - this.feel.kbRes);
     if (push > 0 && this.state !== 'return') {
@@ -109,7 +118,14 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     this.scene.tweens.add({ targets: this, alpha: 0, y: this.y - 10, duration: 300, onComplete: () => this.setVisible(false) });
     this.bar.clear();
     this.label.setVisible(false);
-    this.scene.time.delayedCall(this.def.respawn_s * 1000, () => this.respawn());
+    const rs = Number(this.def.respawn_s) || 0;
+    if (rs > 0) this.scene.time.delayedCall(rs * 1000, () => this.respawn());
+  }
+
+  /** Restore a named-mob tint (clearTint would wash out Wool-Shoulder etc.). */
+  restoreTint() {
+    if (this.namedTint != null) this.setTint(this.namedTint);
+    else this.clearTint();
   }
 
   respawn() {

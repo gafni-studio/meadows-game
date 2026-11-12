@@ -127,6 +127,15 @@ save(tile('td102'), 'fx', 'pebble.png')  # crow projectile
 save(tile('td89'), 'world', 'chest.png')
 save(tile('td90'), 'world', 'chest_open.png')
 
+# Practice post (training dummy): wooden crate body + sack head, Kenney CC0
+dummy = Image.new('RGBA', (16, 32), (0, 0, 0, 0))
+dummy.alpha_composite(tile('tt106'), (0, 16))  # log / crate as the post
+dummy.alpha_composite(hue(tile('tt5'), 25, 0.9, 1.05), (0, 2))  # sack head
+# a small red cloth mark so it reads as a target
+mark = hue(tile('tt93'), 5, 1.6, 1.1)
+dummy.alpha_composite(mark.resize((8, 8), Image.Resampling.NEAREST), (4, 6))
+save(crop_alpha(dummy), 'world', 'practice_post.png')
+
 # ───────── item icons (one per items.id; 18x18 canvas) ─────────
 G = lambda ref: tile(ref)
 ICONS = {
@@ -160,6 +169,7 @@ ICONS = {
     'stone_club': hue(G('td129'), 28, 0.9, 0.85),
     'cracked_bank_stone': hue(G('pp7'), 30, 0.6, 1.0),
     'smoldering_scale': hue(G('tt93'), 15, 1.6, 1.1),
+    'live_ember': hue(G('tt93'), 10, 1.8, 1.25),
     # gear
     'wooden_sword': hue(G('td104'), 30, 1.2), 'worn_staff': G('td129'), 'rusty_dagger': hue(G('td103'), 20, 0.9),
     'steel_sword': G('td104'), 'steel_staff': grey(G('td129'), 1.2), 'steel_dagger': G('td103'),
@@ -187,6 +197,8 @@ SKILLS = {
     'power_strike': G('td104'), 'rage': hue(G('td127'), 5, 1.5),
     'earthbreaker': G('pp6'), 'flame_cleave': hue(G('td104'), 5, 1.6, 1.1),
     'soul_guard': G('td102'),
+    'root_lash': hue(G('fa104'), 115, 1.3, 1.0),
+    'dig_in': hue(G('pp6'), 30, 1.1, 0.95),
     'energy_blast': hue(G('td116'), 200, 1.2), 'energy_shield': hue(G('td102'), 200, 0.6, 1.2),
     'thorn_bind': hue(G('fa104'), 115, 1.2), 'firebolt': hue(G('pp67'), 5, 1.5),
     'holy_light': hue(G('td125'), 50, 0.5, 1.3),

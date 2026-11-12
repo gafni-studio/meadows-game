@@ -17,6 +17,10 @@ export interface AreaGeometry {
   portals: { x: number; dir: 'east' | 'west'; arriveX: number }[];
   /** x-ranges (tiles) where each monster type spawns. */
   spawnZones: Record<string, [number, number]>;
+  /** Practice post x (tiles). Meadow Town, east gate. */
+  practicePost?: number;
+  /** Named quest foes: spawned only while their kill-step is active. */
+  namedSpawns?: { id: string; x: number }[];
 }
 
 export const AREAS: Record<string, AreaGeometry> = {
@@ -41,6 +45,7 @@ export const AREAS: Record<string, AreaGeometry> = {
     ],
     portals: [{ x: 42, dir: 'east', arriveX: 3 }],
     spawnZones: {},
+    practicePost: 40,
   },
   sunny_pasture: {
     widthTiles: 130,
@@ -61,6 +66,7 @@ export const AREAS: Record<string, AreaGeometry> = {
     npcs: [],
     portals: [{ x: 1, dir: 'west', arriveX: 40 }, { x: 128, dir: 'east', arriveX: 3 }],
     spawnZones: { field_mouse: [8, 55], wool_sheep: [25, 80], crow: [85, 124] },
+    namedSpawns: [{ id: 'wool_shoulder', x: 118 }],
   },
   dirt_banks: {
     widthTiles: 114,
@@ -84,5 +90,6 @@ export const AREAS: Record<string, AreaGeometry> = {
     // west arrives just inside the pasture's east portal (at tile 128); east is Meadow Shrine (not yet open).
     portals: [{ x: 2, dir: 'west', arriveX: 126 }, { x: 112, dir: 'east', arriveX: 3 }],
     spawnZones: { burrow_mole: [8, 70], earth_sprite: [30, 90], ember_beetle: [70, 108] },
+    namedSpawns: [{ id: 'bank_cracker', x: 52 }, { id: 'cinderback', x: 96 }],
   },
 };

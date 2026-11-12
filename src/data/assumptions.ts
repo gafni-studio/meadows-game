@@ -20,12 +20,12 @@ export const ASSUME = {
   // Power Strike kills a Field Mouse in ~4 hits (sheet target: 3-5 hits).
   starterWeapon: 'wooden_sword',
   // Not in sheet: skill cooldowns. The worked example assumes a 1s Power Strike cooldown.
-  cooldownMs: { power_strike: 1000, rage: 60000, earthbreaker: 3000, flame_cleave: 2500, soul_guard: 30000 } as Record<string, number>,
+  cooldownMs: { power_strike: 1000, rage: 60000, earthbreaker: 3000, flame_cleave: 2500, soul_guard: 30000, root_lash: 2000, dig_in: 4000 } as Record<string, number>,
   potionCooldownMs: 400,
   // Not in sheet: hurt invulnerability after taking a hit, monster swing interval and speeds.
   hurtInvulnMs: 700,
   // v0.1.3: another ≈28% slower (v0.1.2 was mouse 28, sheep 20, crow 38, default 24).
-  monsterSpeed: { field_mouse: 20, wool_sheep: 14, crow: 27, burrow_mole: 15, earth_sprite: 19, ember_beetle: 16, default: 17 } as Record<string, number>,
+  monsterSpeed: { field_mouse: 20, wool_sheep: 14, crow: 27, burrow_mole: 15, earth_sprite: 19, ember_beetle: 16, wool_shoulder: 13, bank_cracker: 14, cinderback: 15, default: 17 } as Record<string, number>,
   // Player movement (px/s, px/s², px/s). v0.1.3: 148 (was 190, ≈−22%).
   playerSpeed: 148,
   gravity: 1300,
@@ -70,6 +70,9 @@ export const MONSTER_FEEL: Record<string, MonsterFeel> = {
   burrow_mole: { acc: 10, eva: 6, kbRes: 0.5, range: 4, windupMs: [350, 650] },
   earth_sprite: { acc: 11, eva: 11, kbRes: 0.15, range: 4, windupMs: [280, 550] },
   ember_beetle: { acc: 10, eva: 8, kbRes: 0.35, range: 4, windupMs: [300, 580] },
+  wool_shoulder: { acc: 11, eva: 7, kbRes: 0.7, range: 4, windupMs: [320, 620] },
+  bank_cracker: { acc: 12, eva: 7, kbRes: 0.65, range: 4, windupMs: [360, 680] },
+  cinderback: { acc: 12, eva: 9, kbRes: 0.55, range: 4, windupMs: [320, 600] },
   default: { acc: 9, eva: 8, kbRes: 0.3, range: 4, windupMs: [300, 600] },
 };
 
@@ -97,6 +100,8 @@ export const ATTACK_FEEL: Record<string, { kb: number; hitstunMs: number }> = {
   power_strike: { kb: 1080, hitstunMs: 500 },
   earthbreaker: { kb: 600, hitstunMs: 900 }, // AoE slam; the "short stun"
   flame_cleave: { kb: 700, hitstunMs: 450 },
+  root_lash: { kb: 900, hitstunMs: 400 },
+  dig_in: { kb: 0, hitstunMs: 0 },
   rage: { kb: 0, hitstunMs: 0 },
 };
 

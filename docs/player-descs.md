@@ -156,3 +156,15 @@ The sheet is the source of truth. `desc` is shown in game (tooltips and NPC/ques
 - `cracked_bank_stone` — A cracked stone from the dirt banks.
 - `smoldering_scale` — A beetle scale that still glows at the edge.
 - `pell` — Welcome text now mentions the open dirt path to the Dirt Banks.
+
+## v0.2.1 — quests, Root Lash, Dig In
+
+- **The Weight of a Swing.** Calden wants a real blow, not a wave. The practice post by the east gate will do.
+- **Blood Up.** Rage is a bargain: you hit harder, and so does everything that hits you. Stay in the fight.
+- **A Crack in the Dirt.** The stone wants to break more than itself. The Dirt Banks will finish the lesson.
+- **Hot Edge.** Still warm. A clean, hot edge — if you can take it off Cinderback.
+- **Live Ember.** A scale still hot from Cinderback's shell.
+- **Root Lash.** Roots snap out in a line and yank foes that are not bosses.
+- **Dig In.** A short window of doubled defense. You will not be pushed.
+- **Practice Post.** A worn post by Meadow Town's east gate. F, not a skill.
+- **Wool-Shoulder / Bank-Cracker / Cinderback.** Named foes. They only appear when your journal asks for them.

@@ -144,3 +144,17 @@ img { image-rendering: pixelated; }
 .pv-name.magic { color: #8ec8ff; text-shadow: 0 0 8px #7db8ff66; }
 .magic-tag { color: #8ec8ff; font-weight: bold; }
 .range { color: #c9b48a; font-size: 11px; }
+
+#quest-track { position: absolute; top: 10px; left: 290px; max-width: 360px; background: #0009; padding: 6px 10px; border-radius: 6px; border: 1px solid #c9a46a88; color: #ffe08a; font-size: 12px; line-height: 1.35; }
+#quest-track b { color: #ffe8b0; }
+#quest-track small { color: #a89c86; }
+#p-journal { left: 50%; transform: translateX(-50%); width: 620px; }
+.tile.t-quest { width: 72px; }
+.tile.t-active { border-color: #ffe08a !important; }
+.tile.t-done { border-color: #5a8a4a !important; opacity: 0.75; }
+.tile.t-soon { border-color: #6a5a40 !important; opacity: 0.7; }
+.j-steps { list-style: none; padding: 0; margin: 8px 0; }
+.j-steps li { margin: 4px 0; color: #a89c86; }
+.j-steps li.done { color: #7a9a6a; text-decoration: line-through; }
+.j-steps li.current { color: #ffe08a; font-weight: bold; }
+.grid.sk .tile .price { display: block; font-size: 9px; line-height: 1.1; white-space: normal; max-width: 68px; }

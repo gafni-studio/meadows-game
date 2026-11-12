@@ -70,6 +70,7 @@ export const SPRITES: Record<string, SpriteSlot> = {
   'deco.clod': { w: 44, h: 32, color: 0x8a6440, file: `${A}world/clod.png` },
   'deco.chest': { w: 40, h: 40, color: 0xa0703a, file: `${A}world/chest.png` },
   'deco.chest_open': { w: 40, h: 40, color: 0xa0703a, file: `${A}world/chest_open.png` },
+  'deco.practice_post': { w: 40, h: 72, color: 0xc9a46a, file: `${A}world/practice_post.png` },
   portal: { w: 40, h: 80, color: 0xffe08a, shape: 'roundrect', file: `${A}world/portal.png` },
 
   // Effects
@@ -96,6 +97,12 @@ export function iconUrl(itemId: string): string {
 export function skillIconUrl(skillId: string): string {
   return `art/icons/skill_${skillId}.png`;
 }
+const NAMED_ALIAS: Record<string, string> = {
+  wool_shoulder: 'monster.wool_sheep',
+  bank_cracker: 'monster.burrow_mole',
+  cinderback: 'monster.ember_beetle',
+};
 export function monsterSlot(monsterId: string): string {
+  if (NAMED_ALIAS[monsterId]) return NAMED_ALIAS[monsterId];
   return SPRITES[`monster.${monsterId}`] ? `monster.${monsterId}` : 'monster.default';
 }

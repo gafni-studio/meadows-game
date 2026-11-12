@@ -1,4 +1,4 @@
-# Meadows — prototype v0.2.0
+# Meadows — prototype v0.2.1
 
 A 2D side-scrolling browser MMORPG prototype (MapleStory-style real-time grinding, later Travian-style offline growth).
 v0.2 is a **single-player** slice of the Meadows zone: **Meadow Town** (hub + Mara's shop), **Sunny Pasture** (levels 1-3), and **Dirt Banks** (levels 3-5), reached by the east path from the pasture.
@@ -58,6 +58,16 @@ Hovering a tile with the mouse selects it too, and the preview panel shows the i
 
 **Why these keys:** no modifier keys are used, so gameplay can't trigger browser shortcuts (Ctrl+W closes the tab, etc.). Phaser calls `preventDefault` on every bound key, and a small guard blocks stray Ctrl+letter page shortcuts (Ctrl+S, Ctrl+P, ...). The hotbar is 1–6 (skills or consumables); Q and G still fire slots 5 and 6, instead of the sheet's Q/R potion keys.
 
+
+## What's new in v0.2.1 (Warrior quests)
+
+The second playable milestone of v0.2. Nature and Elemental **passive** trees follow in v0.2.2.
+
+1. **Journal (J).** Four Warrior skill questlines: The Weight of a Swing (Power Strike at lv2), Blood Up (Rage at lv3), A Crack in the Dirt (Earthbreaker, from a Cracked Bank Stone), and Hot Edge (Flame Cleave, from a Smoldering Scale). A slim tracker sits on the HUD; Calden finishes talk and turn-in steps. Soul Guard / Shrine stay parked.
+2. **Practice post** by Meadow Town's east gate: E to begin, then 3 basic **F** hits after the Twig turn-in grant Power Strike rank 1 and bind it to the hotbar. New characters start with potions only on 5 and 6 — skills are no longer known at rank 0.
+3. **Named foes.** Wool-Shoulder, Bank-Cracker, and Cinderback spawn only on their hunt step and do not respawn. Cinderback always leaves a Live Ember (not a 100% drop-table roll, so droprate bonuses cannot multiply it).
+4. **Root Lash and Dig In** (B-001) train at Calden once you meet the sheet gates (lv4+STR 6 / lv5+STR 7). Root Lash is a 145% line with knockback on non-bosses; Dig In is a 0.5s (+0.05s/rank) window of +100% defense and knockback immunity. Mixed recipes (Bark, Twig, and Earthbreaker's Twig override at r2) are live.
+5. Full write-up in `docs/v0.2.1-quests.md`. Player-facing text in `docs/player-descs.md`.
 
 ## What's new in v0.2.0 (Dirt Banks)
 

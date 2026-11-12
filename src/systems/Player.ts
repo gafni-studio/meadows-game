@@ -33,6 +33,8 @@ export interface PlayerData {
   /** Hotbar slots 1-6: skill id or consumable item id (null = empty). */
   skillBar: (string | null)[];
   questFlags: Record<string, boolean>;
+  /** B-004 skill questlines: step is 1-based, done grants the skill at rank 1. */
+  questLog?: import('./Quests').QuestLog;
   /** Test-console bonuses (DEV_CONSOLE). */
   cheats: { atk: number; def: number; maxHp: number; dropMul: number; god: boolean };
   /** True once any console command changed this save. */
@@ -46,8 +48,8 @@ export function newPlayer(): PlayerData {
     version: 1, classId: 'warrior', level: 1, xp: 0, unspent: pts,
     stats: { STR: 0, INT: 0, AGI: 0, SPI: 0 }, hp: 1, mp: 1, coins: 0,
     inventory: {}, bagSlots: [], storage: {}, storageSlots: [], gearItems: {}, equipment: {}, area: 'meadow_town', x: 200,
-    skillRanks: { power_strike: 0, rage: 0 }, skillBar: ['power_strike', 'rage', null, null, 'meadow_dew', 'clear_dew'],
-    questFlags: {},
+    skillRanks: {}, skillBar: [null, null, null, null, 'meadow_dew', 'clear_dew'],
+    questFlags: {}, questLog: {},
     cheats: { atk: 0, def: 0, maxHp: 0, dropMul: 1, god: false },
     cheated: false,
   };

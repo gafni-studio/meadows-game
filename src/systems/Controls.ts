@@ -17,7 +17,7 @@ export const BINDINGS = {
   skill5: ['FIVE', 'Q'],
   skill6: ['SIX', 'G'],
 } as const;
-// Menu keys (I, C, Esc, Enter, arrows in menus, backtick console) are handled by the DOM UI (src/ui/Hud.ts).
+// Menu keys (I, C, K, J, Esc, Enter, arrows in menus, backtick console) are handled by the DOM UI (src/ui/Hud.ts).
 export type Action = keyof typeof BINDINGS;
 
 export class Controls {
@@ -58,7 +58,7 @@ export class Controls {
  * are already defaultPrevented.
  */
 export function installCtrlGuard(): void {
-  const phaserKeys = new Set(['a', 'd', 'e', 'f', 'g', 'i', 'c', ' ', 'arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'escape', '1', '2', '3', '4', '5', '6']);
+  const phaserKeys = new Set(['a', 'd', 'e', 'f', 'g', 'i', 'c', 'k', 'j', ' ', 'arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'escape', '1', '2', '3', '4', '5', '6']);
   window.addEventListener('keydown', (e) => {
     if (e.ctrlKey && !phaserKeys.has(e.key.toLowerCase())) e.preventDefault();
   });

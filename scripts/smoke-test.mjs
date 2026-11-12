@@ -8,7 +8,8 @@
  *   - inventory (I): Enter uses a potion; M + arrows + Enter moves a stack; X drops (confirm) and E picks up;
  *     gameplay keys ignored while open
  *   - storage chest: E opens, Enter stores a stack, it persists across a reload
- *   - skills (K): Enter trains Power Strike rank 1 and pays Monster Essence + Training Scrolls + coins
+ *   - journal (J) + The Weight of a Swing: level 2, practice post, 4 Twig to Calden, 3 F hits grant Power Strike r1
+ *   - skills (K): Enter trains Power Strike rank 2 (scaled cost) after the quest
  *   - stats (C): Enter spends a point; Esc menu opens/closes
  *   - walks into Sunny Pasture and fights with F / Power Strike (1)
  *   - console `reset` and Esc → New game → Enter/Y both land on a fresh character
@@ -147,7 +148,7 @@ try {
   console.log('gear/whodrops ok:', hides);
   // hotbar: defaults on a fresh-enough bar; give a dew (chest may already hold the shop stack) and bind it to 3
   const bar0 = await page.evaluate(() => [...window.__state.player.skillBar]);
-  if (bar0[0] !== 'power_strike' || bar0.length !== 6 || !bar0.includes('meadow_dew') || bar0[5] !== 'clear_dew') fail(`hotbar defaults: ${JSON.stringify(bar0)}`);
+  if (bar0[0] !== null || bar0.length !== 6 || bar0[4] !== 'meadow_dew' || bar0[5] !== 'clear_dew') fail(`hotbar defaults: ${JSON.stringify(bar0)}`);
   await key('`');
   await page.keyboard.type('item meadow_dew 1'); await key('Enter');
   await key('Escape');
@@ -166,12 +167,78 @@ try {
   console.log('hotbar ok:', bar1);
 
 
-  // ── Skill training (K / Calden): Enter trains Power Strike rank 1, pays the sheet cost ──
-  await key('`');
-  await page.keyboard.type('item monster_essence 30'); await key('Enter');
-  await page.keyboard.type('item training_scroll 5'); await key('Enter');
+  // ── Journal (J) + The Weight of a Swing (real town path) ──
+  await page.evaluate(() => window.__game?.events?.emit('close-all'));
+  await page.waitForTimeout(80);
+  await key('j', 350);
+  if (!(await visible()).includes('journal')) fail('J did not open the journal');
+  let jText = await page.evaluate(() => document.querySelector('#p-journal')?.innerText ?? '');
+  if (!/The Weight of a Swing/i.test(jText)) fail(`journal missing Weight quest: ${jText.slice(0, 400)}`);
+  await shot('journal');
   await key('Escape');
-  // Close leftover panels without a second Esc (that would open the pause menu).
+  if ((await visible()).length) fail(`Esc did not close journal: ${JSON.stringify(await visible())}`);
+
+  await key('`');
+  await page.keyboard.type('level 2'); await key('Enter');
+  await key('Escape', 150);
+  await page.evaluate(() => window.__game?.events?.emit('close-all'));
+  const q1 = await page.evaluate(() => window.__state.player.questLog?.ql_weight);
+  if (!q1 || q1.done || q1.step !== 1) fail(`level 2 did not start Weight: ${JSON.stringify(q1)}`);
+  const track = await page.evaluate(() => document.querySelector('#quest-track')?.innerText ?? '');
+  if (!/practice post/i.test(track)) fail(`quest tracker missing: ${track}`);
+  console.log('journal start ok:', q1, track);
+
+  // Practice post (tile 40), E for step 1
+  await page.evaluate(() => { window.__state.scene.player.x = 40 * 32; });
+  await page.waitForTimeout(200);
+  await key('e', 400);
+  const q2 = await page.evaluate(() => window.__state.player.questLog?.ql_weight);
+  if (!q2 || q2.step !== 2) fail(`E at the post did not advance Weight: ${JSON.stringify(q2)}`);
+  await shot('practice-post');
+
+  // 4 Twig to Calden (tile 21)
+  await key('`');
+  await page.keyboard.type('item twig 4'); await key('Enter');
+  await key('Escape', 150);
+  await page.evaluate(() => window.__game?.events?.emit('close-all'));
+  await page.evaluate(() => { window.__state.scene.player.x = 21 * 32; });
+  await page.waitForTimeout(200);
+  await key('e', 400);
+  if (!(await visible()).includes('dialog')) fail('Calden did not open a quest dialog for the Twig turn-in');
+  const dlg = await page.evaluate(() => document.querySelector('#p-dialog')?.innerText ?? '');
+  if (!/Twig|practice|blow|That will do/i.test(dlg)) fail(`Calden turn-in dialog unexpected: ${dlg.slice(0, 400)}`);
+  await shot('calden-quest');
+  await key('Enter', 250);
+  const q3 = await page.evaluate(() => ({ q: window.__state.player.questLog?.ql_weight, twig: window.__state.player.inventory.twig ?? 0 }));
+  if (!q3.q || q3.q.step !== 3) fail(`Twig turn-in did not advance: ${JSON.stringify(q3)}`);
+  if (q3.twig !== 0) fail(`Twigs were not consumed: ${JSON.stringify(q3)}`);
+
+  // 3 basic F hits on the post
+  await page.evaluate(() => { window.__state.scene.player.x = 40 * 32; });
+  await page.waitForTimeout(150);
+  for (let i = 0; i < 3; i++) {
+    await page.keyboard.down('f'); await page.waitForTimeout(200); await page.keyboard.up('f');
+    await page.waitForTimeout(900);
+  }
+  const done = await page.evaluate(() => ({
+    q: window.__state.player.questLog?.ql_weight,
+    rank: window.__state.player.skillRanks.power_strike ?? 0,
+    bar: [...window.__state.player.skillBar],
+    me: window.__state.player.inventory.monster_essence ?? 0,
+  }));
+  if (!done.q?.done) fail(`3 F hits did not complete Weight: ${JSON.stringify(done)}`);
+  if (done.rank !== 1) fail(`Power Strike was not granted at rank 1: ${JSON.stringify(done)}`);
+  if (!done.bar.includes('power_strike')) fail(`Power Strike was not auto-bound: ${JSON.stringify(done)}`);
+  if (done.me !== 8) fail(`Weight reward ME x8 missing: ${JSON.stringify(done)}`);
+  await shot('quest-complete');
+  console.log('weight quest ok:', done);
+
+  // ── Skill training (K): Enter trains Power Strike rank 2, pays the scaled cost ──
+  // r2 = round(r1 × 1.6): ME 48, scrolls 8, 32c. Reward left 8 ME, so give 40 more.
+  await key('`');
+  await page.keyboard.type('item monster_essence 40'); await key('Enter');
+  await page.keyboard.type('item training_scroll 8'); await key('Enter');
+  await key('Escape');
   await page.evaluate(() => window.__game?.events?.emit('close-all'));
   await page.waitForTimeout(100);
   await key('k', 350);
@@ -181,11 +248,13 @@ try {
   const skillText = await page.evaluate(() => document.querySelector('#p-skills')?.innerText ?? '');
   if (/Intentionally modest|Rebalanced down|Available from level 1|Clearly stronger than|Most expensive|opens mid|opens early|opens late|Capstone/i.test(skillText)) fail(`skill UI shows design notes: ${skillText.slice(0, 400)}`);
   if (!/A heavy blow that hits harder/i.test(skillText)) fail(`skill UI missing player desc: ${skillText.slice(0, 400)}`);
-  const coinsBefore = (await s()).coins;
+  const beforeTrain = await page.evaluate(() => ({ coins: window.__state.player.coins, me: window.__state.player.inventory.monster_essence ?? 0, sc: window.__state.player.inventory.training_scroll ?? 0 }));
   await key('Enter', 400);
   const ranks = await page.evaluate(() => ({ ...window.__state.player.skillRanks, coins: window.__state.player.coins, me: window.__state.player.inventory.monster_essence ?? 0, sc: window.__state.player.inventory.training_scroll ?? 0, bar: [...window.__state.player.skillBar] }));
-  if (ranks.power_strike !== 1) fail(`train did not raise Power Strike: ${JSON.stringify(ranks)}`);
-  if (ranks.me !== 0 || ranks.sc !== 0 || ranks.coins !== coinsBefore - 20) fail(`train did not pay the cost: ${JSON.stringify(ranks)} coinsBefore=${coinsBefore}`);
+  if (ranks.power_strike !== 2) fail(`train did not raise Power Strike to r2: ${JSON.stringify(ranks)}`);
+  if (ranks.me !== beforeTrain.me - 48 || ranks.sc !== beforeTrain.sc - 8 || ranks.coins !== beforeTrain.coins - 32) {
+    fail(`train r2 did not pay scaled cost: ${JSON.stringify({ ranks, beforeTrain })}`);
+  }
   await shot('skills-train');
   await key('Escape');
   if ((await visible()).length) fail(`Esc did not close skills: ${JSON.stringify(await visible())}`);
@@ -279,6 +348,70 @@ try {
   if ((await s()).area !== 'sunny_pasture') fail(`west portal did not return to Sunny Pasture: ${JSON.stringify(await s())}`);
   console.log('dirt banks ok:', banksMobs);
 
+  // ── Named foe (Wool-Shoulder) + Root Lash / Dig In learn ──
+  // Force the Blood Up kill-step (they may already have walked this path).
+  await page.evaluate(() => {
+    const p = window.__state.player;
+    p.questLog ??= {};
+    p.questLog.ql_blood = { step: 3, done: false, killed: false };
+    window.__state.save();
+  });
+  await key('`');
+  await page.keyboard.type('tp sunny_pasture'); await key('Enter');
+  await key('Escape', 400);
+  await page.waitForFunction(() => window.__state.player.area === 'sunny_pasture' && window.__game?.scene.isActive('World'), null, { timeout: 10000 });
+  await page.evaluate(() => { window.__state.scene.player.x = 118 * 32; });
+  await page.waitForTimeout(500);
+  const named = await page.evaluate(() => {
+    const sc = window.__game.scene.getScene('World');
+    return sc.monsters.filter((m) => m.alive).map((m) => m.def.id);
+  });
+  if (!named.includes('wool_shoulder')) fail(`Wool-Shoulder did not spawn on kill-step: ${JSON.stringify(named)}`);
+  await shot('wool-shoulder');
+  console.log('named spawn ok:', named);
+
+  await key('`');
+  await page.keyboard.type('level 5'); await key('Enter');
+  await page.keyboard.type('heal'); await key('Enter');
+  await key('Escape', 150);
+  await page.evaluate(() => {
+    const p = window.__state.player;
+    p.stats.STR = 7;
+    p.hp = 200; // will clamp on next command
+    window.__game.events.emit('close-all');
+  });
+  await key('`');
+  for (const line of [
+    'item dry_root 30', 'item tough_root 2', 'item earth_grit 10',
+    'item nature_essence 36', 'copper 50',
+  ]) { await page.keyboard.type(line); await key('Enter'); }
+  await key('Escape', 150);
+  await page.evaluate(() => window.__game?.events?.emit('close-all'));
+  // Back to town so Calden / K is a fair learn
+  await key('`');
+  await page.keyboard.type('tp meadow_town'); await key('Enter');
+  await key('Escape', 400);
+  await page.waitForFunction(() => window.__state.player.area === 'meadow_town', null, { timeout: 8000 });
+  await key('k', 350);
+  const rootSel = await page.evaluate(() => {
+    const t = document.querySelector('#p-skills [data-skill="root_lash"]');
+    if (!t) return null;
+    t.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    return t.dataset.skill;
+  });
+  if (rootSel !== 'root_lash') fail(`Root Lash not visible at lv5 STR7: ${rootSel}`);
+  await key('Enter', 400);
+  const nature = await page.evaluate(() => ({
+    root: window.__state.player.skillRanks.root_lash ?? 0,
+    bar: [...window.__state.player.skillBar],
+    text: document.querySelector('#p-skills')?.innerText ?? '',
+  }));
+  if (nature.root !== 1) fail(`Root Lash did not learn: ${JSON.stringify(nature)}`);
+  if (!/Root Lash/i.test(nature.text)) fail('Root Lash preview missing');
+  await shot('root-lash');
+  await key('Escape');
+  console.log('root lash ok:', nature.root);
+
   // ── Reset must wipe everything and not let beforeunload rewrite the old save ──
   const dirty = await s();
   if (dirty.coins === 0 && dirty.xp === 0 && !dirty.cheated) fail(`pre-reset state is already fresh: ${JSON.stringify(dirty)}`);
@@ -295,7 +428,7 @@ try {
     return {
       area: p.area, level: p.level, xp: p.xp, coins: p.coins, cheated: p.cheated,
       unspent: p.unspent, inv: { ...p.inventory }, storage: { ...p.storage },
-      ranks: { ...p.skillRanks }, flags: { ...p.questFlags },
+      ranks: { ...p.skillRanks }, flags: { ...p.questFlags }, log: { ...p.questLog },
       keys: Object.keys(localStorage).filter((k) => k.startsWith('meadows')),
     };
   });

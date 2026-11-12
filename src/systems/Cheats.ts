@@ -9,6 +9,7 @@ import { AREAS } from '../world/areas';
 import { Game } from './GameState';
 import { resetAndReload } from './Save';
 import * as P from './Player';
+import * as Q from './Quests';
 
 type Cmd = { usage: string; help: string; run: (args: string[]) => string; cheat?: boolean };
 
@@ -40,6 +41,7 @@ export const COMMANDS: Record<string, Cmd> = {
     run: ([n]) => {
       const lv = P.gainXp(Game.player, Math.max(0, Math.floor(num(n, 'n'))));
       if (lv) Game.scene?.levelUpFx(lv);
+      Q.onLevel(Game.player);
       return `+${n} XP → level ${Game.player.level}, ${Game.player.xp}/${xpToNext(Game.player.level)}`;
     },
   },
@@ -53,6 +55,7 @@ export const COMMANDS: Record<string, Cmd> = {
       p.xp = 0;
       p.unspent = Math.max(0, p.unspent + delta * f('player_points_per_level'));
       p.hp = P.maxHp(p); p.mp = P.maxMp(p);
+      Q.onLevel(p);
       return `Level ${p.level}, ${p.unspent} unspent points`;
     },
   },
@@ -79,6 +82,7 @@ export const COMMANDS: Record<string, Cmd> = {
         return `+${qty} ${names.join(', ')}`;
       }
       P.addItem(Game.player, id, qty);
+      Q.onItem(Game.player, id);
       return `+${qty} ${DB.items[id].name}`;
     },
   },
@@ -91,9 +95,11 @@ export const COMMANDS: Record<string, Cmd> = {
       const cur = Sk.rankOf(p, id);
       const target = n == null ? cur + 1 : Math.max(0, Math.min(DB.skills[id].max_rank ?? 10, Math.floor(num(n, 'n'))));
       p.skillRanks[id] = target;
-      if (target >= 1 && DB.skills[id].branch !== 'basic') {
+      if (target >= 1) {
         const bar = Sk.barOf(p);
         if (!bar.includes(id)) { const i = bar.findIndex((x) => !x); if (i >= 0) bar[i] = id; }
+        const line = Q.lineOfSkill(id);
+        if (line && !Q.isDone(p, line)) Q.markDone(p, line);
       }
       return `${DB.skills[id].name} rank ${target} (${Sk.rankPreview(id, target)})`;
     },
@@ -162,6 +168,20 @@ export const COMMANDS: Record<string, Cmd> = {
   droprate: {
     usage: 'droprate <multiplier>', help: 'Multiply all drop chances (1 = normal)', cheat: true,
     run: ([m]) => { const v = Math.max(0, num(m, 'multiplier')); Game.player.cheats.dropMul = v; return `Drop rate ×${v}`; },
+  },
+  quest: {
+    usage: 'quest [list|start|step|complete] [line]', help: 'List or drive skill questlines (ql_weight, ql_blood, ql_crack, ql_hot)', cheat: true,
+    run: ([op, line]) => {
+      const p = Game.player;
+      if (!op || op === 'list') {
+        return Q.journal(p).map((e) => `${e.line}  ${e.name}  [${e.status}${e.status === 'active' ? ' step ' + e.step : ''}]`).join('\n') || 'No quests.';
+      }
+      if (!line) throw new Error('Usage: quest start|step|complete <line>');
+      if (op === 'start') { Q.start(p, line); return `Started ${Q.lineName(line)}`; }
+      if (op === 'step') return Q.cheatComplete(p, line, true);
+      if (op === 'complete') return Q.cheatComplete(p, line);
+      throw new Error('Usage: quest [list|start|step|complete] [line]');
+    },
   },
   reset: {
     usage: 'reset', help: 'Erase the save and restart',

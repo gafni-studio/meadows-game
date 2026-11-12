@@ -13,6 +13,7 @@ import * as Sk from '../systems/Skills';
 import { playSfx } from '../systems/Sfx';
 import { rollDrops } from '../systems/Loot';
 import { GearInstance, displayName } from '../systems/Gear';
+import * as Q from '../systems/Quests';
 
 const GROUND_H = 64;
 
@@ -44,6 +45,8 @@ export class WorldScene extends Phaser.Scene {
   private shots: Shot[] = [];
   private chestX: number | null = null;
   private chestImg?: Phaser.GameObjects.Image;
+  private postX: number | null = null;
+  private lastQuestAt = 0;
 
   constructor() { super('World'); }
 
@@ -59,6 +62,7 @@ export class WorldScene extends Phaser.Scene {
     this.burns = [];
     this.chestX = null;
     this.chestImg = undefined;
+    this.postX = null;
   }
 
   create() {
@@ -114,6 +118,11 @@ export class WorldScene extends Phaser.Scene {
       this.chestImg = fitSlot(this, this.add.image(this.chestX, groundY, 'deco.chest').setOrigin(0.5, 1).setDepth(3), 'deco.chest');
       this.add.text(this.chestX, groundY - 44, 'Storage', { fontFamily: 'monospace', fontSize: '11px', color: '#fff6c2', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5, 1).setDepth(4);
     }
+    if (this.geo.practicePost != null) {
+      this.postX = this.geo.practicePost * TILE;
+      fitSlot(this, this.add.image(this.postX, groundY, 'deco.practice_post').setOrigin(0.5, 1).setDepth(3), 'deco.practice_post');
+      this.add.text(this.postX, groundY - 50, 'Practice Post', { fontFamily: 'monospace', fontSize: '11px', color: '#fff6c2', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5, 1).setDepth(4);
+    }
 
     // Portals.
     const area = DB.areas[this.areaId];
@@ -164,6 +173,7 @@ export class WorldScene extends Phaser.Scene {
           this.spawnMonster(mid, (zone[0] + ((zone[1] - zone[0]) * (i + 0.5)) / count + (Math.random() - 0.5) * 2) * TILE);
         }
       }
+      this.ensureNamed();
     }
 
     this.drops = this.physics.add.group();
@@ -259,6 +269,11 @@ export class WorldScene extends Phaser.Scene {
     this.tickBurns(time);
 
     for (const d of this.drops.getChildren() as Drop[]) if (time > d.expireAt) d.destroy();
+    if (!Game.dead && !menu && time - this.lastQuestAt > 350) {
+      this.lastQuestAt = time;
+      Q.checkPlace(p, this.areaId, this.player.x / TILE, this.nearPost());
+      this.ensureNamed();
+    }
     this.updatePrompt();
     if (this.chestImg) this.chestImg.setTexture(Game.storageOpen ? 'deco.chest_open' : 'deco.chest');
     p.x = this.player.x;
@@ -276,6 +291,10 @@ export class WorldScene extends Phaser.Scene {
     if (Game.shield > 0 && (Game.buffs.soul_guard ?? 0) > time) {
       const a = 0.3 + 0.15 * Math.sin(time / 160);
       this.glow.lineStyle(3, 0x9fe0ff, a).strokeEllipse(this.player.x, this.player.y - 22, 52, 58);
+    }
+    if ((Game.buffs.dig_in ?? 0) > time) {
+      const a = 0.4 + 0.2 * Math.sin(time / 90);
+      this.glow.lineStyle(4, 0xc4a06a, a).strokeEllipse(this.player.x, this.player.y - 18, 56, 50);
     }
     if (!active) return;
     const perSec = P.hpRegenPerSec(p);
@@ -312,7 +331,13 @@ export class WorldScene extends Phaser.Scene {
       if (dx < -18 || dx > reach || Math.abs(m.y - this.player.y) > 60) continue;
       if (dx < bestD) { bestD = dx; best = m; }
     }
-    if (!best) return true;
+    if (!best) {
+      if (kind === 'basic' && this.nearPost() && Q.dummyNeeded(p)) {
+        Q.onDummyHit(p);
+        this.floatText(this.postX ?? this.player.x, this.player.y - 80, 'THUD', '#c9a46a', 15);
+      }
+      return true;
+    }
     const topY = best.y - best.displayHeight - 12;
     if (!rollHit(P.accuracy(p), best.feel.eva, p.level, best.def.level)) {
       this.floatText(best.x, topY, 'MISS', '#c8c8c8', 15);
@@ -380,6 +405,15 @@ export class WorldScene extends Phaser.Scene {
       ok = this.castStrike(mul, s.mp_cost, 'earthbreaker', { aoe: 90, stun: true });
     } else if (id === 'flame_cleave') {
       ok = this.castStrike(mul, s.mp_cost, 'flame_cleave', { wide: 110, burnS: s.duration_s ?? 3 });
+    } else if (id === 'root_lash') {
+      ok = this.castStrike(mul, s.mp_cost, 'root_lash', { wide: 110, tint: 0x5a8a3a, kbIf: (m) => !m.def.is_boss });
+    } else if (id === 'dig_in') {
+      p.mp -= s.mp_cost;
+      this.lastCombatAt = now;
+      const ms = Sk.digInWindowMs(p);
+      Game.buffs.dig_in = now + ms;
+      Game.toast(`Dig In! +100% defense, knockback-immune for ${(ms / 1000).toFixed(2)}s`, 'info');
+      ok = true;
     } else {
       ok = this.trySwing(mul, s.mp_cost, kind === 'power_strike' ? 'power_strike' : 'basic');
     }
@@ -388,7 +422,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   /** Multi-target skill strike (Earthbreaker AoE, Flame Cleave wide swing). */
-  private castStrike(mul: number, mpCost: number, kind: keyof typeof ATTACK_FEEL, opt: { aoe?: number; wide?: number; burnS?: number; stun?: boolean }): boolean {
+  private castStrike(mul: number, mpCost: number, kind: keyof typeof ATTACK_FEEL, opt: { aoe?: number; wide?: number; burnS?: number; stun?: boolean; tint?: number; kbIf?: (m: Monster) => boolean }): boolean {
     const p = Game.player;
     const now = Game.now;
     if (now < this.swingReadyAt) return false;
@@ -406,6 +440,10 @@ export class WorldScene extends Phaser.Scene {
       const fx = this.add.rectangle(this.player.x + this.facing * 50, this.player.y - 24, opt.wide, 40, 0xff6a20, 0.45).setDepth(12);
       this.tweens.add({ targets: fx, alpha: 0, scaleX: 1.4, duration: 220, onComplete: () => fx.destroy() });
     }
+    if (kind === 'root_lash') {
+      const fx = this.add.rectangle(this.player.x + this.facing * 55, this.player.y - 22, opt.wide, 28, opt.tint ?? 0x5a8a3a, 0.5).setDepth(12);
+      this.tweens.add({ targets: fx, alpha: 0, scaleX: 1.5, duration: 280, onComplete: () => fx.destroy() });
+    }
     const feel = ATTACK_FEEL[kind] ?? ATTACK_FEEL.basic;
     const rage = this.buffActive('rage') ? Sk.rageNumbers(p).dealtPct : 0;
     let hits = 0;
@@ -422,7 +460,8 @@ export class WorldScene extends Phaser.Scene {
       const { dmg, crit } = computeHit(P.attack(p), mul, m.def.defense, P.critChance(p), rage);
       this.floatText(m.x, topY, `${dmg}`, crit ? '#ffcf33' : '#ffb070', crit ? 20 : 16);
       const stun = opt.stun ? feel.hitstunMs : feel.hitstunMs;
-      if (m.hurt(dmg, this.player.x, feel.kb, stun)) this.onKill(m);
+      const kb = opt.kbIf && !opt.kbIf(m) ? 0 : feel.kb;
+      if (m.hurt(dmg, this.player.x, kb, stun)) this.onKill(m);
       else if (opt.burnS && m.alive) this.applyBurn(m, Math.max(1, Math.floor(dmg * 0.35)), opt.burnS);
     }
     return true; // spent MP even if nobody was in range
@@ -436,7 +475,7 @@ export class WorldScene extends Phaser.Scene {
   }
   private tickBurns(now: number) {
     this.burns = this.burns.filter((b) => {
-      if (!b.m.alive || now > b.until) { if (b.m.alive && !this.buffActive('rage')) b.m.clearTint(); return false; }
+      if (!b.m.alive || now > b.until) { if (b.m.alive && !this.buffActive('rage')) b.m.restoreTint(); return false; }
       if (now >= b.next) {
         b.next = now + 500;
         if (b.m.hurt(b.perTick, b.m.x, 0, 0)) this.onKill(b.m);
@@ -481,8 +520,9 @@ export class WorldScene extends Phaser.Scene {
     }
     this.lastCombatAt = Game.now;
     const taken = this.buffActive('rage') ? Sk.rageNumbers(p).takenPct : 0;
+    const digging = this.buffActive('dig_in');
     const matk = rollMonsterAttack(m.def.attack, m.def.attack_min, m.def.attack_max);
-    let dmg = p.cheats.god ? 0 : incomingDamage(matk, P.defense(p), taken);
+    let dmg = p.cheats.god ? 0 : incomingDamage(matk, P.defense(p) * (digging ? 2 : 1), taken);
     if (Game.shield > 0 && (Game.buffs.soul_guard ?? 0) > Game.now) {
       const absorbed = Math.min(Game.shield, dmg);
       Game.shield -= absorbed;
@@ -494,8 +534,8 @@ export class WorldScene extends Phaser.Scene {
     Game.invulnUntil = Game.now + ASSUME.hurtInvulnMs;
     this.knockUntil = Game.now + 200;
     const body = this.player.body as Phaser.Physics.Arcade.Body;
-    body.setVelocity(Math.sign(this.player.x - fromX || 1) * PLAYER_HIT_KB.vx, PLAYER_HIT_KB.vy);
-    this.floatText(this.player.x, this.player.y - 60, p.cheats.god ? 'GOD' : `-${dmg}`, '#ff6b6b', 16);
+    if (!digging) body.setVelocity(Math.sign(this.player.x - fromX || 1) * PLAYER_HIT_KB.vx, PLAYER_HIT_KB.vy);
+    this.floatText(this.player.x, this.player.y - 60, p.cheats.god ? 'GOD' : digging ? `-${dmg} (dug in)` : `-${dmg}`, digging ? '#c4a06a' : '#ff6b6b', 16);
     if (p.hp <= 0) this.die();
   }
 
@@ -504,6 +544,8 @@ export class WorldScene extends Phaser.Scene {
     const lv = P.gainXp(p, m.def.xp);
     this.floatText(m.x, m.y - m.displayHeight - 30, `+${m.def.xp} XP`, '#9be7ff', 13);
     if (lv > 0) this.levelUpFx(lv);
+    Q.onKill(p, m.def.id);
+    Q.onLevel(p);
     for (const d of rollDrops(m.def.id, p.cheats.dropMul)) this.spawnDrop(m.x, m.y - 20, d.itemId, d.qty, d.rare, d.inst);
     Game.changed();
   }
@@ -512,6 +554,7 @@ export class WorldScene extends Phaser.Scene {
     const p = Game.player;
     Game.invulnUntil = Game.now + ASSUME.levelUpInvulnMs;
     Game.events.emit('levelup', p.level, f('player_points_per_level') * levels);
+    Q.onLevel(p);
     playSfx('levelup');
     // burst: golden ring + sparks around the player
     const cx = this.player.x, cy = this.player.y - 24;
@@ -628,7 +671,10 @@ export class WorldScene extends Phaser.Scene {
           onComplete: () => {
             if (!d.active) return;
             if (d.inst) P.addGear(Game.player, d.inst);
-            else P.addItem(Game.player, d.itemId, d.qty);
+            else {
+              P.addItem(Game.player, d.itemId, d.qty);
+              Q.onItem(Game.player, d.itemId);
+            }
             const name = d.inst ? displayName(d.inst) : (DB.items[d.itemId].name === 'Copper Coin' ? 'Copper' : DB.items[d.itemId].name);
             const suffix = d.inst ? (d.inst.magic ? '  (magic)' : '') : ` ×${d.qty}`;
             Game.toast(`${name}${suffix}`, d.inst?.magic || d.rare ? 'rare' : 'loot', d.itemId);
@@ -650,11 +696,25 @@ export class WorldScene extends Phaser.Scene {
   private nearNpc() { return this.npcs.find((n) => Math.abs(n.x - this.player.x) < 40); }
   private nearChest() { return this.chestX !== null && Math.abs(this.chestX - this.player.x) < 36; }
   private nearPortal() { return this.portals.find((pt) => Math.abs(pt.x - this.player.x) < 34); }
+  private nearPost() { return this.postX !== null && Math.abs(this.postX - this.player.x) < 40; }
+
+  /** Spawn a named quest foe only while its kill-step is active and it is not already here. */
+  private ensureNamed() {
+    for (const n of this.geo.namedSpawns ?? []) {
+      if (this.monsters.some((m) => m.def.id === n.id)) continue;
+      if (Q.shouldSpawn(Game.player, n.id)) this.spawnMonster(n.id, n.x * TILE);
+    }
+  }
 
   private interact() {
     const drops = this.nearbyDrops().filter((d) => !d.picking);
     if (drops.length) {
       drops.forEach((d, i) => this.pickupDrop(d, i * 40));
+      return;
+    }
+    if (this.nearPost()) {
+      const msg = Q.interactPost(Game.player);
+      if (msg) Game.toast(msg, 'info');
       return;
     }
     const npc = this.nearNpc();
@@ -675,6 +735,7 @@ export class WorldScene extends Phaser.Scene {
   private updatePrompt() {
     let text = '';
     if (this.nearbyDrops().length) text = 'E: pick up';
+    else if (this.nearPost()) text = 'E: practice';
     else if (this.nearNpc()) text = `E: talk to ${this.nearNpc()!.name.split(' ')[0]}`;
     else if (this.nearChest()) text = 'E: open storage';
     else if (this.nearPortal()) text = this.nearPortal()!.target ? 'E: enter' : 'Closed (later)';

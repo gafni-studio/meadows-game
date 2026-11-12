@@ -8,6 +8,7 @@ import * as P from '../systems/Player';
 import { iconUrl, skillIconUrl } from '../art/sprites';
 import { displayName, formatAffix, instanceQuality, rangeOf, isGear } from '../systems/Gear';
 import * as Sk from '../systems/Skills';
+import * as Q from '../systems/Quests';
 import { playSfx } from '../systems/Sfx';
 
 /**
@@ -28,8 +29,8 @@ import { playSfx } from '../systems/Sfx';
  */
 const $ = <T extends HTMLElement = HTMLElement>(sel: string) => document.querySelector(sel) as T;
 const esc = (s: string) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
-type Panel = 'inventory' | 'stats' | 'shop' | 'storage' | 'skills' | 'dialog' | 'pause' | 'confirm' | 'drop';
-const PANELS: Panel[] = ['inventory', 'stats', 'shop', 'storage', 'skills', 'dialog', 'pause', 'confirm', 'drop'];
+type Panel = 'inventory' | 'stats' | 'shop' | 'storage' | 'skills' | 'journal' | 'dialog' | 'pause' | 'confirm' | 'drop';
+const PANELS: Panel[] = ['inventory', 'stats', 'shop', 'storage', 'skills', 'journal', 'dialog', 'pause', 'confirm', 'drop'];
 const TYPE_ORDER = ['consumable', 'gear', 'currency', 'material', 'misc'];
 const TYPE_LABEL: Record<string, string> = { consumable: 'Consumable', gear: 'Gear', currency: 'Currency', material: 'Material', misc: 'Sellable junk' };
 
@@ -59,7 +60,8 @@ export class Hud {
       <div id="hotbar"></div>
       <div id="toasts"></div>
       <div id="levelup" hidden></div>
-      <div id="help">F attack (hold) · 1–6 hotbar (Q/G = 5/6) · E pick up/talk · I inventory · C stats · K skills · Esc menu${DEV_CONSOLE ? ' · ` console' : ''}</div>
+      <div id="quest-track" hidden></div>
+      <div id="help">F attack (hold) · 1–6 hotbar (Q/G = 5/6) · E pick up/talk · I inventory · C stats · K skills · J journal · Esc menu${DEV_CONSOLE ? ' · ` console' : ''}</div>
       <div id="dead" hidden>Defeated…</div>
       ${PANELS.map((p) => `<div class="panel" id="p-${p}" hidden></div>`).join('')}
       <div id="console" hidden><div id="console-out"></div><input id="console-in" autocomplete="off" spellcheck="false" placeholder="type help, Enter to run, Esc to close" /></div>`;
@@ -130,6 +132,7 @@ export class Hud {
       if (k === 'i' || k === 'I') { this.toggle('inventory'); return; }
       if (k === 'c' || k === 'C') { this.toggle('stats'); return; }
       if (k === 'k' || k === 'K') { this.toggle('skills'); return; }
+      if (k === 'j' || k === 'J') { this.toggle('journal'); return; }
     }
     if (!top) return;
     const dirs: Record<string, [number, number]> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
@@ -207,7 +210,7 @@ export class Hud {
       this.renderPanels();
       return;
     }
-    if (cur && (panel === 'shop' || panel === 'inventory' || panel === 'storage' || panel === 'skills')) this.renderPreview(panel, cur);
+    if (cur && (panel === 'shop' || panel === 'inventory' || panel === 'storage' || panel === 'skills' || panel === 'journal')) this.renderPreview(panel, cur);
   }
 
   // ───────────────────────── HUD ─────────────────────────
@@ -235,6 +238,12 @@ export class Hud {
       if (until > now) buffs.push(`${DB.skills[id]?.name ?? DB.items[id]?.name ?? id} ${Math.ceil((until - now) / 1000)}s`);
     }
     $('#buffs').textContent = buffs.join(' · ');
+    const obj = Q.currentObjective(p);
+    const track = $('#quest-track');
+    if (track) {
+      track.hidden = !obj;
+      if (obj) track.innerHTML = `<b>Journal</b> <small>(J)</small><div>${esc(obj)}</div>`;
+    }
 
     const cd = (id: string) => Math.max(0, (Game.cooldowns[id] ?? 0) - now);
     const slot = (key: string, label: string, sub: string, cdMs: number, total: number, icon = '') =>
@@ -380,7 +389,17 @@ export class Hud {
 
   private npc(id: string, role: string, name: string) {
     if (role === 'shop') { this.shopTab = 'buy'; this.open('shop'); return; }
-    if (role === 'trainer') { this.open('skills'); return; }
+    if (role === 'trainer') {
+      if (Q.wantsTalk(Game.player, id)) {
+        const words = Q.talk(Game.player, id) ?? '…';
+        this.dialogHtml = `<h3>${esc(name)}</h3><p>${esc(words)}</p>`;
+        this.sel.dialog = undefined;
+        this.open('dialog');
+        return;
+      }
+      this.open('skills');
+      return;
+    }
     const lines: Record<string, string> = {};
     for (const n of Object.values(DB.npcs ?? {})) if (n.desc) lines[n.id] = n.desc;
     let extra = '';
@@ -417,6 +436,7 @@ export class Hud {
     if (this.stack.includes('stats')) this.renderStats();
     if (this.stack.includes('shop')) this.renderShop();
     if (this.stack.includes('skills')) this.renderSkills();
+    if (this.stack.includes('journal')) this.renderJournal();
     if (this.stack.includes('storage')) this.renderStorage();
     if (this.stack.includes('drop') && this.dropItem) {
       const id = this.dropItem;
@@ -572,6 +592,7 @@ export class Hud {
     const box = $(`#${panel === 'inventory' ? 'inv' : panel}-preview`);
     if (!box) return;
     if (panel === 'skills') { this.renderSkillPreview(box, el); return; }
+    if (panel === 'journal') { this.renderJournalPreview(box, el); return; }
     const id = el.dataset.item;
     if (!id) {
       box.innerHTML = el.dataset.slot ? `<div class="pv-name">${esc(el.dataset.slot)} slot</div><p class="muted">Empty. Equip gear from your bag.</p>`
@@ -580,6 +601,7 @@ export class Hud {
     }
     const p = Game.player;
     const it = DB.items[id];
+    if (id === 'cracked_bank_stone' || id === 'smoldering_scale') Q.onItem(p, id);
     const eff = consumableEffect(id);
     const g = DB.gear[id];
     const piece = el.dataset.uid ? P.inst(p, el.dataset.uid) : undefined;
@@ -657,6 +679,36 @@ export class Hud {
       <div class="pv-eff">${esc(Sk.rankPreview(id, r))} · ${sk.mp_cost} MP</div>
       ${r < max ? `<table class="pv-stats"><tr><th colspan="2">Cost for rank ${r + 1}</th></tr>${costRows}</table>` : ''}
       <div class="pv-act">${act}${known ? ' · 1-6: bind' : ''}</div>`;
+  }
+
+
+  private renderJournal() {
+    const entries = Q.journal(Game.player);
+    const tiles = entries.map((e) => {
+      const tag = e.status === 'active' ? `s${e.step}` : e.status === 'done' ? 'done' : 'soon';
+      return `<button class="tile t-quest t-${e.status}" data-nav data-key="q:${e.line}" data-line="${e.line}" data-mode="quest">
+        ${e.skill ? `<img src="${skillIconUrl(e.skill)}" alt="">` : '<span class="empty"></span>'}
+        <span class="qty">${tag}</span><span class="price">${esc(e.name)}</span></button>`;
+    }).join('') || '<p class="muted">No quests yet. Reach level 2 to begin The Weight of a Swing.</p>';
+    $('#p-journal').innerHTML = `<div class="frame-title">Journal <small>(J)</small><button class="x" data-close="journal">×</button></div>
+      <p class="muted">Skill questlines. Calden finishes a step when you talk to him. Named foes appear only on their hunt step.</p>
+      <div class="split"><div class="grid sk">${tiles}</div><div class="preview" id="journal-preview"></div></div>
+      ${hint('↑↓ select · Esc close · J toggle')}`;
+  }
+
+  private renderJournalPreview(box: HTMLElement, el: HTMLElement) {
+    const line = el.dataset.line;
+    const e = Q.journal(Game.player).find((x) => x.line === line);
+    if (!e) { box.innerHTML = '<p class="muted">Select a quest.</p>'; return; }
+    const steps = e.steps.map((st) =>
+      `<li class="${st.done ? 'done' : st.current ? 'current' : 'soon'}"><b>${st.n}.</b> ${esc(st.objective)}</li>`
+    ).join('');
+    const status = e.status === 'active' ? 'In progress' : e.status === 'done' ? 'Complete' : 'Not started';
+    box.innerHTML = `<div class="pv-name">${esc(e.name)}</div>
+      <div class="pv-type">${status}${e.skill && DB.skills[e.skill] ? ' · unlocks ' + DB.skills[e.skill].name : ''}</div>
+      <p>${esc(e.desc)}</p>
+      <ol class="j-steps">${steps}</ol>
+      ${e.rewards ? `<div class="pv-eff">Reward: ${esc(e.rewards)}</div>` : ''}`;
   }
 
   private renderStats() {

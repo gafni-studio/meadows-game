@@ -4,14 +4,15 @@
  *
  * Rank-1 quantities are listed. For rank r > 1: qty = round(rank_1_qty × 1.6^(r-1)).
  * Rare drops are extra milestone costs at ranks 5 and 10 only.
- * Basic skills are known at rank 0 (base value); category skills are learned at
- * rank 1 (base value) and scale from rank 2.
+ * v0.2.1: a skill is known once it is at rank 1 (quest grant, or trained). Category
+ * skills still scale from rank 2; basic skills scale from rank 1 as before.
  * Damage skills: +N percentage points of the attack multiplier per scaling rank.
  * Buffs / shields: effect × (1 + N% × scaling ranks).
  */
 import { DB, SkillDef, tab } from '../data/db';
 import { ASSUME } from '../data/assumptions';
 import * as P from './Player';
+import * as Q from './Quests';
 
 export interface Cost { itemId: string; qty: number }
 interface CostRow { skill_id: string; rank: number; material_id: string; quantity: number }
@@ -32,25 +33,41 @@ export function skillsFor(classId: string): SkillDef[] {
 
 export function rankOf(p: P.PlayerData, id: string): number { return p.skillRanks[id] ?? 0; }
 export function known(p: P.PlayerData, id: string): boolean {
-  const s = skill(id);
-  if (!s) return false;
-  return s.branch === 'basic' || rankOf(p, id) >= 1;
+  return !!skill(id) && rankOf(p, id) >= 1;
 }
 
-/** Unlock thresholds: basic from start; nature lv3+5 main; elemental lv6+10; spiritual lv8+15. */
+/** Fallback by unlock_stage when the skill has no unlock_requirements rows. */
 const UNLOCK: Record<string, { level: number; stat: number }> = {
   start: { level: 1, stat: 0 }, early: { level: 3, stat: 5 }, mid: { level: 6, stat: 10 }, late: { level: 8, stat: 15 },
 };
-export function unlockReq(s: SkillDef) { return UNLOCK[s.unlock_stage] ?? UNLOCK.start; }
+interface UnlockRow { target_type: string; target_id: string; requirement_type: string; requirement_id: string | null; requirement_value: number }
+const UNLOCK_ROWS = tab<UnlockRow>('unlock_requirements').filter((r) => r.target_type === 'skill');
+export function unlockReq(s: SkillDef): { level: number; stat: number } {
+  const rows = UNLOCK_ROWS.filter((r) => r.target_id === s.id);
+  if (rows.length) {
+    let level = 1, stat = 0;
+    for (const r of rows) {
+      if (r.requirement_type === 'level') level = Number(r.requirement_value) || 1;
+      if (r.requirement_type === 'stat') stat = Number(r.requirement_value) || 0;
+    }
+    return { level, stat };
+  }
+  return UNLOCK[s.unlock_stage] ?? UNLOCK.start;
+}
 
 export function canSee(p: P.PlayerData, s: SkillDef): boolean {
   if (s.class_id !== p.classId) return false;
+  // Quest-gated skills are visible so the journal and trainer can tease them.
+  if (Q.skillLockedByQuest(s.id)) return true;
   const r = unlockReq(s);
-  // Show a category skill once you're close (one level or a few points shy), so the trainer can tease it.
   return p.level + 2 >= r.level;
 }
 
 export function unlockStatus(p: P.PlayerData, s: SkillDef): { ok: boolean; reason?: string } {
+  if (Q.skillLockedByQuest(s.id) && !Q.skillQuestDone(p, s.id)) {
+    const name = Q.lineName(Q.lineOfSkill(s.id) ?? '');
+    return { ok: false, reason: `Complete ${name} in your journal (J)` };
+  }
   const r = unlockReq(s);
   const main = P.mainStat(p);
   const statName = s.scaling_stat ?? (p.classId === 'warrior' ? 'STR' : 'INT');
@@ -65,12 +82,15 @@ export function nextCost(id: string, nextRank: number): Cost[] {
   const s = skill(id);
   if (!s || nextRank < 1 || nextRank > (s.max_rank ?? 10)) return [];
   const scale = Math.pow(1.6, nextRank - 1);
+  const at1 = COSTS.filter((r) => r.skill_id === id && r.rank === 1);
+  const atRank = COSTS.filter((r) => r.skill_id === id && r.rank === nextRank);
+  const override = new Set(nextRank === 1 ? [] : atRank.map((r) => r.material_id));
   const out: Cost[] = [];
-  for (const row of COSTS) {
-    if (row.skill_id !== id) continue;
-    if (row.rank === 1) out.push({ itemId: row.material_id, qty: Math.max(1, Math.round(row.quantity * scale)) });
-    else if (row.rank === nextRank) out.push({ itemId: row.material_id, qty: row.quantity }); // milestone rare
+  for (const row of at1) {
+    if (override.has(row.material_id)) continue; // exact qty lives on the rank row (e.g. Earthbreaker r2 Twig)
+    out.push({ itemId: row.material_id, qty: Math.max(1, Math.round(row.quantity * scale)) });
   }
+  if (nextRank > 1) for (const row of atRank) out.push({ itemId: row.material_id, qty: row.quantity });
   return out;
 }
 
@@ -100,11 +120,13 @@ export function train(p: P.PlayerData, id: string): string | null {
   if (!costs.length) return 'No cost listed';
   if (!pay(p, costs)) return 'Missing materials';
   p.skillRanks[id] = cur + 1;
-  // Auto-bind a newly learned category skill to the first empty hotbar slot.
-  if (cur === 0 && s.branch !== 'basic') {
+  // Auto-bind a newly learned skill to the first empty hotbar slot.
+  if (cur === 0) {
     p.skillBar ??= defaultBar();
-    const i = p.skillBar.findIndex((x) => !x);
-    if (i >= 0) p.skillBar[i] = id;
+    if (!p.skillBar.includes(id)) {
+      const i = p.skillBar.findIndex((x) => !x);
+      if (i >= 0) p.skillBar[i] = id;
+    }
   }
   return null;
 }
@@ -140,7 +162,7 @@ export function shieldAmount(p: P.PlayerData): number {
   return Math.round(P.maxHp(p) * 0.18 * effectScale('soul_guard', rankOf(p, 'soul_guard')));
 }
 
-export function defaultBar(): (string | null)[] { return ['power_strike', 'rage', null, null, 'meadow_dew', 'clear_dew']; }
+export function defaultBar(): (string | null)[] { return [null, null, null, null, 'meadow_dew', 'clear_dew']; }
 
 export function migrateBar(p: P.PlayerData): void {
   const def = defaultBar();
@@ -208,5 +230,16 @@ export function rankPreview(id: string, rank: number): string {
     const k = (hp: number) => Math.round(18 * effectScale('soul_guard', hp));
     return `Shield ${k(rank)}% max HP → ${k(next)}%`;
   }
+  if (id === 'dig_in') {
+    const w = (rk: number) => 0.5 + 0.05 * scalingRanks(s, rk);
+    return `${w(rank).toFixed(2)}s window, +100% def → ${w(next).toFixed(2)}s`;
+  }
   return s.effect;
+}
+
+/** Dig In window in ms (0.5s at rank 1, +0.05s per scaling rank). */
+export function digInWindowMs(p: P.PlayerData): number {
+  const s = skill('dig_in');
+  const base = (s?.duration_s ?? 0.5) * 1000;
+  return base + 50 * scalingRanks(s ?? { branch: 'nature' } as SkillDef, rankOf(p, 'dig_in'));
 }
