@@ -1,6 +1,6 @@
 {
   "tab": "controls",
-  "note": "DRAFT — Keyboard layout for a browser side-scroller (keyboard primary, mouse used for the basic attack and UI clicks). Keys can be remapped later; these are the v0 defaults. Number-row skill and potion hotkeys stay visible on a simple hotbar. Do not capture browser-reserved keys (Ctrl+T, Ctrl+W, F5). Placeholders. v0.1.3: hotbar slots 1–6 each hold a skill or a consumable; 5 and 6 default to Meadow Dew and Clear Dew.",
+  "note": "DRAFT — Keyboard layout for a browser side-scroller (keyboard primary, mouse used for the basic attack and UI clicks). Keys can be remapped later; these are the v0 defaults. Number-row skill and potion hotkeys stay visible on a simple hotbar. Do not capture browser-reserved keys (Ctrl+T, Ctrl+W, F5). Placeholders. v0.1.3: hotbar slots 1–6 each hold a skill or a consumable; 5 and 6 default to Meadow Dew and Clear Dew. v0.2.1: quest journal is on J.",
   "columns": [
     "action",
     "keys",
@@ -112,9 +112,9 @@
     },
     {
       "action": "quest_log",
-      "keys": "L",
+      "keys": "J",
       "context": "ui",
-      "notes": "Toggle the quest log. Optional for v0.1; useful once starter_quests are in."
+      "notes": "v0.2.1: Toggle the quest journal. Keyboard-first, same as K and I. The sheet used L; J is free and reads as Journal."
     },
     {
       "action": "close_or_pause",

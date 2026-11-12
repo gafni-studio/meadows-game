@@ -249,6 +249,38 @@
       "requirement_type": "stat",
       "requirement_id": "AGI",
       "requirement_value": 15
+    },
+    {
+      "id": "unlock_root_lash_level",
+      "target_type": "skill",
+      "target_id": "root_lash",
+      "requirement_type": "level",
+      "requirement_id": null,
+      "requirement_value": 4
+    },
+    {
+      "id": "unlock_root_lash_str",
+      "target_type": "skill",
+      "target_id": "root_lash",
+      "requirement_type": "stat",
+      "requirement_id": "STR",
+      "requirement_value": 6
+    },
+    {
+      "id": "unlock_dig_in_level",
+      "target_type": "skill",
+      "target_id": "dig_in",
+      "requirement_type": "level",
+      "requirement_id": null,
+      "requirement_value": 5
+    },
+    {
+      "id": "unlock_dig_in_str",
+      "target_type": "skill",
+      "target_id": "dig_in",
+      "requirement_type": "stat",
+      "requirement_id": "STR",
+      "requirement_value": 7
     }
   ]
 }

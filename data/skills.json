@@ -1,6 +1,6 @@
 {
   "tab": "skills",
-  "note": "NOTE: branch is basic (starter, available from level 1) or nature / elemental / spiritual. Unlocks: basic from start; nature = level 3 + 5 main-stat points; elemental = level 6 + 10; spiritual = level 8 + 15. Rebalance rationale (to be tuned): basic skills are always available and cheap, so they start weaker and scale slowly (+5%/rank, v0.1.2). Category skills start stronger (or add utility) and scale faster (nature +12%, elemental +10%, spiritual +10% — raised in v0.1.2 so training is the main power-up) so they overtake basics and stay ahead. Examples: Power Strike 140% (was 180%), Energy Blast 130% (was 160%), Backstab 250% guaranteed crit, crit already baked in (was 400%). Training costs scale by tier: basic < nature < elemental < spiritual, and within a class the stronger skill costs more (e.g. Flame Cleave > Earthbreaker). Each rank still needs materials + essence + coins; rares are milestones at 5 and 10. mp_cost is placeholder MP spent on use. damage_multiplier is a factor (1.4 = 140% of attack). v0 placeholders; may pivot after playtesting. v0.1.2-descs: `desc` is the short player-facing line; design reasoning lives in `notes` and is never shown in game. `description` is kept in sync with `desc`.",
+  "note": "NOTE: branch is basic (starter, available from level 1) or nature / elemental / spiritual. Unlocks: basic from start; nature = level 3 + 5 main-stat points; elemental = level 6 + 10; spiritual = level 8 + 15. Rebalance rationale (to be tuned): basic skills are always available and cheap, so they start weaker and scale slowly (+5%/rank, v0.1.2). Category skills start stronger (or add utility) and scale faster (nature +12%, elemental +10%, spiritual +10% — raised in v0.1.2 so training is the main power-up) so they overtake basics and stay ahead. Examples: Power Strike 140% (was 180%), Energy Blast 130% (was 160%), Backstab 250% guaranteed crit, crit already baked in (was 400%). Training costs scale by tier: basic < nature < elemental < spiritual, and within a class the stronger skill costs more (e.g. Flame Cleave > Earthbreaker). Each rank still needs materials + essence + coins; rares are milestones at 5 and 10. mp_cost is placeholder MP spent on use. damage_multiplier is a factor (1.4 = 140% of attack). v0 placeholders; may pivot after playtesting. v0.1.2-descs: `desc` is the short player-facing line; design reasoning lives in `notes` and is never shown in game. `description` is kept in sync with `desc`. v0.2.1: Warrior basic and mid skills are unlocked by discoverable questlines (B-004) at rank 1; further ranks still train at Calden. Root Lash and Dig In (B-001) unlock on level + STR and are learned at Calden. Soul Guard / Shrine questline is parked; Soul Guard keeps its late sheet gate.",
   "columns": [
     "id",
     "class_id",
@@ -36,7 +36,7 @@
       "effect": "+15% damage dealt, +10% damage taken",
       "description": "Channel fury to hit harder for a short time.",
       "desc": "Channel fury to hit harder for a short time.",
-      "notes": "Basic starter buff. Available from level 1. Intentionally modest so category skills feel like an upgrade."
+      "notes": "v0.2.1 / B-004: unlocked at rank 1 by completing Blood Up (starts at level 3). Further ranks at Calden. Until the quest is done the skill is not known. Design: basic starter buff, intentionally modest so category skills feel like an upgrade."
     },
     {
       "id": "power_strike",
@@ -54,7 +54,7 @@
       "effect": "140% single-target damage",
       "description": "A heavy blow that hits harder than a normal swing.",
       "desc": "A heavy blow that hits harder than a normal swing.",
-      "notes": "Basic starter attack. Available from level 1. Rebalanced down from 180% so later skills outpace it (low +2%/rank scaling)."
+      "notes": "v0.2.1 / B-004: unlocked at rank 1 by completing The Weight of a Swing (starts at level 2). Further ranks at Calden. Until the quest is done the skill is not known. Design: basic starter attack, rebalanced down from 180% so later skills outpace it (+5%/rank)."
     },
     {
       "id": "earthbreaker",
@@ -72,7 +72,7 @@
       "effect": "150% AoE ground slam + short stun",
       "description": "Slam the ground and stagger nearby foes.",
       "desc": "Slam the ground and stagger nearby foes.",
-      "notes": "Nature branch, opens early. A ground slam around the warrior. Slightly above Power Strike and hits a group."
+      "notes": "v0.2.1 / B-004: unlocked at rank 1 by completing A Crack in the Dirt, which starts when you pick up a Cracked Bank Stone. Calden finishes the line only at level 3 + STR 5. Further ranks at Calden (v0.2.1 mixes Dry Root from rank 2). Nature AoE slam, slightly above Power Strike."
     },
     {
       "id": "flame_cleave",
@@ -90,7 +90,7 @@
       "effect": "200% wide swing + 3s burn",
       "description": "A wide flaming swing that leaves enemies burning.",
       "desc": "A wide flaming swing that leaves enemies burning.",
-      "notes": "Elemental branch, opens mid. A wide flaming swing. Clearly stronger than Earthbreaker; costs more to train."
+      "notes": "v0.2.1 / B-004: unlocked at rank 1 by completing Hot Edge, which starts when you pick up a Smoldering Scale. Calden finishes the line only at level 6 + STR 10. Further ranks at Calden (v0.2.1 mixes Tough Root from rank 3). Wide flaming swing, stronger than Earthbreaker. Soul Guard remains on its sheet gate; its questline is parked."
     },
     {
       "id": "soul_guard",
@@ -289,6 +289,42 @@
       "description": "Mark a foe so every hit that follows bites deeper.",
       "desc": "Mark a foe so every hit that follows bites deeper.",
       "notes": "Spiritual branch, opens late. Marks a target so they take more damage. Most expensive rogue skill."
+    },
+    {
+      "id": "root_lash",
+      "class_id": "warrior",
+      "name": "Root Lash",
+      "branch": "nature",
+      "type": "active",
+      "unlock_stage": "early",
+      "max_rank": 10,
+      "per_rank_scaling": "+12% / rank from rank 2",
+      "scaling_stat": "STR",
+      "damage_multiplier": 1.45,
+      "duration_s": null,
+      "mp_cost": 10,
+      "effect": "145% line strike + knockback (non-bosses)",
+      "description": "Roots lash forward and knock smaller foes back.",
+      "desc": "Roots lash forward and knock smaller foes back.",
+      "notes": "v0.2.1 / B-001. Warrior Nature line, between Earthbreaker (AoE slam) and Flame Cleave. Unlock lv 4 + STR 6 (unlock_requirements), then train at Calden. No questline. +12%/rank from rank 2. Knocks small non-bosses back."
+    },
+    {
+      "id": "dig_in",
+      "class_id": "warrior",
+      "name": "Dig In",
+      "branch": "nature",
+      "type": "active",
+      "unlock_stage": "early",
+      "max_rank": 10,
+      "per_rank_scaling": "+0.05s window / rank from rank 2",
+      "scaling_stat": "STR",
+      "damage_multiplier": null,
+      "duration_s": 0.5,
+      "mp_cost": 2,
+      "effect": "0.5s timed block: +100% defense and knockback-immune if a hit lands in the window",
+      "description": "Plant your feet just before a hit to shrug it off.",
+      "desc": "Plant your feet just before a hit to shrug it off.",
+      "notes": "v0.2.1 / B-001. Timed block, 0.5s window at rank 1 (+0.05s/rank from rank 2, to be tuned). +100% defense and knockback-immune during the window. Unlock lv 5 + STR 7. Train at Calden. MP 2."
     }
   ]
 }

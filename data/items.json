@@ -1299,7 +1299,7 @@
       "sellable_only": false,
       "sell_price": 0,
       "description": "A cracked stone from the dirt banks.",
-      "notes": "v0.2.0 / B-004. Rare quest start for A Crack in the Dirt (Earthbreaker). Not sellable. Picking it up will start the questline in a later milestone; the drop is live now.",
+      "notes": "v0.2.1 / B-004. Rare quest start for A Crack in the Dirt (Earthbreaker). Starts the line when picked up or inspected. Not sellable. Burrow Mole 1.2%, Earth Sprite 0.8%.",
       "desc": "A cracked stone from the dirt banks."
     },
     {
@@ -1312,8 +1312,21 @@
       "sellable_only": false,
       "sell_price": 0,
       "description": "A beetle scale that still glows at the edge.",
-      "notes": "v0.2.0 / B-004. Rare quest start for Hot Edge (Flame Cleave). Not sellable. Picking it up will start the questline in a later milestone; the drop is live now.",
+      "notes": "v0.2.1 / B-004. Rare quest start for Hot Edge (Flame Cleave). Starts the line when picked up or inspected. Not sellable. Ember Beetle 1.2%, Spark Bug 0.8%.",
       "desc": "A beetle scale that still glows at the edge."
+    },
+    {
+      "id": "live_ember",
+      "name": "Live Ember",
+      "item_type": "misc",
+      "subtype_id": null,
+      "native_zone": "meadows",
+      "passively_gatherable": false,
+      "sellable_only": false,
+      "sell_price": 0,
+      "description": "A scale still hot from Cinderback's shell.",
+      "notes": "v0.2.1 / B-004. Guaranteed drop from Cinderback. Turn in to Calden to finish Hot Edge. Not sellable.",
+      "desc": "A scale still hot from Cinderback's shell."
     }
   ]
 }

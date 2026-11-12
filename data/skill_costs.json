@@ -1,6 +1,6 @@
 {
   "tab": "skill_costs",
-  "note": "NOTE: Each rank costs the material recipe PLUS the matching essence (the main power gate) PLUS Copper Coin. Rank 1 is listed. For rank r > 1, quantity = round(rank_1_qty × 1.6^(r-1)). Costs scale by power/tier: basic < nature < elemental < spiritual, and within a class the stronger skill costs more (Flame Cleave / Firebolt > Earthbreaker / Thorn Bind; Holy Light is the most expensive). Basic (all): Monster Essence 30, Training Scroll 5, Copper Coin 20. Nature: Thorn Bind is a bit cheaper (NE 35); Earthbreaker and Venom Strike use NE 40 + Nature commons + Holy Dust (cross-category) + Stone Chunk/Branch. Elemental bulk is Earth Grit (not Twig/Wool), plus Soul Dust (cross-category) and a shard; Lightning Dash EE 50, Flame Cleave/Firebolt EE 60. Spiritual: Soul Guard/Shadow Mark SE 65; Holy Light SE 75. Rare drops are milestones at ranks 5 and 10 only (unchanged). Placeholders; to be tuned. v0.1.3: Nature recipes no longer ask for Holy Dust (spirit) or Earth Crystal (elemental) — they use Pebble/Wool/Fur and Heartwood. Elemental recipes no longer ask for Soul Dust or Holy Essence — they use Earth Shard and Fire Crystal / Earth Crystal. Spiritual recipes are unchanged (Holy Dust, Soul Dust, Holy Essence, Soul Shard). Shared materials (copper, bark, grit, stones) still mix across ranks.",
+  "note": "NOTE: Each rank costs the material recipe PLUS the matching essence (the main power gate) PLUS Copper Coin. Rank 1 is listed. For rank r > 1, quantity = round(rank_1_qty × 1.6^(r-1)). Costs scale by power/tier: basic < nature < elemental < spiritual, and within a class the stronger skill costs more (Flame Cleave / Firebolt > Earthbreaker / Thorn Bind; Holy Light is the most expensive). Basic (all): Monster Essence 30, Training Scroll 5, Copper Coin 20. Nature: Thorn Bind is a bit cheaper (NE 35); Earthbreaker and Venom Strike use NE 40 + Nature commons + Holy Dust (cross-category) + Stone Chunk/Branch. Elemental bulk is Earth Grit (not Twig/Wool), plus Soul Dust (cross-category) and a shard; Lightning Dash EE 50, Flame Cleave/Firebolt EE 60. Spiritual: Soul Guard/Shadow Mark SE 65; Holy Light SE 75. Rare drops are milestones at ranks 5 and 10 only (unchanged). Placeholders; to be tuned. v0.1.3: Nature recipes no longer ask for Holy Dust (spirit) or Earth Crystal (elemental) — they use Pebble/Wool/Fur and Heartwood. Elemental recipes no longer ask for Soul Dust or Holy Essence — they use Earth Shard and Fire Crystal / Earth Crystal. Spiritual recipes are unchanged (Holy Dust, Soul Dust, Holy Essence, Soul Shard). Shared materials (copper, bark, grit, stones) still mix across ranks. v0.2.1: Root Lash and Dig In rank-1 recipes (Dry Root, Tough Root, Nature Essence). A row at rank r > 1 is either a milestone rare or a mixed-in material; if it names a rank-1 material it overrides the scaled qty (Earthbreaker r2 Twig 40 instead of 56). Earthbreaker r2 adds Dry Root 20; Flame Cleave r3 adds Tough Root 2. Rank 1 of early skills stays on pasture mats.",
   "columns": [
     "skill_id",
     "rank",
@@ -565,6 +565,120 @@
       "rank": 10,
       "material_id": "holy_essence",
       "quantity": 1
+    },
+    {
+      "skill_id": "root_lash",
+      "rank": 1,
+      "material_id": "dry_root",
+      "quantity": 30
+    },
+    {
+      "skill_id": "root_lash",
+      "rank": 1,
+      "material_id": "tough_root",
+      "quantity": 2
+    },
+    {
+      "skill_id": "root_lash",
+      "rank": 1,
+      "material_id": "earth_grit",
+      "quantity": 10
+    },
+    {
+      "skill_id": "root_lash",
+      "rank": 1,
+      "material_id": "nature_essence",
+      "quantity": 36
+    },
+    {
+      "skill_id": "root_lash",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 23
+    },
+    {
+      "skill_id": "root_lash",
+      "rank": 2,
+      "material_id": "bark",
+      "quantity": 12
+    },
+    {
+      "skill_id": "root_lash",
+      "rank": 5,
+      "material_id": "heartwood",
+      "quantity": 1
+    },
+    {
+      "skill_id": "root_lash",
+      "rank": 10,
+      "material_id": "heartwood",
+      "quantity": 2
+    },
+    {
+      "skill_id": "dig_in",
+      "rank": 1,
+      "material_id": "dry_root",
+      "quantity": 28
+    },
+    {
+      "skill_id": "dig_in",
+      "rank": 1,
+      "material_id": "tough_root",
+      "quantity": 3
+    },
+    {
+      "skill_id": "dig_in",
+      "rank": 1,
+      "material_id": "pebble",
+      "quantity": 16
+    },
+    {
+      "skill_id": "dig_in",
+      "rank": 1,
+      "material_id": "nature_essence",
+      "quantity": 38
+    },
+    {
+      "skill_id": "dig_in",
+      "rank": 1,
+      "material_id": "copper_coin",
+      "quantity": 24
+    },
+    {
+      "skill_id": "dig_in",
+      "rank": 2,
+      "material_id": "twig",
+      "quantity": 16
+    },
+    {
+      "skill_id": "dig_in",
+      "rank": 5,
+      "material_id": "stone_chunk",
+      "quantity": 4
+    },
+    {
+      "skill_id": "dig_in",
+      "rank": 10,
+      "material_id": "heartwood",
+      "quantity": 1
+    },
+    {
+      "skill_id": "earthbreaker",
+      "rank": 2,
+      "material_id": "dry_root",
+      "quantity": 20
+    },
+    {
+      "skill_id": "earthbreaker",
+      "rank": 2,
+      "material_id": "twig",
+      "quantity": 40
+    },
+    {
+      "skill_id": "flame_cleave",
+      "rank": 3,
+      "material_id": "tough_root",
+      "quantity": 2
     }
   ]
 }
