@@ -1,6 +1,6 @@
 {
   "tab": "map_layout",
-  "note": "DRAFT — Meadows is a set of connected side-scrolling areas, not one long strip. monster_ids must already exist on the monsters tab; spawn_counts are v0 placeholders (on-map at once, not a daily cap). connections are walking paths / portals to adjacent areas. Town is a safe hub with the NPC shop. Names are plain and low-tier. Only Meadows is laid out in v0; later worlds get their own rows. All values are placeholders.",
+  "note": "DRAFT — Meadows is a set of connected side-scrolling areas, not one long strip. monster_ids must already exist on the monsters tab; spawn_counts are v0 placeholders (on-map at once, not a daily cap). connections are walking paths / portals to adjacent areas. Town is a safe hub with the NPC shop. Names are plain and low-tier. Only Meadows is laid out in v0; later worlds get their own rows. All values are placeholders. v0.2.0: Dirt Banks is playable (portal from the east pasture). Meadow Shrine and further east remain closed.",
   "columns": [
     "id",
     "name",

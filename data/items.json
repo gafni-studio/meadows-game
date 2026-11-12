@@ -1236,6 +1236,84 @@
       "description": "Thin gloves that keep a firm grip.",
       "notes": "v0.1.2-gear. Stats are rolled per instance (see gear tab ranges). Does not stack.",
       "desc": "Thin gloves that keep a firm grip."
+    },
+    {
+      "id": "dry_root",
+      "name": "Dry Root",
+      "item_type": "material",
+      "subtype_id": "wood",
+      "native_zone": "meadows",
+      "passively_gatherable": true,
+      "sellable_only": false,
+      "sell_price": 2,
+      "description": "A dry root, tougher than a twig.",
+      "notes": "v0.2.0 / B-001. Next Nature wood common after Twig and Bark. Same sell and 10:1 essence value; used in later-rank recipes, not a better vendor price. Shared across areas; best rates in the Dirt Banks, already visible in the east pasture.",
+      "desc": "A dry root, tougher than a twig."
+    },
+    {
+      "id": "tough_root",
+      "name": "Tough Root",
+      "item_type": "material",
+      "subtype_id": "wood",
+      "native_zone": "meadows",
+      "passively_gatherable": false,
+      "sellable_only": false,
+      "sell_price": 5,
+      "description": "A thick, stubborn root.",
+      "notes": "v0.2.0 / B-001. Uncommon of the Dry Root family (the way Branch sits above Twig). Small recipe counts at higher ranks. Banks-weighted, not exclusive. Not on the 10:1 exchange.",
+      "desc": "A thick, stubborn root."
+    },
+    {
+      "id": "warm_stone",
+      "name": "Warm Stone",
+      "item_type": "misc",
+      "subtype_id": null,
+      "native_zone": "meadows",
+      "passively_gatherable": false,
+      "sellable_only": true,
+      "sell_price": 70,
+      "description": "A stone that still holds a little warmth.",
+      "notes": "v0.2.0 / B-001. Sell-only junk, not a material or a trophy. Banks-weighted unique addition, shared by a couple of overlapping elemental mobs (Ember Beetle, Earth Sprite, and Frost Moth at the shrine).",
+      "desc": "A stone that still holds a little warmth."
+    },
+    {
+      "id": "stone_club",
+      "name": "Stone Club",
+      "item_type": "gear",
+      "subtype_id": null,
+      "native_zone": "meadows",
+      "passively_gatherable": false,
+      "sellable_only": false,
+      "sell_price": 80,
+      "description": "A heavy club of packed stone.",
+      "notes": "v0.2.0 / B-001. Warrior mid weapon a step above Meadow Blade (13–16 typ 14, ×1.15, STR 3, sell 60) and below Steel (17–21 typ 19, ×1.25, STR 5, sell 120). dmg 15–18 typ 16, ×1.15, STR 5.",
+      "desc": "A heavy club of packed stone."
+    },
+    {
+      "id": "cracked_bank_stone",
+      "name": "Cracked Bank Stone",
+      "item_type": "misc",
+      "subtype_id": null,
+      "native_zone": "meadows",
+      "passively_gatherable": false,
+      "sellable_only": false,
+      "sell_price": 0,
+      "description": "A cracked stone from the dirt banks.",
+      "notes": "v0.2.0 / B-004. Rare quest start for A Crack in the Dirt (Earthbreaker). Not sellable. Picking it up will start the questline in a later milestone; the drop is live now.",
+      "desc": "A cracked stone from the dirt banks."
+    },
+    {
+      "id": "smoldering_scale",
+      "name": "Smoldering Scale",
+      "item_type": "misc",
+      "subtype_id": null,
+      "native_zone": "meadows",
+      "passively_gatherable": false,
+      "sellable_only": false,
+      "sell_price": 0,
+      "description": "A beetle scale that still glows at the edge.",
+      "notes": "v0.2.0 / B-004. Rare quest start for Hot Edge (Flame Cleave). Not sellable. Picking it up will start the questline in a later milestone; the drop is live now.",
+      "desc": "A beetle scale that still glows at the edge."
     }
   ]
 }

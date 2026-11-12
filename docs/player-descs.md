@@ -145,3 +145,14 @@ The sheet is the source of truth. `desc` is shown in game (tooltips and NPC/ques
 - `calden` (trainer) — Bring me Monster Essence and Training Scrolls to rank your skills. Nature, Elemental and Spiritual skills need their own essence and materials.
 - `ila` (soon) — I'm not exchanging essence just yet. Hold on to your Twigs, Bark and Wool.
 
+
+
+## v0.2.0 Dirt Banks
+
+- `dry_root` — A dry root, tougher than a twig.
+- `tough_root` — A thick, stubborn root.
+- `warm_stone` — A stone that still holds a little warmth.
+- `stone_club` — A heavy club of packed stone.
+- `cracked_bank_stone` — A cracked stone from the dirt banks.
+- `smoldering_scale` — A beetle scale that still glows at the edge.
+- `pell` — Welcome text now mentions the open dirt path to the Dirt Banks.

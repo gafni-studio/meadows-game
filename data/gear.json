@@ -561,6 +561,22 @@
       "weapon_damage_min": 0,
       "weapon_damage_max": 0,
       "desc": "Thin gloves that keep a firm grip."
+    },
+    {
+      "item_id": "stone_club",
+      "slot": "weapon",
+      "class_id": "warrior",
+      "required_stat": "STR",
+      "required_value": 5,
+      "stat_multiplier": 1.15,
+      "defense": 0,
+      "weapon_damage": 16,
+      "description": "A heavy club of packed stone.",
+      "defense_min": 0,
+      "defense_max": 0,
+      "weapon_damage_min": 15,
+      "weapon_damage_max": 18,
+      "desc": "A heavy club of packed stone."
     }
   ]
 }

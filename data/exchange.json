@@ -1,6 +1,6 @@
 {
   "tab": "exchange",
-  "note": "DRAFT — Convert common (and listed uncommon shard) materials into the matching category essence at a steep 10:1 rate. Nature: Twig, Bark, Pebble, Clay, Wool, Feather, Fur → Nature Essence. Elemental: Earth Grit and Fire/Ice/Lightning/Earth Shards → Elemental Essence. Spiritual: Holy Dust, Soul Dust → Spirit Essence. Rare items (crystals, Heartwood, Holy Essence, Soul Shard, etc.) are not exchanged; they are milestone costs. The steep rate makes category essence desirable — having a lot of it is a lot of power. Placeholders.",
+  "note": "DRAFT — Convert common (and listed uncommon shard) materials into the matching category essence at a steep 10:1 rate. Nature: Twig, Bark, Pebble, Clay, Wool, Feather, Fur → Nature Essence. Elemental: Earth Grit and Fire/Ice/Lightning/Earth Shards → Elemental Essence. Spiritual: Holy Dust, Soul Dust → Spirit Essence. Rare items (crystals, Heartwood, Holy Essence, Soul Shard, etc.) are not exchanged; they are milestone costs. The steep rate makes category essence desirable — having a lot of it is a lot of power. Placeholders. v0.2.0: Dry Root also exchanges 10:1 for Nature Essence (same sell and essence value as Twig/Bark).",
   "columns": [
     "id",
     "input_item_id",
@@ -121,6 +121,14 @@
       "output_item_id": "spirit_essence",
       "output_qty": 1,
       "notes": "10 Holy Dust or Soul Dust = 1 Spirit Essence. Steep, by design."
+    },
+    {
+      "id": "ex_dry_root",
+      "input_item_id": "dry_root",
+      "input_qty": 10,
+      "output_item_id": "nature_essence",
+      "output_qty": 1,
+      "notes": "v0.2.0: 10 Dry Root = 1 Nature Essence, same steep rate as Twig and Bark."
     }
   ]
 }
