@@ -1,6 +1,7 @@
 import { PlayerData, newPlayer, maxHp, maxMp, migrateGear } from './Player';
 import { migrateBar } from './Skills';
 import { migrateQuests } from './Quests';
+import { settle } from './Passives';
 import { DB } from '../data/db';
 
 const KEY = 'meadows.save.v1';
@@ -26,9 +27,12 @@ export function loadSave(): PlayerData {
     p.skillRanks ??= {};
     p.skillBar ??= [null, null, null, null];
     p.questLog ??= {};
+    p.passiveRanks ??= {};
+    p.passiveFrac ??= {};
     migrateGear(p);
     migrateBar(p);
     migrateQuests(p);
+    settle(p, Date.now(), true); // offline production; toasts after Game is ready
     if (!DB.areas[p.area]) p.area = 'meadow_town';
     // Drop unknown item ids if the sheet removed them since the save was written.
     for (const id of Object.keys(p.inventory)) if (!DB.items[id]) delete p.inventory[id];

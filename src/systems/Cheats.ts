@@ -10,6 +10,7 @@ import { Game } from './GameState';
 import { resetAndReload } from './Save';
 import * as P from './Player';
 import * as Q from './Quests';
+import * as Pa from './Passives';
 
 type Cmd = { usage: string; help: string; run: (args: string[]) => string; cheat?: boolean };
 
@@ -168,6 +169,29 @@ export const COMMANDS: Record<string, Cmd> = {
   droprate: {
     usage: 'droprate <multiplier>', help: 'Multiply all drop chances (1 = normal)', cheat: true,
     run: ([m]) => { const v = Math.max(0, num(m, 'multiplier')); Game.player.cheats.dropMul = v; return `Drop rate ×${v}`; },
+  },
+  passive: {
+    usage: 'passive [list|rank|finish|wait] [id|hours]', help: 'List or drive the Nature/Elemental tree (rank, finish upgrade, wait hours)', cheat: true,
+    run: ([op, a, b]) => {
+      const p = Game.player;
+      Pa.settle(p, Date.now(), true);
+      if (!op || op === 'list') {
+        return Pa.liveNodes().map((n) => {
+          const r = Pa.rankOf(p, n.id);
+          const extra = n.effect_type === 'production' ? `  ${Pa.rateAt(r).toFixed(2)}/h  frac=${(Pa.fracToward(p, n.id)).toFixed(3)}` : '';
+          return `${n.id}  ${n.name}  r${r}${extra}`;
+        }).join('\n') + (p.passiveUpgrade ? `\nupgrading ${p.passiveUpgrade.nodeId} → r${p.passiveUpgrade.targetRank} in ${Pa.formatDur(Pa.remainingMs(p))}` : '');
+      }
+      if (op === 'finish') return Pa.finishUpgrade(p);
+      if (op === 'wait') return Pa.waitHours(p, Number(a));
+      if (op === 'rank') {
+        const id = a;
+        const n = Number(b ?? 1);
+        if (!id) throw new Error('Usage: passive rank <nodeId> [n]');
+        return Pa.setRank(p, id, n);
+      }
+      throw new Error('Usage: passive [list|rank|finish|wait] …');
+    },
   },
   quest: {
     usage: 'quest [list|start|step|complete] [line]', help: 'List or drive skill questlines (ql_weight, ql_blood, ql_crack, ql_hot)', cheat: true,

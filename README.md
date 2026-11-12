@@ -1,4 +1,4 @@
-# Meadows — prototype v0.2.1
+# Meadows — prototype v0.2.2
 
 A 2D side-scrolling browser MMORPG prototype (MapleStory-style real-time grinding, later Travian-style offline growth).
 v0.2 is a **single-player** slice of the Meadows zone: **Meadow Town** (hub + Mara's shop), **Sunny Pasture** (levels 1-3), and **Dirt Banks** (levels 3-5), reached by the east path from the pasture.
@@ -58,6 +58,14 @@ Hovering a tile with the mouse selects it too, and the preview panel shows the i
 
 **Why these keys:** no modifier keys are used, so gameplay can't trigger browser shortcuts (Ctrl+W closes the tab, etc.). Phaser calls `preventDefault` on every bound key, and a small guard blocks stray Ctrl+letter page shortcuts (Ctrl+S, Ctrl+P, ...). The hotbar is 1–6 (skills or consumables); Q and G still fire slots 5 and 6, instead of the sheet's Q/R potion keys.
 
+
+## What's new in v0.2.2 (passive tree + Ila)
+
+The third playable milestone of v0.2.
+
+1. **Nature and Elemental trees (T).** Each has a production node (category essence only) and an efficiency node. Rank 1 produces 1.5 essence/hour on a steep 1.6× curve; rank 0 yields nothing. Production continues while you are away. One upgrade at a time, 10 minutes for rank 1 (then 16, and so on). Spiritual and Hunter's Luck stay parked.
+2. **Ila's 10:1 bench** is open in Meadow Town. Common Nature materials (including Dry Root) become Nature Essence; Earth Grit and listed shards become Elemental Essence. Enter exchanges one batch of ten.
+3. Write-up in `docs/v0.2.2-passives.md`.
 
 ## What's new in v0.2.1 (Warrior quests)
 

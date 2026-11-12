@@ -9,6 +9,8 @@ import { iconUrl, skillIconUrl } from '../art/sprites';
 import { displayName, formatAffix, instanceQuality, rangeOf, isGear } from '../systems/Gear';
 import * as Sk from '../systems/Skills';
 import * as Q from '../systems/Quests';
+import * as Pa from '../systems/Passives';
+import * as Ex from '../systems/Exchange';
 import { playSfx } from '../systems/Sfx';
 
 /**
@@ -29,8 +31,8 @@ import { playSfx } from '../systems/Sfx';
  */
 const $ = <T extends HTMLElement = HTMLElement>(sel: string) => document.querySelector(sel) as T;
 const esc = (s: string) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
-type Panel = 'inventory' | 'stats' | 'shop' | 'storage' | 'skills' | 'journal' | 'dialog' | 'pause' | 'confirm' | 'drop';
-const PANELS: Panel[] = ['inventory', 'stats', 'shop', 'storage', 'skills', 'journal', 'dialog', 'pause', 'confirm', 'drop'];
+type Panel = 'inventory' | 'stats' | 'shop' | 'storage' | 'skills' | 'journal' | 'passives' | 'exchange' | 'dialog' | 'pause' | 'confirm' | 'drop';
+const PANELS: Panel[] = ['inventory', 'stats', 'shop', 'storage', 'skills', 'journal', 'passives', 'exchange', 'dialog', 'pause', 'confirm', 'drop'];
 const TYPE_ORDER = ['consumable', 'gear', 'currency', 'material', 'misc'];
 const TYPE_LABEL: Record<string, string> = { consumable: 'Consumable', gear: 'Gear', currency: 'Currency', material: 'Material', misc: 'Sellable junk' };
 
@@ -38,6 +40,8 @@ export class Hud {
   private stack: Panel[] = [];
   private sel: Partial<Record<Panel, string>> = {}; // selected data-key per panel
   private shopTab: 'buy' | 'sell' = 'buy';
+  private treeTab: 'nature' | 'elemental' = 'nature';
+  private lastSettleAt = 0;
   private areaName = '';
   private dialogHtml = '';
   private consoleHistory: string[] = [];
@@ -55,13 +59,14 @@ export class Hud {
         <div class="bar mp"><i></i><span></span></div>
         <div class="bar xp"><i></i><span></span></div>
         <div id="coins"></div>
+        <div id="prod-line"></div>
         <div id="buffs"></div>
       </div>
       <div id="hotbar"></div>
       <div id="toasts"></div>
       <div id="levelup" hidden></div>
       <div id="quest-track" hidden></div>
-      <div id="help">F attack (hold) · 1–6 hotbar (Q/G = 5/6) · E pick up/talk · I inventory · C stats · K skills · J journal · Esc menu${DEV_CONSOLE ? ' · ` console' : ''}</div>
+      <div id="help">F attack (hold) · 1–6 hotbar (Q/G = 5/6) · E pick up/talk · I inventory · C stats · K skills · J journal · T tree · Esc menu${DEV_CONSOLE ? ' · ` console' : ''}</div>
       <div id="dead" hidden>Defeated…</div>
       ${PANELS.map((p) => `<div class="panel" id="p-${p}" hidden></div>`).join('')}
       <div id="console" hidden><div id="console-out"></div><input id="console-in" autocomplete="off" spellcheck="false" placeholder="type help, Enter to run, Esc to close" /></div>`;
@@ -133,6 +138,7 @@ export class Hud {
       if (k === 'c' || k === 'C') { this.toggle('stats'); return; }
       if (k === 'k' || k === 'K') { this.toggle('skills'); return; }
       if (k === 'j' || k === 'J') { this.toggle('journal'); return; }
+      if (k === 't' || k === 'T') { this.toggle('passives'); return; }
     }
     if (!top) return;
     const dirs: Record<string, [number, number]> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
@@ -162,6 +168,7 @@ export class Hud {
     }
     if (k === 'Enter') { e.preventDefault(); this.selectedEl(top)?.click(); return; }
     if (k === 'Tab' && top === 'shop') { e.preventDefault(); this.shopTab = this.shopTab === 'buy' ? 'sell' : 'buy'; this.sel.shop = undefined; this.renderPanels(); }
+    if (k === 'Tab' && top === 'passives') { e.preventDefault(); this.treeTab = this.treeTab === 'nature' ? 'elemental' : 'nature'; this.sel.passives = undefined; this.renderPanels(); }
   }
 
   private navEls(panel: Panel): HTMLElement[] {
@@ -210,7 +217,7 @@ export class Hud {
       this.renderPanels();
       return;
     }
-    if (cur && (panel === 'shop' || panel === 'inventory' || panel === 'storage' || panel === 'skills' || panel === 'journal')) this.renderPreview(panel, cur);
+    if (cur && (panel === 'shop' || panel === 'inventory' || panel === 'storage' || panel === 'skills' || panel === 'journal' || panel === 'passives' || panel === 'exchange')) this.renderPreview(panel, cur);
   }
 
   // ───────────────────────── HUD ─────────────────────────
@@ -244,6 +251,24 @@ export class Hud {
       track.hidden = !obj;
       if (obj) track.innerHTML = `<b>Journal</b> <small>(J)</small><div>${esc(obj)}</div>`;
     }
+    const wall = Date.now();
+    if (wall - this.lastSettleAt > 4000) {
+      this.lastSettleAt = wall;
+      Pa.settle(p);
+    }
+    if (p.passiveReport) {
+      const msg = p.passiveReport;
+      p.passiveReport = undefined;
+      this.toast(msg, 'rare');
+    }
+    const prodBits = Pa.liveNodes().filter((n) => n.effect_type === 'production' && Pa.rankOf(p, n.id) >= 1)
+      .map((n) => `${n.name.replace(' Essence', '')} ${Pa.rateAt(Pa.rankOf(p, n.id)).toFixed(1)}/h`);
+    let prodHtml = prodBits.length ? `<div id="prod-track">${prodBits.join(' · ')}</div>` : '';
+    if (p.passiveUpgrade) {
+      prodHtml += `<div id="prod-track">Upgrading ${esc(Pa.node(p.passiveUpgrade.nodeId)?.name ?? '')} ${Pa.formatDur(Pa.remainingMs(p, wall))}</div>`;
+    }
+    const line = $('#prod-line');
+    if (line) line.innerHTML = prodHtml;
 
     const cd = (id: string) => Math.max(0, (Game.cooldowns[id] ?? 0) - now);
     const slot = (key: string, label: string, sub: string, cdMs: number, total: number, icon = '') =>
@@ -389,6 +414,7 @@ export class Hud {
 
   private npc(id: string, role: string, name: string) {
     if (role === 'shop') { this.shopTab = 'buy'; this.open('shop'); return; }
+    if (role === 'exchange') { this.open('exchange'); return; }
     if (role === 'trainer') {
       if (Q.wantsTalk(Game.player, id)) {
         const words = Q.talk(Game.player, id) ?? '…';
@@ -437,6 +463,8 @@ export class Hud {
     if (this.stack.includes('shop')) this.renderShop();
     if (this.stack.includes('skills')) this.renderSkills();
     if (this.stack.includes('journal')) this.renderJournal();
+    if (this.stack.includes('passives')) this.renderPassives();
+    if (this.stack.includes('exchange')) this.renderExchange();
     if (this.stack.includes('storage')) this.renderStorage();
     if (this.stack.includes('drop') && this.dropItem) {
       const id = this.dropItem;
@@ -593,6 +621,8 @@ export class Hud {
     if (!box) return;
     if (panel === 'skills') { this.renderSkillPreview(box, el); return; }
     if (panel === 'journal') { this.renderJournalPreview(box, el); return; }
+    if (panel === 'passives') { this.renderPassivePreview(box, el); return; }
+    if (panel === 'exchange') { this.renderExchangePreview(box, el); return; }
     const id = el.dataset.item;
     if (!id) {
       box.innerHTML = el.dataset.slot ? `<div class="pv-name">${esc(el.dataset.slot)} slot</div><p class="muted">Empty. Equip gear from your bag.</p>`
@@ -682,6 +712,98 @@ export class Hud {
   }
 
 
+
+  private renderPassives() {
+    const p = Game.player;
+    Pa.settle(p, Date.now(), true);
+    const tree = this.treeTab;
+    const tiles = Pa.nodesOf(tree).map((n) => {
+      const r = Pa.rankOf(p, n.id);
+      const up = p.passiveUpgrade?.nodeId === n.id;
+      const costs = r < (n.max_rank ?? 10) ? Pa.nextCost(n.id, r + 1) : [];
+      const afford = costs.length > 0 && costs.every((c) => (c.itemId === 'copper_coin' ? p.coins : (p.inventory[c.itemId] ?? 0)) >= c.qty);
+      const dim = (!afford && r < (n.max_rank ?? 10) && !up) || !!p.passiveUpgrade && !up;
+      const qty = n.effect_type === 'production'
+        ? (r >= 1 ? `${Pa.rateAt(r).toFixed(1)}/h` : 'r0')
+        : (r >= 1 ? `+${2 * r}%` : 'r0');
+      return `<button class="tile${dim ? ' dim' : ''} t-${n.effect_type}${up ? ' t-upgrading' : ''}" data-nav data-key="pn:${n.id}" data-node="${n.id}" data-mode="passive"${!p.passiveUpgrade && afford && r < (n.max_rank ?? 10) ? ` data-upgrade="${n.id}"` : ''}>
+        <img src="art/icons/passive_${n.id}.png" alt="">
+        <span class="qty">${up ? '…' : qty}</span><span class="price">${esc(n.name)}</span></button>`;
+    }).join('');
+    const rateLine = Pa.nodesOf(tree).filter((n) => n.effect_type === 'production').map((n) => {
+      const r = Pa.rankOf(p, n.id);
+      const eta = Pa.etaNextEssence(p, n.id);
+      return r >= 1 ? `${n.name}: ${Pa.rateAt(r).toFixed(2)}/h${eta ? ` · next in ${eta}` : ''}` : `${n.name}: none at rank 0`;
+    }).join(' · ');
+    $('#p-passives').innerHTML = `<div class="frame-title">Passive tree <small>(T)</small><button class="x" data-close="passives">×</button></div>
+      <div class="tabs">
+        <button data-nav data-key="tab:nature" data-tree="nature" class="${tree === 'nature' ? 'on' : ''}">Nature</button>
+        <button data-nav data-key="tab:elemental" data-tree="elemental" class="${tree === 'elemental' ? 'on' : ''}">Elemental</button>
+      </div>
+      <p class="muted">${esc(rateLine)}. Essence accrues while you play and while you are away.</p>
+      <div class="split"><div class="grid sk">${tiles}</div><div class="preview" id="passives-preview"></div></div>
+      ${hint('←↑↓→ select · Enter upgrade · Tab switch tree · Esc close')}`;
+  }
+
+  private renderPassivePreview(box: HTMLElement, el: HTMLElement) {
+    const id = el.dataset.node ?? el.dataset.tree;
+    if (el.dataset.tree && !el.dataset.node) {
+      box.innerHTML = `<p class="muted">The ${el.dataset.tree} tree. Select a node.</p>`;
+      return;
+    }
+    const n = id ? Pa.node(id) : undefined;
+    if (!n) { box.innerHTML = '<p class="muted">Select a node.</p>'; return; }
+    const p = Game.player;
+    const r = Pa.rankOf(p, n.id);
+    const max = n.max_rank ?? 10;
+    const costs = r < max ? Pa.nextCost(n.id, r + 1) : [];
+    const costRows = costs.map((c) => {
+      const have = c.itemId === 'copper_coin' ? p.coins : (p.inventory[c.itemId] ?? 0);
+      const ok = have >= c.qty;
+      const name = c.itemId === 'copper_coin' ? 'Copper' : DB.items[c.itemId]?.name ?? c.itemId;
+      return `<tr class="${ok ? '' : 'warn'}"><td><img src="${iconUrl(c.itemId === 'copper_coin' ? 'copper_coin' : c.itemId)}"> ${esc(name)}</td><td>${have} / ${c.qty}</td></tr>`;
+    }).join('');
+    const mins = Pa.upgradeMinutes(r + 1);
+    const up = p.passiveUpgrade;
+    let act = r >= max ? 'Max rank' : (up ? (up.nodeId === n.id ? `Upgrading — ${Pa.formatDur(Pa.remainingMs(p))}` : 'Another upgrade is in progress') : 'Enter: start upgrade');
+    box.innerHTML = `<div class="pv-name">${esc(n.name)}</div>
+      <div class="pv-type">${n.tree_id} · ${n.effect_type} · rank ${r}/${max}</div>
+      <p>${esc(Pa.flavor(n))}</p>
+      <div class="pv-eff">${esc(Pa.preview(p, n.id))}</div>
+      ${r < max ? `<table class="pv-stats"><tr><th colspan="2">Cost for rank ${r + 1} · ${Pa.formatDur(mins * 60000)} to finish</th></tr>${costRows}</table>` : ''}
+      <div class="pv-act">${act}</div>`;
+  }
+
+  private renderExchange() {
+    const p = Game.player;
+    const recs = Ex.recipes();
+    const tiles = recs.map((r) => {
+      const have = p.inventory[r.input_item_id] ?? 0;
+      const n = Ex.maxBatches(p, r);
+      const dim = n <= 0;
+      return `<button class="tile${dim ? ' dim' : ''} t-material" data-nav data-key="ex:${r.id}" data-ex="${r.id}" data-mode="exchange"${n > 0 ? ` data-trade="${r.id}"` : ''}>
+        <img src="${iconUrl(r.input_item_id)}" alt="">
+        <span class="qty">${have}</span><span class="price">${esc(DB.items[r.input_item_id].name)}</span></button>`;
+    }).join('');
+    $('#p-exchange').innerHTML = `<div class="frame-title">Ila's Exchange<button class="x" data-close="exchange">×</button></div>
+      <p class="muted">Ten common materials (or listed shards) for one matching essence. Steep, by design.</p>
+      <div class="split"><div class="grid sk">${tiles}</div><div class="preview" id="exchange-preview"></div></div>
+      ${hint('←↑↓→ select · Enter exchange 1 · Esc close')}`;
+  }
+
+  private renderExchangePreview(box: HTMLElement, el: HTMLElement) {
+    const id = el.dataset.ex;
+    const r = id ? Ex.recipe(id) : undefined;
+    if (!r) { box.innerHTML = '<p class="muted">Select a material.</p>'; return; }
+    const p = Game.player;
+    const have = p.inventory[r.input_item_id] ?? 0;
+    const n = Ex.maxBatches(p, r);
+    box.innerHTML = `<div class="pv-name">${esc(DB.items[r.input_item_id].name)} → ${esc(DB.items[r.output_item_id].name)}</div>
+      <div class="pv-type">${r.input_qty} : ${r.output_qty}</div>
+      <p>You have ${have}. ${n ? `Enter exchanges one batch (${r.input_qty} for ${r.output_qty}). You can make ${n}.` : `Need ${r.input_qty} to exchange.`}</p>
+      <div class="pv-act">${n ? 'Enter: exchange 1' : 'Not enough'}</div>`;
+  }
+
   private renderJournal() {
     const entries = Q.journal(Game.player);
     const tiles = entries.map((e) => {
@@ -745,6 +867,18 @@ export class Hud {
       const err = Sk.train(p, d.train);
       if (err) this.toast(err, 'warn');
       else { this.toast(`Trained ${DB.skills[d.train].name} to rank ${Sk.rankOf(p, d.train)}`, 'rare'); playSfx('train'); Game.save(); }
+    }
+    else if (d.upgrade) {
+      const err = Pa.startUpgrade(p, d.upgrade);
+      if (err) this.toast(err, 'warn');
+    }
+    else if (d.trade) {
+      const err = Ex.trade(p, d.trade, 1);
+      if (err) this.toast(err, 'warn');
+    }
+    else if (d.tree) {
+      this.treeTab = d.tree as 'nature' | 'elemental';
+      this.sel.passives = undefined;
     }
     else if (d.act === 'drop1' || d.act === 'dropall') {
       const id = this.dropItem;

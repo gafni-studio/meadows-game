@@ -412,6 +412,93 @@ try {
   await key('Escape');
   console.log('root lash ok:', nature.root);
 
+  // ── Passive tree (T) + Ila 10:1 bench ──
+  await page.evaluate(() => window.__game?.events?.emit('close-all'));
+  await key('t', 350);
+  if (!(await visible()).includes('passives')) fail('T did not open the passive tree');
+  const treeText = await page.evaluate(() => document.querySelector('#p-passives')?.innerText ?? '');
+  if (!/Nature Essence/i.test(treeText) || !/Forager/i.test(treeText)) fail(`Nature tree missing nodes: ${treeText.slice(0, 400)}`);
+  if (/Item sources|DEPRECATED|gathering slots|To be tuned/i.test(treeText)) fail(`passive UI shows design notes: ${treeText.slice(0, 400)}`);
+  await shot('passive-tree');
+  await key('Tab', 200);
+  const elemText = await page.evaluate(() => document.querySelector('#p-passives')?.innerText ?? '');
+  if (!/Elemental Essence/i.test(elemText) || !/Attunement/i.test(elemText)) fail(`Elemental tab missing: ${elemText.slice(0, 400)}`);
+  if (/Spirit Essence|Hunter/i.test(elemText) && !/Elemental/.test(elemText)) fail('Spiritual/Luck should be parked');
+  await shot('passive-elemental');
+  await key('Tab', 150); // back to Nature
+  await key('Escape');
+
+  await key('`');
+  for (const line of [
+    'item pebble 50', 'item bark 40', 'item earth_shard 5',
+    'item nature_essence 50', 'copper 30',
+  ]) { await page.keyboard.type(line); await key('Enter'); }
+  await key('Escape', 150);
+  await page.evaluate(() => window.__game?.events?.emit('close-all'));
+  await key('t', 350);
+  await key('Enter', 400);
+  const upgrading = await page.evaluate(() => window.__state.player.passiveUpgrade);
+  if (!upgrading || upgrading.nodeId !== 'nature_prod' || upgrading.targetRank !== 1) fail(`upgrade did not start: ${JSON.stringify(upgrading)}`);
+  await shot('passive-upgrade');
+  await key('Escape');
+  await key('`');
+  await page.keyboard.type('passive finish'); await key('Enter');
+  await key('Escape', 150);
+  const r1 = await page.evaluate(() => ({
+    rank: window.__state.player.passiveRanks?.nature_prod ?? 0,
+    up: window.__state.player.passiveUpgrade ?? null,
+  }));
+  if (r1.rank !== 1 || r1.up) fail(`finish did not complete Nature prod r1: ${JSON.stringify(r1)}`);
+
+  // 80 minutes at 1.5/h = exactly 2 Nature Essence
+  const neBefore = await page.evaluate(() => window.__state.player.inventory.nature_essence ?? 0);
+  await key('`');
+  await page.keyboard.type(`passive wait ${80 / 60}`); await key('Enter'); // 80 min at 1.5/h = 2
+  await key('Escape', 150);
+  const neAfter = await page.evaluate(() => ({
+    ne: window.__state.player.inventory.nature_essence ?? 0,
+    frac: window.__state.player.passiveFrac?.nature_prod ?? 0,
+    report: window.__state.player.passiveReport,
+  }));
+  const gained = neAfter.ne - neBefore;
+  if (gained !== 2) fail(`expected 2 essence in 80min at 1.5/h, got ${gained}: ${JSON.stringify({ neBefore, neAfter })}`);
+  await shot('passive-yield');
+  console.log('passives ok:', r1, 'gained', gained);
+
+  // Ila 10:1 — Dry Root and Twig
+  await page.evaluate(() => { window.__state.scene.player.x = 27 * 32; window.__game.events.emit('close-all'); });
+  await page.waitForTimeout(200);
+  await key('`');
+  await page.keyboard.type('item twig 20'); await key('Enter');
+  await page.keyboard.type('item dry_root 10'); await key('Enter');
+  await key('Escape', 150);
+  await page.evaluate(() => window.__game?.events?.emit('close-all'));
+  await key('e', 400);
+  if (!(await visible()).includes('exchange')) fail('E at Ila did not open the exchange bench');
+  const exText = await page.evaluate(() => document.querySelector('#p-exchange')?.innerText ?? '');
+  if (!/Twig/i.test(exText) || !/Dry Root/i.test(exText)) fail(`exchange missing Twig/Dry Root: ${exText.slice(0, 400)}`);
+  await shot('ila-exchange');
+  // select twig and Enter
+  const traded = await page.evaluate(() => {
+    const t = document.querySelector('#p-exchange [data-ex="ex_twig"]');
+    if (!t) return null;
+    t.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    return t.dataset.ex;
+  });
+  if (traded !== 'ex_twig') fail(`could not select Twig recipe: ${traded}`);
+  const beforeEx = await page.evaluate(() => ({
+    twig: window.__state.player.inventory.twig ?? 0,
+    ne: window.__state.player.inventory.nature_essence ?? 0,
+  }));
+  await key('Enter', 300);
+  const afterEx = await page.evaluate(() => ({
+    twig: window.__state.player.inventory.twig ?? 0,
+    ne: window.__state.player.inventory.nature_essence ?? 0,
+  }));
+  if (afterEx.twig !== beforeEx.twig - 10 || afterEx.ne !== beforeEx.ne + 1) fail(`10:1 Twig exchange failed: ${JSON.stringify({ afterEx, beforeEx })}`);
+  await key('Escape');
+  console.log('ila ok:', afterEx);
+
   // ── Reset must wipe everything and not let beforeunload rewrite the old save ──
   const dirty = await s();
   if (dirty.coins === 0 && dirty.xp === 0 && !dirty.cheated) fail(`pre-reset state is already fresh: ${JSON.stringify(dirty)}`);
@@ -429,13 +516,14 @@ try {
       area: p.area, level: p.level, xp: p.xp, coins: p.coins, cheated: p.cheated,
       unspent: p.unspent, inv: { ...p.inventory }, storage: { ...p.storage },
       ranks: { ...p.skillRanks }, flags: { ...p.questFlags }, log: { ...p.questLog },
+      passives: { ...p.passiveRanks },
       keys: Object.keys(localStorage).filter((k) => k.startsWith('meadows')),
     };
   });
   let fresh = await freshOf();
   const isFresh = (f) => f.level === 1 && f.coins === 0 && f.xp === 0 && !f.cheated
     && f.area === 'meadow_town' && !Object.keys(f.inv).length && !Object.keys(f.storage).length
-    && (f.ranks.power_strike ?? 0) === 0;
+    && (f.ranks.power_strike ?? 0) === 0 && !Object.values(f.passives ?? {}).some((n) => n);
   if (!isFresh(fresh)) fail(`console reset did not start fresh: ${JSON.stringify(fresh)}`);
   console.log('console reset ok:', fresh);
 

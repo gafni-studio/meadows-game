@@ -208,5 +208,18 @@ SKILLS = {
 }
 for sid, im in SKILLS.items():
     save(pad(im), 'icons', f'skill_{sid}.png')
+
+# Passive-tree node icons
+PASSIVES = {
+    'nature_prod': hue(G('pp67'), 115, 1.2),
+    'elemental_prod': hue(G('pp67'), 28, 1.4),
+    'spiritual_prod': hue(G('pp67'), 285, 1.1),
+    'nature_eff_drops': hue(G('td125'), 115, 0.8, 1.15),
+    'elemental_eff_drops': hue(G('td125'), 28, 1.1, 1.15),
+    'spiritual_eff_drops': hue(G('td125'), 285, 0.9, 1.1),
+    'hunters_luck': hue(G('td66'), 45, 1.0, 1.15),
+}
+for pid, im in PASSIVES.items():
+    save(pad(im), 'icons', f'passive_{pid}.png')
 print(f'Wrote art to public/art ({len(items)} icons + {len(SKILLS)} skills). Fallback icon used for: {missing or "none"}')
 

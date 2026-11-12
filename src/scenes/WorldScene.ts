@@ -546,7 +546,7 @@ export class WorldScene extends Phaser.Scene {
     if (lv > 0) this.levelUpFx(lv);
     Q.onKill(p, m.def.id);
     Q.onLevel(p);
-    for (const d of rollDrops(m.def.id, p.cheats.dropMul)) this.spawnDrop(m.x, m.y - 20, d.itemId, d.qty, d.rare, d.inst);
+    for (const d of rollDrops(m.def.id, p.cheats.dropMul, p)) this.spawnDrop(m.x, m.y - 20, d.itemId, d.qty, d.rare, d.inst);
     Game.changed();
   }
 

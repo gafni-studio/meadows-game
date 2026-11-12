@@ -1,6 +1,8 @@
 import { dropsFor, DB } from '../data/db';
 import { LOOT } from '../data/assumptions';
 import { isGear, makeGear, GearInstance } from './Gear';
+import { dropMulFor } from './Passives';
+import * as P from './Player';
 
 export interface RolledDrop { itemId: string; qty: number; rare: boolean; inst?: GearInstance; instances?: GearInstance[] }
 
@@ -18,13 +20,14 @@ export function rollQty(lo: number, hi: number): number {
  *   becomes a bonus roll. Gear always yields one instance per successful roll (stats rolled now, magic ~1/12);
  *   a bonus roll spawns a second instance.
  */
-export function rollDrops(monsterId: string, rateMul = 1): RolledDrop[] {
+export function rollDrops(monsterId: string, rateMul = 1, player?: P.PlayerData): RolledDrop[] {
   const out: RolledDrop[] = [];
   const extra = Math.max(0, rateMul - 1);
   for (const row of dropsFor(monsterId)) {
     if (row.unlock_requirement_id) continue;
     if (!DB.items[row.item_id]) continue;
-    const chance = row.drop_rate * rateMul;
+    const cat = player ? dropMulFor(player, row.item_id) : 1;
+    const chance = row.drop_rate * rateMul * cat;
     if (Math.random() * 100 >= chance) continue;
     if (isGear(row.item_id)) {
       const n = 1 + (chance > 100 && Math.random() * 100 < chance - 100 ? 1 : 0);

@@ -35,6 +35,16 @@ export interface PlayerData {
   questFlags: Record<string, boolean>;
   /** B-004 skill questlines: step is 1-based, done grants the skill at rank 1. */
   questLog?: import('./Quests').QuestLog;
+  /** Passive tree ranks (nature_prod, elemental_prod, efficiency nodes). */
+  passiveRanks?: Record<string, number>;
+  /** Fractional essence accrued per production node, 0–1. */
+  passiveFrac?: Record<string, number>;
+  /** Timestamp (ms) production was last settled. */
+  passiveAt?: number;
+  /** One in-progress upgrade, paid and ticking (including offline). */
+  passiveUpgrade?: import('./Passives').Upgrade;
+  /** Offline yield message, toasted once on the next HUD tick. */
+  passiveReport?: string;
   /** Test-console bonuses (DEV_CONSOLE). */
   cheats: { atk: number; def: number; maxHp: number; dropMul: number; god: boolean };
   /** True once any console command changed this save. */
@@ -50,6 +60,7 @@ export function newPlayer(): PlayerData {
     inventory: {}, bagSlots: [], storage: {}, storageSlots: [], gearItems: {}, equipment: {}, area: 'meadow_town', x: 200,
     skillRanks: {}, skillBar: [null, null, null, null, 'meadow_dew', 'clear_dew'],
     questFlags: {}, questLog: {},
+    passiveRanks: {}, passiveFrac: {},
     cheats: { atk: 0, def: 0, maxHp: 0, dropMul: 1, god: false },
     cheated: false,
   };

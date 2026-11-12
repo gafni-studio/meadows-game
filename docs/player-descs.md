@@ -168,3 +168,11 @@ The sheet is the source of truth. `desc` is shown in game (tooltips and NPC/ques
 - **Dig In.** A short window of doubled defense. You will not be pushed.
 - **Practice Post.** A worn post by Meadow Town's east gate. F, not a skill.
 - **Wool-Shoulder / Bank-Cracker / Cinderback.** Named foes. They only appear when your journal asks for them.
+
+## v0.2.2 — passives and Ila
+
+- **Nature Essence (tree).** Slowly produces Nature Essence while you play or are away. Rank 0 yields nothing.
+- **Elemental Essence (tree).** Slowly produces Elemental Essence while you play or are away. Rank 0 yields nothing.
+- **Forager's Eye.** While hunting, Nature materials and Nature Essence drop a little more often.
+- **Elemental Attunement.** While hunting, Elemental materials and Elemental Essence drop a little more often.
+- **Ila.** Ten of a common material for one essence. Nature, Elemental, or Spirit — look at what you're holding.
