@@ -1,6 +1,6 @@
 {
   "source": "sheet/Game_Design_DB_v0.xlsx",
-  "exportedAt": "2026-11-12T16:22:08.697Z",
+  "exportedAt": "2026-11-12T18:45:32.073Z",
   "tabs": [
     "material_categories: 4 rows",
     "material_subtypes: 13 rows",
@@ -18,15 +18,15 @@
     "unlock_requirements: 34 rows",
     "ability_stats: 4 rows",
     "game_rules: 16 rows",
-    "combat_formulas: 59 rows",
+    "combat_formulas: 62 rows",
     "zones: 1 rows",
     "map_layout: 6 rows",
     "monsters: 16 rows",
-    "drop_tables: 245 rows",
+    "drop_tables: 249 rows",
     "starter_quests: 9 rows",
     "controls: 20 rows",
     "prototype_plan: 10 rows",
     "npcs: 4 rows",
-    "skill_quests: 17 rows"
+    "skill_quests: 24 rows"
   ]
 }

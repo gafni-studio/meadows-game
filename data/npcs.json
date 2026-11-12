@@ -14,28 +14,28 @@
       "name": "Mara",
       "role": "shop",
       "desc": "I buy junk and sell supplies for the pasture.",
-      "notes": "Meadows vendor. Opens the shop (npc_shop). Design only — this line is unused while role=shop opens the shop directly."
+      "notes": "Meadows vendor. Opens the shop (npc_shop). Design only — this line is unused while role=shop opens the shop directly.  v0.2.5: gives A Warm Coat after The Quiet Work. Multi-line dialogue. E opens dialogue when she wants to talk, otherwise the shop. Shop sell tab shows what Mara pays; inventory still hides sell price."
     },
     {
       "id": "pell",
       "name": "Pell",
       "role": "hint",
       "desc": "Welcome to Meadow Town! Head east to Sunny Pasture — mice and sheep leave you be unless you hit them, but watch the crows. The dirt path at the far east of the pasture leads on to the Dirt Banks. Press E to pick up drops, sell junk to Mara, and train with Calden.",
-      "notes": "Town greeter. Grants sq_welcome on first talk. Tutorial-length dialog is longer than item descs on purpose. v0.2.0: mentions the open dirt path to the Dirt Banks.  v0.2.4: After a first passive point, Pell offers The Dirt Path."
+      "notes": "Town greeter. Grants sq_welcome on first talk. Tutorial-length dialog is longer than item descs on purpose. v0.2.0: mentions the open dirt path to the Dirt Banks.  v0.2.4: After a first passive point, Pell offers The Dirt Path.  v0.2.5: gives What the Dirt Keeps after The Dirt Path. Multi-line dialogue at quest start and turn-in. Default greeting is a few short lore lines."
     },
     {
       "id": "calden",
       "name": "Calden",
       "role": "trainer",
       "desc": "Bring me Monster Essence and Training Scrolls to rank your skills. Nature, Elemental and Spiritual skills need their own essence and materials.",
-      "notes": "Skill trainer. Role=trainer opens the skills window directly; desc is kept for later use and documentation."
+      "notes": "Skill trainer. Role=trainer opens the skills window directly; desc is kept for later use and documentation.  v0.2.5: multi-line dialogue on every skill-quest step (start, progress, turn-in). Gruff, patient, cares about a real blow."
     },
     {
       "id": "ila",
       "name": "Ila",
       "role": "exchange",
       "desc": "Ten of a common material for one essence. Nature, Elemental, or Spirit — look at what you're holding.",
-      "notes": "v0.2.2: 10:1 essence bench is open (exchange tab). role=exchange opens the bench. desc is player-facing; kept even though the window opens directly, for documentation."
+      "notes": "v0.2.2: 10:1 essence bench is open (exchange tab). role=exchange opens the bench. desc is player-facing; kept even though the window opens directly, for documentation.  v0.2.5: gives The Quiet Work (passive-tree intro) after The Weight of a Swing. Multi-line dialogue. E opens dialogue when she wants to talk, otherwise the exchange bench."
     }
   ]
 }

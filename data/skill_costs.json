@@ -167,7 +167,7 @@
     {
       "skill_id": "earthbreaker",
       "rank": 1,
-      "material_id": "bark",
+      "material_id": "clay",
       "quantity": 30
     },
     {
@@ -185,7 +185,7 @@
     {
       "skill_id": "earthbreaker",
       "rank": 1,
-      "material_id": "branch",
+      "material_id": "earth_shard",
       "quantity": 3
     },
     {
