@@ -1,7 +1,7 @@
-# Meadows — prototype v0.1.3
+# Meadows — prototype v0.2.0
 
 A 2D side-scrolling browser MMORPG prototype (MapleStory-style real-time grinding, later Travian-style offline growth).
-v0.1 is a **single-player** slice of the Meadows zone: **Meadow Town** (hub + Mara's shop) and **Sunny Pasture** (levels 1-3).
+v0.2 is a **single-player** slice of the Meadows zone: **Meadow Town** (hub + Mara's shop), **Sunny Pasture** (levels 1-3), and **Dirt Banks** (levels 3-5), reached by the east path from the pasture.
 
 Stack: **Phaser 3 + TypeScript + Vite**. Save is in `localStorage`. Art is CC0 pixel art (Kenney + Tiny Creatures, see [CREDITS.md](CREDITS.md)) behind a sprite registry.
 
@@ -58,6 +58,17 @@ Hovering a tile with the mouse selects it too, and the preview panel shows the i
 
 **Why these keys:** no modifier keys are used, so gameplay can't trigger browser shortcuts (Ctrl+W closes the tab, etc.). Phaser calls `preventDefault` on every bound key, and a small guard blocks stray Ctrl+letter page shortcuts (Ctrl+S, Ctrl+P, ...). The hotbar is 1–6 (skills or consumables); Q and G still fire slots 5 and 6, instead of the sheet's Q/R potion keys.
 
+
+## What's new in v0.2.0 (Dirt Banks)
+
+The first playable milestone of the next Meadows area. Questlines, Root Lash / Dig In, and the Nature + Elemental passive trees follow in later v0.2 milestones.
+
+1. **Dirt Banks is open.** The east portal in Sunny Pasture leads through to a dug-up stretch of bank (dirt ground, brown hills, rocks and clods). Burrow Moles, Earth Sprites and Ember Beetles hunt there (sheet spawn counts 6 / 4 / 4). The east path on to Meadow Shrine is still closed. Pell now points you at the dirt path.
+2. **Shared materials plus Banks-weighted extras** (Pitch Book B-001, rates on the v0.1.3 rules): **Dry Root** (common Nature wood, sell 2, 10:1 essence — Mole 32%, Sprite 16%, Crow 12%, Sheep 10%) and **Tough Root** (uncommon, sell 5 — Mole 5%, Sprite 3%, Crow 2%). **Warm Stone** is sell-only junk (sell 70) on Ember Beetle 1.6%, Earth Sprite 1.0%, Frost Moth 0.8%.
+3. **Stone Club**, a Warrior mid weapon a step above Meadow Blade: damage 15–18 (typical 16), ×1.15, STR 5, sell 80. Drops: Mole 0.24%, Sprite 0.16%, Crow 0.06%.
+4. **Gear pools** on the new (and retuned) Banks mobs sit in the v0.1.3 band of about 1 piece per 150–200 kills: mole 0.56% (1/179), sprite 0.60% (1/167), beetle 0.62% (1/161). Crow's pool stays 0.67% after adding the club (hide cap/boots trimmed 0.08→0.07). Magic is still 1/12. Monster Essence stays more common than category essence. Full table in `docs/v0.2.0-dirt-banks.md`.
+5. **Quest-start drops are live** (questlines themselves are the next milestone): **Cracked Bank Stone** (Mole 1.2%, Sprite 0.8%) and **Smoldering Scale** (Beetle 1.2%, Spark Bug 0.8%). Not sellable.
+6. Dirt Banks mobs use `anim_speed` 0.5, `attack_min`/`attack_max` dice, and slightly distinct move speeds (mole 15, sprite 19, beetle 16).
 
 ## What's new in v0.1.3 (playtest notes)
 
@@ -131,7 +142,7 @@ Console: `rank <skill> [n]` sets a rank (cheat); `train <skill>` pays the real c
 ## What's in v0.1
 
 - Meadow Town (safe hub): Mara's shop (buys and sells per the `npc_shop` rules), Pell (hint, plus the first starter quest "A First Step" as a one-time reward), Calden (skill trainer — E opens the training window, also available anywhere with K), and Ila (essence exchange, later). East gate to Sunny Pasture.
-- Sunny Pasture: Field Mouse ×8, Wool Sheep ×5 and Crow ×3 (from `map_layout.spawn_counts`), with timed respawns (`monsters.respawn_s`). Passive mobs fight back once hit; aggressive mobs (Crow) aggro within 8 tiles. They leash at 20 tiles from spawn and walk home with HP reset. One-way platforms. The east path to Dirt Banks is marked "v0.2".
+- Sunny Pasture: Field Mouse ×8, Wool Sheep ×5 and Crow ×3 (from `map_layout.spawn_counts`), with timed respawns (`monsters.respawn_s`). Passive mobs fight back once hit; aggressive mobs (Crow) aggro within 8 tiles. They leash at 20 tiles from spawn and walk home with HP reset. One-way platforms. The east path leads to the Dirt Banks (v0.2.0); Meadow Shrine further east is still closed.
 - Warrior only. Real-time melee, single target, with damage numbers and crits.
   - Power Strike: 140% damage, 8 MP, 1s cooldown.
   - Rage: +15% damage dealt and +10% damage taken for 60s, 12 MP.
@@ -183,7 +194,7 @@ These live in `src/data/assumptions.ts` (`HIT`, `HIT_MONSTER`, `PLAYER_ACC`, `PL
   - Field Mouse: 8 / 7 / 0.0 / 4px / 250-550ms.
   - Wool Sheep: 9 / 6 / 0.6 / 4px / 320-600ms.
   - Crow (ranged): 10 / 10 / 0.2 / keeps 150-230px, fires within 300px / 400-600ms; pebble 120 px/s, cooldown 2.2-3.6s.
-- **Speeds:** mouse 20, sheep 14, crow 27 px/s (chase ×1.6). Player 148 px/s, jump 435 px/s (≈73px). Animation: hero walk period 95ms; mobs use per-monster `anim_speed` (Crow 1, others 0.5).
+- **Speeds:** mouse 20, sheep 14, crow 27, burrow mole 15, earth sprite 19, ember beetle 16 px/s (chase ×1.6). Player 148 px/s, jump 435 px/s (≈73px). Animation: hero walk period 95ms; mobs use per-monster `anim_speed` (Crow 1, others 0.5).
 - **Knockback and hitstun:** basic 420 px/s, 320ms; Power Strike 1080 px/s, 500ms; Earthbreaker 600, 900ms; Flame Cleave 700, 450ms; Rage none. Hitstun × (1 − kbRes × 0.5). The player is pushed 170 px/s when hit.
 - **AI:** recover 150-450ms after a swing, then back off (45%), hop over (35%) or pause (20%). 15% of melee wind-ups are feints. Reposition 550-1100ms, pause 250-800ms, hesitation 0-500ms.
 - **HP regen:** 0.5% max HP/s after 5s out of combat, × (1 + 0.02 × SPI).

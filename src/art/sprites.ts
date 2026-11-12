@@ -55,6 +55,7 @@ export const SPRITES: Record<string, SpriteSlot> = {
 
   // World
   'tile.grass_top': { w: 36, h: 36, color: 0x5fae4a, file: `${A}world/grass_top.png` },
+  'tile.dirt_top': { w: 36, h: 36, color: 0x9a7048, file: `${A}world/dirt_top.png` },
   'tile.dirt': { w: 36, h: 36, color: 0x8a6440, file: `${A}world/dirt.png` },
   'tile.platform': { w: 32, h: 16, color: 0x9a7b4f, file: `${A}world/platform.png` },
   'deco.house_red': { w: 192, h: 144, color: 0xb98a5a, file: `${A}world/house_red.png` },
@@ -65,6 +66,8 @@ export const SPRITES: Record<string, SpriteSlot> = {
   'deco.fence': { w: 96, h: 32, color: 0xc9a46a, file: `${A}world/fence.png` },
   'deco.sign': { w: 36, h: 36, color: 0xc9a46a, file: `${A}world/sign.png` },
   'deco.hive': { w: 32, h: 32, color: 0xe0b040, file: `${A}world/hive.png` },
+  'deco.rock': { w: 40, h: 36, color: 0x888070, file: `${A}world/rock.png` },
+  'deco.clod': { w: 44, h: 32, color: 0x8a6440, file: `${A}world/clod.png` },
   'deco.chest': { w: 40, h: 40, color: 0xa0703a, file: `${A}world/chest.png` },
   'deco.chest_open': { w: 40, h: 40, color: 0xa0703a, file: `${A}world/chest_open.png` },
   portal: { w: 40, h: 80, color: 0xffe08a, shape: 'roundrect', file: `${A}world/portal.png` },

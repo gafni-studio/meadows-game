@@ -107,7 +107,10 @@ for mid, im in {
 
 # ───────── world ─────────
 save(tile('pp2'), 'world', 'grass_top.png')
+save(hue(tile('pp2'), 32, 0.85, 0.95), 'world', 'dirt_top.png')  # grass lip, dirt-colored
 save(tile('pp122'), 'world', 'dirt.png')
+save(crop_alpha(tile('pp7')), 'world', 'rock.png')
+save(crop_alpha(tile('pp6')), 'world', 'clod.png')
 save(crop_alpha(tile('pp146')), 'world', 'platform.png')
 save(comp([[52, 53, 53, 54], [64, 65, 65, 66], [72, 84, 85, 75]]), 'world', 'house_red.png')
 save(comp([[48, 49, 49, 50], [60, 61, 61, 62], [76, 88, 89, 79]]), 'world', 'house_stone.png')
@@ -150,6 +153,13 @@ ICONS = {
     'copper_bit': hue(G('pp151'), 22, 1.2), 'silver_thread': grey(G('tt129'), 1.3), 'shrine_pin': hue(G('td103'), 50, 1.2),
     'evening_bead': hue(G('td101'), 260, 1.2, 0.8), 'amber_drop': hue(G('pp67'), 38, 1.6), 'tarnished_ring': hue(G('pp170'), 45, 0.7, 0.8),
     'old_key': G('tt117'),
+    # v0.2.0 Dirt Banks
+    'dry_root': hue(G('fa104'), 30, 1.15, 0.9),
+    'tough_root': hue(G('fa104'), 25, 1.3, 0.65),
+    'warm_stone': hue(G('td102'), 28, 1.4, 1.15),
+    'stone_club': hue(G('td129'), 28, 0.9, 0.85),
+    'cracked_bank_stone': hue(G('pp7'), 30, 0.6, 1.0),
+    'smoldering_scale': hue(G('tt93'), 15, 1.6, 1.1),
     # gear
     'wooden_sword': hue(G('td104'), 30, 1.2), 'worn_staff': G('td129'), 'rusty_dagger': hue(G('td103'), 20, 0.9),
     'steel_sword': G('td104'), 'steel_staff': grey(G('td129'), 1.2), 'steel_dagger': G('td103'),

@@ -6,6 +6,8 @@ export interface AreaGeometry {
   widthTiles: number;
   sky: number;
   ground: 'grass' | 'dirt';
+  /** Far and near parallax hill colors. Defaults to meadow green. */
+  hills?: [number, number];
   safe: boolean;
   spawnX: number; // default arrival x
   chest?: number; // storage chest x (tiles)
@@ -59,5 +61,28 @@ export const AREAS: Record<string, AreaGeometry> = {
     npcs: [],
     portals: [{ x: 1, dir: 'west', arriveX: 40 }, { x: 128, dir: 'east', arriveX: 3 }],
     spawnZones: { field_mouse: [8, 55], wool_sheep: [25, 80], crow: [85, 124] },
+  },
+  dirt_banks: {
+    widthTiles: 114,
+    sky: 0xd4c4a0,
+    ground: 'dirt',
+    hills: [0xc4a06a, 0xa88050],
+    safe: false,
+    spawnX: 3 * 32,
+    platforms: [
+      { x: 16, y: 2, w: 6 }, { x: 36, y: 2, w: 5 }, { x: 42, y: 4, w: 4 },
+      { x: 62, y: 2, w: 6 }, { x: 84, y: 2, w: 5 }, { x: 90, y: 4, w: 5 },
+    ],
+    decor: [
+      { slot: 'deco.sign', x: 4 }, { slot: 'deco.rock', x: 10 }, { slot: 'deco.clod', x: 13 },
+      { slot: 'deco.bush', x: 22 }, { slot: 'deco.rock', x: 28 }, { slot: 'deco.clod', x: 34 },
+      { slot: 'deco.tree_round', x: 48 }, { slot: 'deco.rock', x: 55 }, { slot: 'deco.clod', x: 68 },
+      { slot: 'deco.bush', x: 74 }, { slot: 'deco.rock', x: 80 }, { slot: 'deco.clod', x: 97 },
+      { slot: 'deco.bush', x: 102 }, { slot: 'deco.rock', x: 108 }, { slot: 'deco.sign', x: 111 },
+    ],
+    npcs: [],
+    // west arrives just inside the pasture's east portal (at tile 128); east is Meadow Shrine (not yet open).
+    portals: [{ x: 2, dir: 'west', arriveX: 126 }, { x: 112, dir: 'east', arriveX: 3 }],
+    spawnZones: { burrow_mole: [8, 70], earth_sprite: [30, 90], ember_beetle: [70, 108] },
   },
 };

@@ -75,17 +75,20 @@ export class WorldScene extends Phaser.Scene {
     const far = this.add.graphics().setScrollFactor(0.2);
     far.fillStyle(0xffffff, 0.8);
     for (let i = 0; i < W / 400 + 3; i++) { const cx = i * 400 + 80, cy = 70 + (i % 3) * 30; far.fillRoundedRect(cx, cy, 90, 22, 11); far.fillRoundedRect(cx + 20, cy - 12, 50, 22, 11); }
+    const hillFar = this.geo.hills?.[0] ?? 0x8fcf74;
+    const hillNear = this.geo.hills?.[1] ?? 0x6fb85a;
     const hills = this.add.graphics().setScrollFactor(0.35);
-    hills.fillStyle(0x8fcf74, 1);
+    hills.fillStyle(hillFar, 1);
     for (let i = 0; i < W / 300 + 4; i++) hills.fillCircle(i * 300, this.groundY + 50, 170 + (i % 3) * 30);
     const hills2 = this.add.graphics().setScrollFactor(0.6);
-    hills2.fillStyle(0x6fb85a, 1);
+    hills2.fillStyle(hillNear, 1);
     for (let i = 0; i < W / 220 + 4; i++) hills2.fillCircle(i * 220 + 90, this.groundY + 70, 110 + (i % 2) * 25);
 
-    // Ground: grass row + dirt fill (tile art scaled to the slot size) + one static body.
-    const gs = SPRITES['tile.grass_top'];
-    const grass = this.add.tileSprite(0, this.groundY, W, gs.h, 'tile.grass_top').setOrigin(0, 0).setDepth(1);
-    grass.setTileScale(gs.w / this.textures.getFrame('tile.grass_top').width);
+    // Ground: a top row (grass or dirt) + dirt fill + one static body.
+    const topKey = this.geo.ground === 'dirt' ? 'tile.dirt_top' : 'tile.grass_top';
+    const gs = SPRITES[topKey];
+    const top = this.add.tileSprite(0, this.groundY, W, gs.h, topKey).setOrigin(0, 0).setDepth(1);
+    top.setTileScale(gs.w / this.textures.getFrame(topKey).width);
     const dirt = this.add.tileSprite(0, this.groundY + gs.h, W, GROUND_H, 'tile.dirt').setOrigin(0, 0).setDepth(1);
     dirt.setTileScale(SPRITES['tile.dirt'].w / this.textures.getFrame('tile.dirt').width);
     this.ground = this.add.rectangle(W / 2, this.groundY + GROUND_H / 2 + 4, W, GROUND_H, 0, 0);
@@ -120,7 +123,7 @@ export class WorldScene extends Phaser.Scene {
       const img = fitSlot(this, this.add.image(p.x * TILE, groundY, 'portal').setOrigin(0.5, 1).setDepth(2), 'portal').setAlpha(implemented ? 1 : 0.45);
       if (implemented) this.tweens.add({ targets: img, alpha: 0.75, yoyo: true, repeat: -1, duration: 900 });
       const tname = target ? DB.areas[target]?.name ?? target : '—';
-      this.add.text(p.x * TILE, groundY - 100, implemented ? `→ ${tname}` : `${tname}\n(v0.2)`, {
+      this.add.text(p.x * TILE, groundY - 100, implemented ? `→ ${tname}` : `${tname}\n(later)`, {
         fontFamily: 'monospace', fontSize: '12px', color: '#fff', stroke: '#000', strokeThickness: 3, align: 'center',
       }).setOrigin(0.5, 0).setDepth(3);
       this.portals.push({ x: p.x * TILE, dir: p.dir, arriveX: p.arriveX * TILE, target: implemented ? target : undefined });
@@ -659,7 +662,7 @@ export class WorldScene extends Phaser.Scene {
     if (this.nearChest()) { Game.events.emit('chest'); return; }
     const portal = this.nearPortal();
     if (portal) {
-      if (!portal.target) { Game.toast('That path opens in v0.2.', 'info'); return; }
+      if (!portal.target) { Game.toast('That path is not open yet.', 'info'); return; }
       this.travel(portal.target, portal.arriveX);
     }
   }
@@ -674,7 +677,7 @@ export class WorldScene extends Phaser.Scene {
     if (this.nearbyDrops().length) text = 'E: pick up';
     else if (this.nearNpc()) text = `E: talk to ${this.nearNpc()!.name.split(' ')[0]}`;
     else if (this.nearChest()) text = 'E: open storage';
-    else if (this.nearPortal()) text = this.nearPortal()!.target ? 'E: enter' : 'Closed (v0.2)';
+    else if (this.nearPortal()) text = this.nearPortal()!.target ? 'E: enter' : 'Closed (later)';
     this.prompt.setText(text).setVisible(!!text && !Game.dead && !Game.menuOpen).setPosition(this.player.x, this.player.y - 56);
   }
 

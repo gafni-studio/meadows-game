@@ -25,7 +25,7 @@ export const ASSUME = {
   // Not in sheet: hurt invulnerability after taking a hit, monster swing interval and speeds.
   hurtInvulnMs: 700,
   // v0.1.3: another ≈28% slower (v0.1.2 was mouse 28, sheep 20, crow 38, default 24).
-  monsterSpeed: { field_mouse: 20, wool_sheep: 14, crow: 27, default: 17 } as Record<string, number>,
+  monsterSpeed: { field_mouse: 20, wool_sheep: 14, crow: 27, burrow_mole: 15, earth_sprite: 19, ember_beetle: 16, default: 17 } as Record<string, number>,
   // Player movement (px/s, px/s², px/s). v0.1.3: 148 (was 190, ≈−22%).
   playerSpeed: 148,
   gravity: 1300,
@@ -67,8 +67,12 @@ export const MONSTER_FEEL: Record<string, MonsterFeel> = {
   field_mouse: { acc: 8, eva: 7, kbRes: 0.0, range: 4, windupMs: [250, 550] },
   wool_sheep: { acc: 9, eva: 6, kbRes: 0.6, range: 4, windupMs: [320, 600] },
   crow: { acc: 10, eva: 10, kbRes: 0.2, range: 4, windupMs: [400, 600] },
+  burrow_mole: { acc: 10, eva: 6, kbRes: 0.5, range: 4, windupMs: [350, 650] },
+  earth_sprite: { acc: 11, eva: 11, kbRes: 0.15, range: 4, windupMs: [280, 550] },
+  ember_beetle: { acc: 10, eva: 8, kbRes: 0.35, range: 4, windupMs: [300, 580] },
   default: { acc: 9, eva: 8, kbRes: 0.3, range: 4, windupMs: [300, 600] },
 };
+
 
 /**
  * Ranged attackers (monsters.attack_type = ranged in the sheet): keep a distance, telegraph,

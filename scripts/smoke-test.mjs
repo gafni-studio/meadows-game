@@ -232,6 +232,53 @@ try {
   if (end.xp + end.level * 1000 <= xpBefore) fail('Gained no XP — combat may be broken');
   await page.screenshot({ path: 'smoke-screenshot.png' });
 
+  // ── Dirt Banks: east portal from the pasture, mobs, whoDrops, west portal back ──
+  // A pasture fight may have left us dead (input is locked until town respawn).
+  if ((await s()).hp <= 0) {
+    await page.waitForFunction(() => window.__state.player.area === 'meadow_town' && window.__state.player.hp > 0, null, { timeout: 10000 });
+  }
+  await key('`');
+  await page.keyboard.type('heal'); await key('Enter');
+  await page.keyboard.type('god'); await key('Enter');
+  await page.keyboard.type('tp sunny_pasture'); await key('Enter');
+  await key('Escape', 500);
+  await page.waitForFunction(() => window.__state.player.area === 'sunny_pasture' && window.__state.player.hp > 0 && window.__game?.scene.isActive('World'), null, { timeout: 10000 });
+  await page.evaluate(() => { window.__state.scene.player.x = 127 * 32; });
+  await key('e', 900);
+  if ((await s()).area !== 'dirt_banks') fail(`east portal did not reach Dirt Banks: ${JSON.stringify(await s())}`);
+  const banksMobs = await page.evaluate(() => {
+    const sc = window.__game.scene.getScene('World');
+    const alive = sc.monsters.filter((m) => m.alive);
+    return { ids: [...new Set(alive.map((m) => m.def.id))].sort(), n: alive.length };
+  });
+  for (const id of ['burrow_mole', 'earth_sprite', 'ember_beetle']) {
+    if (!banksMobs.ids.includes(id)) fail(`Dirt Banks missing ${id}: ${JSON.stringify(banksMobs)}`);
+  }
+  if (banksMobs.n < 10) fail(`Dirt Banks spawn count low: ${JSON.stringify(banksMobs)}`);
+  await shot('dirt-banks');
+  // a few swings for a combat screenshot
+  await page.evaluate(() => {
+    const sc = window.__game.scene.getScene('World');
+    const m = sc.monsters.find((x) => x.alive);
+    if (m) sc.player.x = m.x - 36;
+  });
+  for (let i = 0; i < 6; i++) {
+    await page.keyboard.down('f'); await page.waitForTimeout(400); await page.keyboard.up('f');
+    await page.keyboard.press('1');
+  }
+  await shot('dirt-banks-combat');
+  await key('`');
+  await page.keyboard.type('whodrops stone club'); await key('Enter', 200);
+  await page.keyboard.type('whodrops dry root'); await key('Enter', 200);
+  const who2 = await page.evaluate(() => document.querySelector('#console-out')?.innerText ?? '');
+  if (!/Burrow Mole/i.test(who2) || !/0\.24%/.test(who2)) fail(`whodrops stone club: ${who2.slice(-500)}`);
+  if (!/Dry Root/i.test(who2) || !/32%/.test(who2) || !/Wool Sheep/i.test(who2)) fail(`whodrops dry root: ${who2.slice(-500)}`);
+  await key('Escape', 200);
+  await page.evaluate(() => { window.__state.scene.player.x = 2 * 32; });
+  await key('e', 900);
+  if ((await s()).area !== 'sunny_pasture') fail(`west portal did not return to Sunny Pasture: ${JSON.stringify(await s())}`);
+  console.log('dirt banks ok:', banksMobs);
+
   // ── Reset must wipe everything and not let beforeunload rewrite the old save ──
   const dirty = await s();
   if (dirty.coins === 0 && dirty.xp === 0 && !dirty.cheated) fail(`pre-reset state is already fresh: ${JSON.stringify(dirty)}`);
