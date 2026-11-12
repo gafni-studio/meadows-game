@@ -25,8 +25,14 @@ function tone(freq: number, start: number, dur: number, vol: number, type: Oscil
   o.stop(t0 + dur + 0.05);
 }
 
-export function playSfx(kind: 'levelup' | 'pickup' | 'train') {
+export function playSfx(kind: 'levelup' | 'pickup' | 'train' | 'quest') {
   if (kind === 'levelup') [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.09, 0.35, 0.08));
   else if (kind === 'train') [392, 523, 784].forEach((f, i) => tone(f, i * 0.07, 0.3, 0.07, 'square'));
-  else tone(880, 0, 0.08, 0.04, 'sine');
+  else if (kind === 'quest') [392, 523, 659, 784].forEach((f, i) => tone(f, i * 0.09, 0.36, 0.055, 'sine'));
+  else {
+    // v0.2.3: a soft, short two-note chime — quiet on purpose (was a single 880Hz beep at 0.04).
+    tone(660, 0, 0.11, 0.022, 'sine');
+    tone(990, 0.035, 0.13, 0.016, 'sine');
+    tone(1320, 0.06, 0.09, 0.010, 'triangle');
+  }
 }

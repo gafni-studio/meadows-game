@@ -7,7 +7,7 @@ import type { WorldScene } from '../scenes/WorldScene';
 export const Game = {
   player: null as unknown as PlayerData,
   events: new Phaser.Events.EventEmitter(),
-  /** Timestamps (ms, scene clock) for cooldowns and timed buffs. */
+  /** Timestamps (ms, Date.now() wall clock) for cooldowns and timed buffs, so a scene restart does not reset them. */
   cooldowns: {} as Record<string, number>,
   buffs: {} as Record<string, number>, // buff id → expires at (ms)
   invulnUntil: 0,

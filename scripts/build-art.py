@@ -153,7 +153,7 @@ ICONS = {
     'monster_essence': G('td129'), 'training_scroll': G('td66'), 'copper_coin': G('pp151'),
     # consumables
     'meadow_dew': G('td115'), 'clear_dew': G('td116'), 'spring_draught': G('td127'), 'mint_draught': G('td128'),
-    'barley_cake': G('fa10'), 'wild_apple': G('fa57'), 'mint_sprig': G('fa36'),
+    'barley_cake': G('fa10'), 'wild_apple': G('fa57'), 'strawberry': hue(G('fa57'), 5, 1.7, 1.15), 'blueberry': hue(G('fa57'), 230, 1.5, 0.95), 'mint_sprig': G('fa36'),
     # misc / junk / curios
     'broken_twig': grey(G('fa104'), 0.9), 'lost_button': G('td101'), 'old_bone': grey(G('pp89'), 1.5), 'torn_cloth': grey(G('tt130'), 1.2),
     'cracked_shell': grey(G('tt93'), 1.1), 'pasture_bell': hue(G('tt94'), 45, 1.0), 'bright_bead': hue(G('td101'), 330, 1.5),
@@ -171,7 +171,7 @@ ICONS = {
     'smoldering_scale': hue(G('tt93'), 15, 1.6, 1.1),
     'live_ember': hue(G('tt93'), 10, 1.8, 1.25),
     # gear
-    'wooden_sword': hue(G('td104'), 30, 1.2), 'worn_staff': G('td129'), 'rusty_dagger': hue(G('td103'), 20, 0.9),
+    'wooden_sword': hue(G('td104'), 30, 1.2), 'short_sword': hue(G('td104'), 200, 0.45, 1.15), 'worn_staff': G('td129'), 'rusty_dagger': hue(G('td103'), 20, 0.9),
     'steel_sword': G('td104'), 'steel_staff': grey(G('td129'), 1.2), 'steel_dagger': G('td103'),
     'cloth_cap': hue(G('tt131'), 200, 0.5), 'cloth_tunic': hue(G('tt130'), 200, 0.4, 1.2), 'cloth_pants': hue(G('tt130'), 220, 0.5),
     'cloth_shoes': hue(G('tt107'), 210, 0.4), 'cloth_gloves': hue(G('tt131'), 220, 0.4, 1.2),

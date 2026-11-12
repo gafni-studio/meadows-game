@@ -1,4 +1,4 @@
-import { DB, f, quest, xpToNext, shopPrice, vendorBuyPrice, consumableEffect, descOf } from '../data/db';
+import { DB, quest, xpToNext, shopPrice, vendorBuyPrice, consumableEffect, descOf } from '../data/db';
 import { ASSUME } from '../data/assumptions';
 import { DEV_CONSOLE } from '../config';
 import { Game } from '../systems/GameState';
@@ -6,7 +6,7 @@ import { resetAndReload } from '../systems/Save';
 import { runCommand } from '../systems/Cheats';
 import * as P from '../systems/Player';
 import { iconUrl, skillIconUrl } from '../art/sprites';
-import { displayName, formatAffix, instanceQuality, rangeOf, isGear } from '../systems/Gear';
+import { displayName, formatAffix, instanceQuality, isGear, GearInstance } from '../systems/Gear';
 import * as Sk from '../systems/Skills';
 import * as Q from '../systems/Quests';
 import * as Pa from '../systems/Passives';
@@ -34,7 +34,7 @@ const esc = (s: string) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', 
 type Panel = 'inventory' | 'stats' | 'shop' | 'storage' | 'skills' | 'journal' | 'passives' | 'exchange' | 'dialog' | 'pause' | 'confirm' | 'drop';
 const PANELS: Panel[] = ['inventory', 'stats', 'shop', 'storage', 'skills', 'journal', 'passives', 'exchange', 'dialog', 'pause', 'confirm', 'drop'];
 const TYPE_ORDER = ['consumable', 'gear', 'currency', 'material', 'misc'];
-const TYPE_LABEL: Record<string, string> = { consumable: 'Consumable', gear: 'Gear', currency: 'Currency', material: 'Material', misc: 'Sellable junk' };
+const TYPE_LABEL: Record<string, string> = { consumable: 'Consumable', gear: 'Gear', currency: 'Currency', material: 'Material', misc: 'Junk' };
 
 export class Hud {
   private stack: Panel[] = [];
@@ -50,6 +50,8 @@ export class Hud {
   private held: { c: P.Container; idx: number } | null = null;
   private dropItem: string | null = null;
   private dropUid: string | null = null;
+  private invTab: 'all' | 'gear' | 'consumable' | 'material' | 'misc' = 'all';
+  private trackHidden = (typeof localStorage !== 'undefined' && localStorage.getItem('meadows.trackHidden') === '1');
 
   constructor() {
     $('#ui').innerHTML = `
@@ -65,8 +67,9 @@ export class Hud {
       <div id="hotbar"></div>
       <div id="toasts"></div>
       <div id="levelup" hidden></div>
+      <div id="questup" hidden></div>
       <div id="quest-track" hidden></div>
-      <div id="help">F attack (hold) · 1–6 hotbar (Q/G = 5/6) · E pick up/talk · I inventory · C stats · K skills · J journal · T tree · Esc menu${DEV_CONSOLE ? ' · ` console' : ''}</div>
+      <div id="help">F attack · 1–6 hotbar · E talk · I bag · C stats · K skills · J journal · L objectives · T tree · Esc${DEV_CONSOLE ? ' · `' : ''}</div>
       <div id="dead" hidden>Defeated…</div>
       ${PANELS.map((p) => `<div class="panel" id="p-${p}" hidden></div>`).join('')}
       <div id="console" hidden><div id="console-out"></div><input id="console-in" autocomplete="off" spellcheck="false" placeholder="type help, Enter to run, Esc to close" /></div>`;
@@ -74,6 +77,7 @@ export class Hud {
     Game.events.on('changed', () => this.renderPanels());
     Game.events.on('toast', (m: string, k: string, icon?: string) => this.toast(m, k, icon));
     Game.events.on('levelup', (lvl: number, pts: number) => this.levelBanner(lvl, pts));
+    Game.events.on('quest-complete', (name: string, rewards: string) => this.questBanner(name, rewards));
     Game.events.on('chest', () => { this.held = null; this.open('storage'); });
     Game.events.on('area', (n: string) => {
       this.areaName = n;
@@ -139,6 +143,13 @@ export class Hud {
       if (k === 'k' || k === 'K') { this.toggle('skills'); return; }
       if (k === 'j' || k === 'J') { this.toggle('journal'); return; }
       if (k === 't' || k === 'T') { this.toggle('passives'); return; }
+      if (k === 'l' || k === 'L') {
+        e.preventDefault();
+        this.trackHidden = !this.trackHidden;
+        try { localStorage.setItem('meadows.trackHidden', this.trackHidden ? '1' : '0'); } catch { /* ignore */ }
+        this.renderHud();
+        return;
+      }
     }
     if (!top) return;
     const dirs: Record<string, [number, number]> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
@@ -166,7 +177,21 @@ export class Hud {
       }
       return;
     }
-    if (k === 'Enter') { e.preventDefault(); this.selectedEl(top)?.click(); return; }
+    if (k === 'Enter') {
+      e.preventDefault();
+      const cur = this.selectedEl(top);
+      if (top === 'inventory' && cur && !this.held) { this.invPrimary(cur); return; }
+      cur?.click();
+      return;
+    }
+    if (k === 'Tab' && top === 'inventory') {
+      e.preventDefault();
+      const tabs: typeof this.invTab[] = ['all', 'gear', 'consumable', 'material', 'misc'];
+      this.invTab = tabs[(tabs.indexOf(this.invTab) + 1) % tabs.length];
+      this.sel.inventory = undefined;
+      this.renderPanels();
+      return;
+    }
     if (k === 'Tab' && top === 'shop') { e.preventDefault(); this.shopTab = this.shopTab === 'buy' ? 'sell' : 'buy'; this.sel.shop = undefined; this.renderPanels(); }
     if (k === 'Tab' && top === 'passives') { e.preventDefault(); this.treeTab = this.treeTab === 'nature' ? 'elemental' : 'nature'; this.sel.passives = undefined; this.renderPanels(); }
   }
@@ -239,17 +264,20 @@ export class Hud {
     $('#area').textContent = this.areaName;
     $('#coins').innerHTML = `<img src="${iconUrl('copper_coin')}"> ${p.coins} Copper${p.cheats.god ? ' · <b>GOD</b>' : ''}`;
 
-    const now = Game.now;
+    const now = Date.now();
     const buffs: string[] = [];
     for (const [id, until] of Object.entries(Game.buffs)) {
       if (until > now) buffs.push(`${DB.skills[id]?.name ?? DB.items[id]?.name ?? id} ${Math.ceil((until - now) / 1000)}s`);
     }
     $('#buffs').textContent = buffs.join(' · ');
-    const obj = Q.currentObjective(p);
+    const objs = Q.currentObjectives(p);
     const track = $('#quest-track');
     if (track) {
-      track.hidden = !obj;
-      if (obj) track.innerHTML = `<b>Journal</b> <small>(J)</small><div>${esc(obj)}</div>`;
+      track.hidden = this.trackHidden || objs.length === 0;
+      if (!this.trackHidden && objs.length) {
+        track.innerHTML = `<div class="qt-head"><span class="qt-title">Objectives</span><span class="qt-key">L hide</span></div>` +
+          objs.map((o) => `<div class="qt-quest"><div class="qt-name">${esc(o.name)}</div><div class="qt-obj">${esc(o.objective)}</div></div>`).join('');
+      }
     }
     const wall = Date.now();
     if (wall - this.lastSettleAt > 4000) {
@@ -319,6 +347,18 @@ export class Hud {
     el.classList.add('show');
     clearTimeout((this as unknown as { lvT?: number }).lvT);
     (this as unknown as { lvT?: number }).lvT = window.setTimeout(() => { el.hidden = true; el.classList.remove('show'); }, 2600);
+  }
+
+  private questBanner(name: string, rewards: string) {
+    const el = $('#questup');
+    if (!el) return;
+    el.innerHTML = `<div class="burst"></div><div class="lv-title quest">QUEST COMPLETE</div><div class="lv-sub">${esc(name)}${rewards ? ` · ${esc(rewards)}` : ''}</div>`;
+    el.hidden = false;
+    el.classList.remove('show');
+    void el.offsetWidth;
+    el.classList.add('show');
+    clearTimeout((this as unknown as { qT?: number }).qT);
+    (this as unknown as { qT?: number }).qT = window.setTimeout(() => { el.hidden = true; el.classList.remove('show'); }, 2800);
   }
 
   // ───────────────────────── bag / storage moves ─────────────────────────
@@ -541,20 +581,52 @@ export class Hud {
     const eq = P.EQUIP_SLOTS.map((s) => {
       const piece = P.inst(p, p.equipment[s]);
       const id = piece?.itemId ?? null;
-      return this.tile(`eq:${s}`, id, 'equipped', '', s, false, `data-slot="${s}"${piece ? ` data-uid="${piece.uid}" data-unequip="${s}"` : ''}`, piece);
+      // v0.2.3: click only selects; Unequip lives on the preview, not on the tile.
+      return this.tile(`eq:${s}`, id, 'equipped', '', s, false, `data-slot="${s}"${piece ? ` data-uid="${piece.uid}"` : ''}`, piece);
     }).join('');
-    const items = this.slotTiles('bag', (id, uid) => {
-      if (uid) return `data-equip="${uid}" data-uid="${uid}"`;
-      const it = DB.items[id];
-      const eff = consumableEffect(id);
-      const usable = it.item_type === 'consumable' && (eff.hp || eff.mp || eff.buff);
-      return usable ? `data-use="${id}"` : '';
-    }, 'inv');
+    const items = this.bagTiles();
+    const tabBtn = (id: typeof this.invTab, label: string) =>
+      `<button data-nav data-key="tab:${id}" data-invtab="${id}" class="${this.invTab === id ? 'on' : ''}">${label}</button>`;
     $('#p-inventory').innerHTML = `<div class="frame-title">Inventory <small>(I)</small><button class="x" data-close="inventory">×</button></div>
       <div class="tabs"><span class="label">Equipped</span><span class="coins"><img src="${iconUrl('copper_coin')}"> ${p.coins}</span></div>
       <div class="grid eq">${eq}</div>
+      <div class="tabs bagtabs">
+        ${tabBtn('all', 'All')}${tabBtn('gear', 'Gear')}${tabBtn('consumable', 'Consumables')}${tabBtn('material', 'Materials')}${tabBtn('misc', 'Junk')}
+      </div>
       <div class="split"><div class="grid bag">${items}</div><div class="preview" id="inv-preview"></div></div>
-      ${hint(this.held ? 'Moving: ←↑↓→ pick a slot · Enter / M place · Esc cancel' : '←↑↓→ select · Enter use / equip / remove · 1-6 bind to hotbar · M move · X drop · drag with the mouse · Esc close')}`;
+      ${hint(this.held ? 'Moving: ←↑↓→ pick a slot · Enter / M place · Esc cancel' : '←↑↓→ select · Enter use / equip / remove · click for options · Tab filter · 1-6 hotbar · M move · X drop · Esc close')}`;
+  }
+
+  /** Bag tiles for the current inventory tab. Empty slots only appear on All. Click selects — no instant use/equip. */
+  private bagTiles(): string {
+    const p = Game.player;
+    const tab = this.invTab;
+    const typeOf = (ref: string): string | undefined => {
+      const piece = p.gearItems[ref];
+      return DB.items[piece ? piece.itemId : ref]?.item_type;
+    };
+    const match = (ref: string | null): boolean => {
+      if (!ref) return tab === 'all';
+      const ty = typeOf(ref);
+      if (tab === 'all') return true;
+      if (tab === 'gear') return ty === 'gear';
+      if (tab === 'consumable') return ty === 'consumable';
+      if (tab === 'material') return ty === 'material' || ty === 'currency';
+      if (tab === 'misc') return ty === 'misc';
+      return true;
+    };
+    const attrFor = (_id: string, uid?: string) => uid ? `data-uid="${uid}"` : '';
+    return P.layout(p, 'bag').map((ref, i) => {
+      if (!match(ref)) return '';
+      const base = `data-c="bag" data-idx="${i}"`;
+      if (!ref) return this.tile(`bag-slot:${i}`, null, 'inv', '', '', false, base);
+      const piece = p.gearItems[ref];
+      if (piece) {
+        return this.tile(`inv:${ref}`, piece.itemId, 'inv', piece.magic ? '✦' : '', '', false,
+          `${base} data-uid="${piece.uid}" draggable="true" ${attrFor(piece.itemId, piece.uid)}`, piece);
+      }
+      return this.tile(`inv:${ref}`, ref, 'inv', `${p.inventory[ref]}`, '', false, `${base} draggable="true" ${attrFor(ref)}`);
+    }).join('');
   }
 
   /** Tiles for every slot of a container (filled stacks + empty slots, all selectable and draggable). */
@@ -640,34 +712,48 @@ export class Hud {
     if (eff.mp) lines.push(`+${eff.mp} MP`);
     if (eff.buff) lines.push(`+${eff.buff.speedPct}% move & attack speed, ${eff.buff.durationS}s`);
     if (g) {
-      const wr = rangeOf(g, 'weapon'), dr = rangeOf(g, 'defense');
-      if (wr.max > 0) {
+      if ((piece ? piece.weaponDamage : g.weapon_damage) > 0) {
         const rolled = piece ? piece.weaponDamage : g.weapon_damage;
         const q = piece ? instanceQuality(piece) : 'avg';
-        lines.push(`Weapon damage <span class="q-${q}">${rolled}</span> <span class="range">(${wr.min}–${wr.max})</span> ×${piece?.statMultiplier ?? g.stat_multiplier}`);
+        lines.push(`Weapon damage <span class="q-${q}">${rolled}</span> ×${piece?.statMultiplier ?? g.stat_multiplier}`);
       }
-      if (dr.max > 0 || g.defense) {
+      if ((piece ? piece.defense : g.defense) > 0 || g.defense) {
         const rolled = piece ? piece.defense : g.defense;
         const q = piece ? instanceQuality(piece) : 'avg';
-        lines.push(`Defense <span class="q-${q}">+${rolled}</span> <span class="range">(${dr.min}–${dr.max})</span>`);
+        lines.push(`Defense <span class="q-${q}">+${rolled}</span>`);
       }
       if (piece?.magic) lines.push(`<span class="magic-tag">Magic · ${esc(piece.prefix ?? '')}</span>${piece.affixes.map((a) => `<br>${esc(formatAffix(a))}`).join('')}`);
+      const cmp = piece && el.dataset.mode !== 'equipped' ? this.gearCompare(piece) : null;
+      if (cmp) {
+        lines.push(`Attack ${this.delta(cmp.atk, cmp.atkDelta)}`);
+        lines.push(`Defense ${this.delta(cmp.def, cmp.defDelta)}`);
+      }
       lines.push(`Slot: ${g.slot}${g.class_id !== 'any' ? ` · ${g.class_id}` : ''}`);
       if (g.required_stat && g.required_value > 0) lines.push(`Requires ${g.required_value} ${g.required_stat === 'any' ? 'total points' : g.required_stat}`);
       const chk = P.canEquip(p, id);
       if (!chk.ok && el.dataset.mode !== 'equipped') lines.push(`<span class="warn">${esc(chk.reason ?? '')}</span>`);
     }
     const buy = shopPrice(id);
-    const sell = vendorBuyPrice(id);
+    const mode = el.dataset.mode ?? '';
+    const usable = it.item_type === 'consumable' && !!(eff.hp || eff.mp || eff.buff);
+    const btns: string[] = [];
+    if (mode === 'inv' && usable) btns.push(`<button data-use="${id}">Use</button>`);
+    if (mode === 'inv' && g && piece) btns.push(`<button data-equip="${piece.uid}">Equip</button>`);
+    if (mode === 'equipped' && el.dataset.slot) btns.push(`<button data-unequip="${el.dataset.slot}">Unequip</button>`);
+    if (mode === 'inv') {
+      btns.push(`<button data-act="askdrop" data-item="${id}"${piece ? ` data-uid="${piece.uid}"` : ''}>Drop</button>`);
+      if (it.item_type === 'consumable') {
+        for (let i = 1; i <= 6; i++) btns.push(`<button data-act="bind" data-item="${id}" data-slot="${i}">${i}</button>`);
+      }
+    }
     const action: Record<string, string> = {
       buy: buy !== null ? (p.coins >= buy ? 'Enter: buy 1' : '<span class="warn">Not enough copper</span>') : '',
-      sell: sell !== null ? 'Enter: sell 1' : '<span class="warn">Mara does not buy this</span>',
-      inv: el.dataset.use ? 'Enter: use' : el.dataset.equip ? 'Enter: equip' : '',
-      equipped: 'Enter: remove',
+      sell: vendorBuyPrice(id) !== null ? 'Enter: sell 1' : '<span class="warn">Mara does not buy this</span>',
+      inv: (usable ? 'Enter: use' : g ? 'Enter: equip' : '') + (mode === 'inv' ? ' · M: move · X: drop' : ''),
+      equipped: 'Enter: unequip',
       storage: 'Enter: take the stack · 1: take one',
       bagstore: 'Enter: store the stack · 1: store one',
     };
-    if (el.dataset.mode === 'inv') action.inv = [action.inv, 'M: move', 'X: drop'].filter(Boolean).join(' · ');
     const name = piece ? displayName(piece) : it.name;
     const ownedGear = isGear(id) ? P.gearCount(p, id) : 0;
     const worn = piece && Object.values(p.equipment).includes(piece.uid);
@@ -675,11 +761,59 @@ export class Hud {
       <p>${esc(descOf(it))}</p>
       ${lines.length ? `<div class="pv-eff">${lines.join('<br>')}</div>` : ''}
       <table class="pv-stats">
-        ${buy !== null ? `<tr><td>Shop price</td><td>${buy}c</td></tr>` : ''}
-        <tr><td>Sells for</td><td>${sell !== null ? `${sell}c` : '—'}</td></tr>
+        ${buy !== null && (mode === 'buy' || mode === 'sell' || panel === 'shop') ? `<tr><td>Shop price</td><td>${buy}c</td></tr>` : ''}
         <tr><td>Owned</td><td>${isGear(id) ? `${ownedGear} piece${ownedGear === 1 ? '' : 's'}${worn ? ' (this one equipped)' : ''}` : `${p.inventory[id] ?? 0}${p.storage[id] ? ` · ${p.storage[id]} in storage` : ''}`}</td></tr>
       </table>
-      <div class="pv-act">${action[el.dataset.mode ?? ''] ?? ''}</div>`;
+      ${btns.length ? `<div class="pv-btns">${btns.join('')}</div>` : ''}
+      <div class="pv-act">${action[mode] ?? ''}</div>`;
+  }
+
+  /** Compare a bag piece against the currently equipped item in the same slot (affixes included). */
+  private gearCompare(piece: GearInstance): { atk: number; def: number; atkDelta: number; defDelta: number } | null {
+    const p = Game.player;
+    const g = DB.gear[piece.itemId];
+    if (!g) return null;
+    const slot = g.slot as P.EquipSlot;
+    if (p.equipment[slot] === piece.uid) return null;
+    const beforeAtk = P.attack(p), beforeDef = P.defense(p);
+    const prev = p.equipment[slot];
+    p.equipment[slot] = piece.uid;
+    const atk = P.attack(p), def = P.defense(p);
+    if (prev) p.equipment[slot] = prev; else delete p.equipment[slot];
+    return { atk, def, atkDelta: atk - beforeAtk, defDelta: def - beforeDef };
+  }
+
+  private delta(n: number, d: number): string {
+    if (d === 0) return `${n} <span class="delta-same">(0)</span>`;
+    const cls = d > 0 ? 'delta-up' : 'delta-down';
+    const sign = d > 0 ? `+${d}` : `${d}`;
+    return `${n} <span class="${cls}">(${sign})</span>`;
+  }
+
+  /** Enter in the inventory: use / equip / unequip the selected tile (mouse click only selects). */
+  private invPrimary(el: HTMLElement) {
+    const p = Game.player;
+    const id = el.dataset.item;
+    if (el.dataset.mode === 'equipped' && el.dataset.slot) {
+      P.unequip(p, el.dataset.slot as P.EquipSlot);
+      Game.changed();
+      return;
+    }
+    if (!id) return;
+    if (el.dataset.uid && DB.gear[id]) {
+      const err = P.equip(p, el.dataset.uid);
+      if (err) this.toast(err, 'warn');
+      else {
+        const piece = P.inst(p, el.dataset.uid);
+        this.toast(`Equipped ${piece ? displayName(piece) : 'gear'}`, 'loot');
+      }
+      Game.changed();
+      return;
+    }
+    const eff = consumableEffect(id);
+    if (DB.items[id]?.item_type === 'consumable' && (eff.hp || eff.mp || eff.buff)) {
+      Game.events.emit('use-item', id);
+    }
   }
 
   private renderSkillPreview(box: HTMLElement, el: HTMLElement) {
@@ -835,7 +969,7 @@ export class Hud {
 
   private renderStats() {
     const p = Game.player;
-    const desc: Record<string, string> = { STR: `+1% damage, +${f('hp_per_str')} max HP`, INT: '+5 max MP', AGI: '+0.4% crit, faster attacks, +acc/eva', SPI: '+0.15 MP/s, faster HP regen' };
+    const desc: Record<string, string> = { STR: `Raises attack and max HP`, INT: '+5 max MP', AGI: 'Faster attacks, higher crit, +acc/eva', SPI: 'Faster MP and HP regen' };
     const rows = P.STATS.map((s) => `<button class="statrow" data-nav data-key="stat:${s}" data-stat="${s}" ${p.unspent ? '' : 'aria-disabled="true"'}>
       <b>${s}</b><span class="v">${p.stats[s]}</span><span class="plus">${p.unspent ? '+' : ''}</span><small>${desc[s]}</small></button>`).join('');
     const rage = Sk.rageNumbers(p);
@@ -849,7 +983,7 @@ export class Hud {
         <tr><td>MP regen</td><td>${P.mpRegenPerSec(p).toFixed(2)}/s</td></tr>
         <tr><td>Crit chance</td><td>${P.critChance(p).toFixed(1)}%</td></tr>
         <tr><td>Attack interval</td><td>${(P.attackIntervalMs(p) / 1000).toFixed(2)}s</td></tr>
-        <tr><td>Rage</td><td>+${rage.dealtPct}% dealt / +${rage.takenPct}% taken</td></tr>
+        ${Sk.known(p, 'rage') ? `<tr><td>Rage</td><td>+${rage.dealtPct}% dealt / +${rage.takenPct}% taken when active</td></tr>` : ''}
       </table>${hint('↑↓ select · Enter +1 point · Esc close')}`;
   }
 
@@ -884,6 +1018,15 @@ export class Hud {
       const id = this.dropItem;
       this.close('drop');
       if (id) { this.doDrop(id, d.act === 'drop1' ? 1 : (this.dropUid ? 1 : Game.player.inventory[id] ?? 0), this.dropUid); this.dropUid = null; }
+    }
+    else if (d.invtab) { this.invTab = d.invtab as typeof this.invTab; this.sel.inventory = undefined; }
+    else if (d.act === 'askdrop') { this.requestDrop(d.item ?? this.dropItem ?? '', d.uid); }
+    else if (d.act === 'bind' && d.item && d.slot) {
+      if (DB.items[d.item]?.item_type === 'consumable') {
+        Sk.assignBar(p, Number(d.slot) - 1, d.item);
+        this.toast(`Bound ${DB.items[d.item].name} to ${d.slot}`, 'info');
+        Game.save();
+      }
     }
     else if (d.tab) { this.shopTab = d.tab as 'buy' | 'sell'; }
     else if (d.stat) { if (p.unspent > 0) { P.spendPoint(p, d.stat as P.Stat); Game.save(); } }

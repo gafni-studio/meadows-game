@@ -24,8 +24,10 @@ export const ASSUME = {
   potionCooldownMs: 400,
   // Not in sheet: hurt invulnerability after taking a hit, monster swing interval and speeds.
   hurtInvulnMs: 700,
-  // v0.1.3: another ≈28% slower (v0.1.2 was mouse 28, sheep 20, crow 38, default 24).
-  monsterSpeed: { field_mouse: 20, wool_sheep: 14, crow: 27, burrow_mole: 15, earth_sprite: 19, ember_beetle: 16, wool_shoulder: 13, bank_cracker: 14, cinderback: 15, default: 17 } as Record<string, number>,
+  // v0.2.3: movement speed restored to v0.1.2 (only the animation was too fast).
+  // Pasture: mouse 28, sheep 20, crow 38, default 24. Dirt Banks designed after the
+  // v0.1.3 slowdown are scaled ×1.4 (28/20) so they match that original pace.
+  monsterSpeed: { field_mouse: 28, wool_sheep: 20, crow: 38, burrow_mole: 21, earth_sprite: 27, ember_beetle: 22, wool_shoulder: 18, bank_cracker: 20, cinderback: 21, default: 24 } as Record<string, number>,
   // Player movement (px/s, px/s², px/s). v0.1.3: 148 (was 190, ≈−22%).
   playerSpeed: 148,
   gravity: 1300,
@@ -96,7 +98,8 @@ export const RANGED = {
  */
 export const ATTACK_FEEL: Record<string, { kb: number; hitstunMs: number }> = {
   // v0.1.2: ×3 (was basic 140, Power Strike 360).
-  basic: { kb: 420, hitstunMs: 320 },
+  // v0.2.3: basic knockback halved (was 420). Specials keep the big push.
+  basic: { kb: 210, hitstunMs: 320 },
   power_strike: { kb: 1080, hitstunMs: 500 },
   earthbreaker: { kb: 600, hitstunMs: 900 }, // AoE slam; the "short stun"
   flame_cleave: { kb: 700, hitstunMs: 450 },
@@ -148,7 +151,7 @@ export const LOOT = {
  *   Steel (17-21 × 1.25) is ultra-rare and above this target. Skill training is still the main power-up.
  *   Numbers live on the gear tab (defense_min/max, weapon_damage_min/max); mid values are the "typical" columns.
  */
-/** Per-hit dice (v0.1.3). Applied on every player hit (basic and skills) after weapon instance damage and the +1%/stat. Crit is on top. Monsters use attack_min/max instead of a second dice. */
+/** Per-hit dice (v0.1.3). Applied on every player hit (basic and skills) after weapon instance damage and the flat +1 attack per 2 main-stat (v0.2.3). Crit is on top. Monsters use attack_min/max instead of a second dice. */
 /** Sprite animation (v0.1.3). Hero walk is ~35% slower than v0.1.2 and scales with actual vx. Attack FX are a bit slower but still readable (combat wind-up / swing intervals are unchanged). Mob frame rates use monsters.anim_speed (Crow 1, others 0.5). */
 export const ANIM = {
   heroWalkPeriod: 95, // was 70; 35% slower at full playerSpeed. Multiplied by vx / playerSpeed.

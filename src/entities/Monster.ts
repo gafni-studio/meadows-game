@@ -167,7 +167,11 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
       case 'idle': {
         if (now >= this.nextWanderAt) {
           this.nextWanderAt = now + 1500 + Math.random() * 2500;
-          this.wanderTarget = Math.random() < 0.35 ? this.x : this.spawnX + (Math.random() * 2 - 1) * 4 * TILE;
+          // v0.2.3: wander up to 16 tiles from spawn (was 4) so patrols cover real ground.
+          // Stay-in-place chance 15% (was 35%). Clamp to the world so they don't walk off the map.
+          const bounds = this.scene.physics.world.bounds;
+          const raw = Math.random() < 0.15 ? this.x : this.spawnX + (Math.random() * 2 - 1) * 16 * TILE;
+          this.wanderTarget = Phaser.Math.Clamp(raw, bounds.x + 24, bounds.x + bounds.width - 24);
         }
         const w = this.wanderTarget - this.x;
         body.setVelocityX(Math.abs(w) > 6 ? Math.sign(w) * this.speed * 0.6 : 0);

@@ -57,8 +57,13 @@ export function unlockReq(s: SkillDef): { level: number; stat: number } {
 
 export function canSee(p: P.PlayerData, s: SkillDef): boolean {
   if (s.class_id !== p.classId) return false;
-  // Quest-gated skills are visible so the journal and trainer can tease them.
-  if (Q.skillLockedByQuest(s.id)) return true;
+  // v0.2.3: quest-gated skills stay hidden until the quest is discovered
+  // (active or done). Once visible they stay locked until the quest is finished,
+  // then they can be trained at Calden.
+  if (Q.skillLockedByQuest(s.id)) {
+    const line = Q.lineOfSkill(s.id);
+    return !!line && (Q.isActive(p, line) || Q.isDone(p, line));
+  }
   const r = unlockReq(s);
   return p.level + 2 >= r.level;
 }

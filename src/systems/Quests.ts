@@ -2,11 +2,13 @@
  * Warrior skill questlines (v0.2.1 / B-004).
  * Text, rewards, triggers and gates come from data/skill_quests.json.
  * Step mechanics (reach, collect, talk, kill, dummy hits) are here.
- * Completing a line grants the skill at rank 1; further ranks train at Calden.
+ * Completing The Weight of a Swing and Blood Up grants the skill at rank 1.
+ * A Crack in the Dirt and Hot Edge only unlock training at Calden (v0.2.3).
  */
 import { DB, tab, descOf } from '../data/db';
 import * as P from './Player';
-import { Game } from './GameState';
+import { Game } from './GameState'
+import { playSfx } from './Sfx';
 
 export interface QuestStepRow {
   id: string; line_id: string; step: number; name: string; desc: string; objective: string;
@@ -144,7 +146,7 @@ function complete(p: P.PlayerData, line: string): void {
   if (s.done) return;
   const last = (rowsOf(line).slice(-1)[0]);
   setState(p, line, { ...s, done: true });
-  if (last?.unlock_skill) grantSkill(p, last.unlock_skill);
+  if (last?.unlock_skill && GRANT_RANK.has(line)) grantSkill(p, last.unlock_skill);
   const xp = last?.reward_xp ?? 0;
   const coins = last?.reward_coins ?? 0;
   if (xp) {
@@ -155,13 +157,15 @@ function complete(p: P.PlayerData, line: string): void {
   const items = parseItems(last?.reward_items);
   for (const it of items) P.addItem(p, it.id, it.qty);
   const got = [
-    last?.unlock_skill ? `${DB.skills[last.unlock_skill]?.name ?? last.unlock_skill} rank 1` : '',
+    skillRewardLabel(line, last),
     xp ? `${xp} XP` : '',
     coins ? `${coins} Copper` : '',
     ...items.map((it) => `${it.qty}× ${DB.items[it.id].name}`),
   ].filter(Boolean).join(', ');
   Game.toast(`Quest complete: ${lineName(line)} — ${got}`, 'rare');
   Game.events.emit('quest', line);
+  Game.events.emit('quest-complete', lineName(line), got);
+  playSfx('quest');
   Game.changed();
   Game.save();
 }
@@ -327,12 +331,21 @@ export function talk(p: P.PlayerData, npc: string): string | null {
   return null;
 }
 
+/** Lines that grant the skill at rank 1 on complete. Crack / Hot only unlock training. */
+const GRANT_RANK = new Set(['ql_weight', 'ql_blood']);
+
+function skillRewardLabel(line: string, last: { unlock_skill?: string | null } | undefined): string {
+  if (!last?.unlock_skill) return '';
+  const name = DB.skills[last.unlock_skill]?.name ?? last.unlock_skill;
+  return GRANT_RANK.has(line) ? `${name} rank 1` : `${name} training`;
+}
+
 function lastWords(line: string): string {
   if (line === 'ql_weight') return 'There. That is a real blow. Power Strike is yours — bind it from this window, or with 1–6. Come back when you want to rank it up.';
   if (line === 'ql_blood') return 'You stayed in it. Rage is yours. Remember the other half of the bargain.';
-  if (line === 'ql_crack') return 'The ground answered. Earthbreaker is yours. Come back with Nature Essence when you want it stronger.';
-  if (line === 'ql_hot') return 'A clean, hot edge. Flame Cleave is yours. Elemental Essence will take it further.';
-  return `${lineName(line)} is done. The skill is yours.`;
+  if (line === 'ql_crack') return 'The ground answered. Earthbreaker training is open — come back to Calden with Nature Essence when you want to learn it.';
+  if (line === 'ql_hot') return 'A clean, hot edge. Flame Cleave training is open — Elemental Essence will teach it.';
+  return `${lineName(line)} is done.`;
 }
 
 /** True if talking to this NPC should open a quest dialog (instead of, or before, their usual window). */
@@ -351,12 +364,18 @@ export function wantsTalk(p: P.PlayerData, npc: string): boolean {
 }
 
 export function currentObjective(p: P.PlayerData): string | null {
+  const all = currentObjectives(p);
+  return all[0] ? `${all[0].name}: ${all[0].objective}` : null;
+}
+
+export function currentObjectives(p: P.PlayerData): { line: string; name: string; objective: string }[] {
+  const out: { line: string; name: string; objective: string }[] = [];
   for (const line of LINES) {
     if (!isActive(p, line)) continue;
     const r = currentRow(p, line);
-    if (r) return `${r.name}: ${r.objective}`;
+    if (r) out.push({ line, name: r.name, objective: r.objective });
   }
-  return null;
+  return out;
 }
 
 export interface JournalEntry {
@@ -383,7 +402,7 @@ export function journal(p: P.PlayerData): JournalEntry[] {
     }
     const last = (steps.slice(-1)[0]);
     const rewards = [
-      last?.unlock_skill ? `${DB.skills[last.unlock_skill]?.name} rank 1` : '',
+      skillRewardLabel(line, last),
       last?.reward_xp ? `${last.reward_xp} XP` : '',
       last?.reward_coins ? `${last.reward_coins} Copper` : '',
       ...parseItems(last?.reward_items).map((it) => `${it.qty}× ${DB.items[it.id].name}`),

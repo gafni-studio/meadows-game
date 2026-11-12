@@ -47,6 +47,8 @@ export class WorldScene extends Phaser.Scene {
   private chestImg?: Phaser.GameObjects.Image;
   private postX: number | null = null;
   private lastQuestAt = 0;
+  private pendingAttack = false;
+  private pendingSkill: string | null = null;
 
   constructor() { super('World'); }
 
@@ -223,6 +225,13 @@ export class WorldScene extends Phaser.Scene {
     const body = this.player.body as Phaser.Physics.Arcade.Body;
     const menu = Game.menuOpen || Game.consoleOpen;
 
+    // v0.2.3: Rage tint is driven by the live buff (Date.now()), so a leftover red
+    // tint cannot stick after the buff ends or after a scene restart.
+    if (this.player) {
+      if (!Game.dead && this.buffActive('rage')) this.player.setTint(0xff9a9a);
+      else this.player.clearTint();
+    }
+
     if (!Game.dead && !menu) {
       const speedMul = this.buffActive('mint_sprig') ? 1 + (consumableEffect('mint_sprig').buff?.speedPct ?? 0) / 100 : 1;
       let vx = 0;
@@ -233,13 +242,26 @@ export class WorldScene extends Phaser.Scene {
       if (vx !== 0) { this.facing = vx; this.player.setFlipX(vx < 0); }
       if (this.controls.pressed('jump') && body.blocked.down) body.setVelocityY(-ASSUME.jumpVelocity);
 
-      if (this.controls.down('attack')) this.trySwing(1.0, 0, 'basic');
+      // v0.2.3: buffer a swing pressed during recovery so the next hit fires as soon as ready.
+      if (this.controls.pressed('attack')) {
+        if (!this.trySwing(1.0, 0, 'basic')) this.pendingAttack = true;
+      } else if (this.pendingAttack) {
+        if (this.trySwing(1.0, 0, 'basic')) this.pendingAttack = false;
+      } else if (this.controls.down('attack')) {
+        this.trySwing(1.0, 0, 'basic');
+      }
       if (this.controls.pressed('skill1')) this.useHotbar(0);
       if (this.controls.pressed('skill2')) this.useHotbar(1);
       if (this.controls.pressed('skill3')) this.useHotbar(2);
       if (this.controls.pressed('skill4')) this.useHotbar(3);
       if (this.controls.pressed('skill5')) this.useHotbar(4);
       if (this.controls.pressed('skill6')) this.useHotbar(5);
+      // v0.2.3: a skill pressed during its cooldown fires once when that cooldown ends.
+      if (this.pendingSkill && (Game.cooldowns[this.pendingSkill] ?? 0) <= Date.now()) {
+        const id = this.pendingSkill;
+        this.pendingSkill = null;
+        this.useSkill(id, true);
+      }
       if (this.controls.pressed('interact')) this.interact();
       // Walk wobble: ~35% slower than v0.1.2 (period 95 vs 70) and tied to actual move speed.
       const spd = Math.abs(body.velocity.x);
@@ -308,7 +330,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   // ─────────────────────────── combat ───────────────────────────
-  private buffActive(id: string) { return (Game.buffs[id] ?? 0) > Game.now; }
+  private buffActive(id: string) { return (Game.buffs[id] ?? 0) > Date.now(); }
 
   private trySwing(mult: number, mpCost: number, kind: 'basic' | 'power_strike'): boolean {
     const p = Game.player;
@@ -332,10 +354,7 @@ export class WorldScene extends Phaser.Scene {
       if (dx < bestD) { bestD = dx; best = m; }
     }
     if (!best) {
-      if (kind === 'basic' && this.nearPost() && Q.dummyNeeded(p)) {
-        Q.onDummyHit(p);
-        this.floatText(this.postX ?? this.player.x, this.player.y - 80, 'THUD', '#c9a46a', 15);
-      }
+      if (this.postInMelee()) this.hitPost(mult, kind);
       return true;
     }
     const topY = best.y - best.displayHeight - 12;
@@ -354,16 +373,29 @@ export class WorldScene extends Phaser.Scene {
 
   private swingFx(kind: string) {
     const s = this.sword;
+    this.tweens.killTweensOf(s);
+    this.tweens.killTweensOf(this.player);
+    this.player.setScale(this.playerBaseScale.x, this.playerBaseScale.y);
     s.setVisible(true).setFlipX(this.facing < 0).setTint(kind === 'basic' ? 0xffffff : 0xffc04a);
     s.setPosition(this.player.x + this.facing * 14, this.player.y - 18);
-    s.setAngle(-70 * this.facing);
-    this.tweens.killTweensOf(s);
-    this.tweens.add({ targets: s, angle: 80 * this.facing, duration: ANIM.heroSwingMs, ease: 'Quad.easeOut', onComplete: () => s.setVisible(false) });
+    s.setAngle(-55 * this.facing);
+    this.tweens.add({
+      targets: s, angle: 75 * this.facing, duration: ANIM.heroSwingMs, ease: 'Cubic.easeInOut',
+      onComplete: () => s.setVisible(false),
+    });
     const fx = this.add.image(this.player.x + this.facing * 40, this.player.y - 26, 'fx.slash').setDepth(12)
-      .setAlpha(kind === 'basic' ? 0.25 : 0.55).setTint(kind === 'basic' ? 0xffffff : 0xffc04a);
-    this.tweens.add({ targets: fx, alpha: 0, scaleX: 1.3, duration: ANIM.heroSlashMs, onComplete: () => fx.destroy() });
-    // lunge
-    this.tweens.add({ targets: this.player, scaleX: this.playerBaseScale.x * 1.08, duration: ANIM.heroLungeMs, yoyo: true });
+      .setAlpha(kind === 'basic' ? 0.28 : 0.6).setTint(kind === 'basic' ? 0xffffff : 0xffc04a);
+    this.tweens.add({ targets: fx, alpha: 0, scaleX: 1.25, duration: ANIM.heroSlashMs, ease: 'Sine.easeOut', onComplete: () => fx.destroy() });
+    // short, non-sticky lunge — always restores the base scale so frames don't freeze mid-squash
+    this.tweens.add({
+      targets: this.player,
+      scaleX: this.playerBaseScale.x * 1.05,
+      scaleY: this.playerBaseScale.y * 0.98,
+      duration: Math.floor(ANIM.heroLungeMs * 0.7),
+      yoyo: true,
+      ease: 'Sine.easeInOut',
+      onComplete: () => this.player.setScale(this.playerBaseScale.x, this.playerBaseScale.y),
+    });
   }
 
   private useHotbar(slot: number) {
@@ -374,29 +406,41 @@ export class WorldScene extends Phaser.Scene {
     else Game.toast('Empty slot', 'info');
   }
 
-  useSkill(id: string) {
+  useSkill(id: string, fromQueue = false) {
     const s = Sk.skill(id);
     const p = Game.player;
-    const now = Game.now;
+    const now = Date.now();
     if (!s || !Sk.known(p, id)) { Game.toast('Skill not learned yet — visit Calden', 'warn'); return; }
-    if ((Game.cooldowns[id] ?? 0) > now) { Game.toast(`${s.name} is on cooldown`, 'warn'); return; }
-    if (p.mp < s.mp_cost) { Game.toast('Not enough MP', 'warn'); return; }
+    const readyAt = Game.cooldowns[id] ?? 0;
+    if (readyAt > now) {
+      // v0.2.3: queue one activation; further presses of the same skill are dropped silently.
+      // Banner only when the remaining cooldown is longer than 5 seconds, and only on the first press.
+      const remain = readyAt - now;
+      if (this.pendingSkill !== id) {
+        this.pendingSkill = id;
+        if (remain > 5000) Game.toast(`${s.name} is on cooldown`, 'warn');
+      }
+      return;
+    }
+    if (p.mp < s.mp_cost) {
+      Game.toast('Not enough MP', 'warn');
+      if (this.pendingSkill === id) this.pendingSkill = null;
+      return;
+    }
 
     const kind = (['power_strike', 'earthbreaker', 'flame_cleave'].includes(id) ? id : 'basic') as keyof typeof ATTACK_FEEL;
     const mul = Sk.damageMul(id, Sk.rankOf(p, id));
     let ok = false;
     if (id === 'rage') {
       p.mp -= s.mp_cost;
-      this.lastCombatAt = now;
+      this.lastCombatAt = Game.now;
       Game.buffs.rage = now + (s.duration_s ?? 60) * 1000;
       const { dealtPct, takenPct } = Sk.rageNumbers(p);
       Game.toast(`Rage! +${dealtPct}% dealt, +${takenPct}% taken for ${s.duration_s}s`, 'info');
-      this.player.setTint(0xff9a9a);
-      this.time.delayedCall((s.duration_s ?? 60) * 1000, () => this.player?.clearTint());
       ok = true;
     } else if (id === 'soul_guard') {
       p.mp -= s.mp_cost;
-      this.lastCombatAt = now;
+      this.lastCombatAt = Game.now;
       Game.shield = Sk.shieldAmount(p);
       Game.buffs.soul_guard = now + (s.duration_s ?? 20) * 1000;
       Game.toast(`Soul Guard: ${Game.shield} HP shield`, 'info');
@@ -409,7 +453,7 @@ export class WorldScene extends Phaser.Scene {
       ok = this.castStrike(mul, s.mp_cost, 'root_lash', { wide: 110, tint: 0x5a8a3a, kbIf: (m) => !m.def.is_boss });
     } else if (id === 'dig_in') {
       p.mp -= s.mp_cost;
-      this.lastCombatAt = now;
+      this.lastCombatAt = Game.now;
       const ms = Sk.digInWindowMs(p);
       Game.buffs.dig_in = now + ms;
       Game.toast(`Dig In! +100% defense, knockback-immune for ${(ms / 1000).toFixed(2)}s`, 'info');
@@ -417,7 +461,13 @@ export class WorldScene extends Phaser.Scene {
     } else {
       ok = this.trySwing(mul, s.mp_cost, kind === 'power_strike' ? 'power_strike' : 'basic');
     }
-    if (ok) Game.cooldowns[id] = now + Sk.cooldownOf(id);
+    if (ok) {
+      Game.cooldowns[id] = now + Sk.cooldownOf(id);
+      if (this.pendingSkill === id) this.pendingSkill = null;
+    } else if (fromQueue || this.pendingSkill === id) {
+      // Swing still recovering: keep the queued activation and retry next frame.
+      this.pendingSkill = id;
+    }
     Game.changed();
   }
 
@@ -464,6 +514,7 @@ export class WorldScene extends Phaser.Scene {
       if (m.hurt(dmg, this.player.x, kb, stun)) this.onKill(m);
       else if (opt.burnS && m.alive) this.applyBurn(m, Math.max(1, Math.floor(dmg * 0.35)), opt.burnS);
     }
+    if (this.postInStrike(opt)) this.hitPost(mul, kind);
     return true; // spent MP even if nobody was in range
   }
 
@@ -546,6 +597,12 @@ export class WorldScene extends Phaser.Scene {
     if (lv > 0) this.levelUpFx(lv);
     Q.onKill(p, m.def.id);
     Q.onLevel(p);
+    // v0.2.3: guaranteed 5–15 Copper on Wool-Shoulder, in on-kill so a droprate bonus cannot multiply it.
+    if (m.def.id === 'wool_shoulder') {
+      const n = 5 + Math.floor(Math.random() * 11);
+      p.coins += n;
+      Game.toast(`${n} Copper`, 'loot', 'copper_coin');
+    }
     for (const d of rollDrops(m.def.id, p.cheats.dropMul, p)) this.spawnDrop(m.x, m.y - 20, d.itemId, d.qty, d.rare, d.inst);
     Game.changed();
   }
@@ -630,14 +687,14 @@ export class WorldScene extends Phaser.Scene {
   useItem(id: string) {
     const p = Game.player;
     if (Game.dead) return;
-    if ((Game.cooldowns.potion ?? 0) > Game.now) return;
+    if ((Game.cooldowns.potion ?? 0) > Date.now()) return;
     const eff = consumableEffect(id);
     if (!eff.hp && !eff.mp && !eff.buff) return;
     if (eff.buff && this.buffActive(id)) { Game.toast(`${DB.items[id].name} is already active`, 'warn'); return; }
     if (!P.removeItem(p, id)) return;
     P.applyConsumable(p, eff);
-    if (eff.buff) Game.buffs[id] = Game.now + eff.buff.durationS * 1000;
-    Game.cooldowns.potion = Game.now + ASSUME.potionCooldownMs;
+    if (eff.buff) Game.buffs[id] = Date.now() + eff.buff.durationS * 1000;
+    Game.cooldowns.potion = Date.now() + ASSUME.potionCooldownMs;
     const parts = [eff.hp && `+${eff.hp} HP`, eff.mp && `+${eff.mp} MP`, eff.buff && `+${eff.buff.speedPct}% speed`].filter(Boolean);
     this.floatText(this.player.x, this.player.y - 60, parts.join(' '), '#7dff9b', 14);
     Game.changed();
@@ -696,7 +753,36 @@ export class WorldScene extends Phaser.Scene {
   private nearNpc() { return this.npcs.find((n) => Math.abs(n.x - this.player.x) < 40); }
   private nearChest() { return this.chestX !== null && Math.abs(this.chestX - this.player.x) < 36; }
   private nearPortal() { return this.portals.find((pt) => Math.abs(pt.x - this.player.x) < 34); }
+  /** Close enough to talk to / arrive at the practice post (interact and quest-reach). */
   private nearPost() { return this.postX !== null && Math.abs(this.postX - this.player.x) < 40; }
+
+  /** Same melee window as a monster: in front, within reach, not only while standing on the post. */
+  private postInMelee(): boolean {
+    if (this.postX === null) return false;
+    const dx = (this.postX - this.player.x) * this.facing;
+    const reach = ASSUME.meleeReach + 20; // practice_post is 40px wide
+    return dx >= -18 && dx <= reach && Math.abs(this.player.y - (this.groundY + 4)) < 80;
+  }
+
+  /** Roll a real hit against the post (defense 0) and count a dummy swing if the quest needs one. */
+  private hitPost(mult: number, kind: string) {
+    const p = Game.player;
+    const rage = this.buffActive('rage') ? Sk.rageNumbers(p).dealtPct : 0;
+    const { dmg, crit } = computeHit(P.attack(p), mult, 0, P.critChance(p), rage);
+    const x = this.postX ?? this.player.x;
+    this.floatText(x, this.player.y - 80, `${dmg}`, crit ? '#ffcf33' : '#ffffff', crit ? 20 : 16);
+    if (kind === 'basic' && Q.dummyNeeded(p)) Q.onDummyHit(p);
+  }
+
+  /** AoE / wide skills can also tag the post. */
+  private postInStrike(opt: { aoe?: number; wide?: number }): boolean {
+    if (this.postX === null) return false;
+    const dx = this.postX - this.player.x;
+    const dy = Math.abs(this.player.y - (this.groundY + 4));
+    if (opt.aoe != null && Math.hypot(dx, dy) <= opt.aoe + 20) return true;
+    if (opt.wide != null && dx * this.facing > -20 && Math.abs(dx) <= opt.wide + 20 && dy < 70) return true;
+    return this.postInMelee();
+  }
 
   /** Spawn a named quest foe only while its kill-step is active and it is not already here. */
   private ensureNamed() {

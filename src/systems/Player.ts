@@ -103,15 +103,13 @@ export function hpRegenPerSec(p: PlayerData): number {
 export function mainStat(p: PlayerData): number {
   return p.classId === 'warrior' ? statOf(p, 'STR') : p.classId === 'mage' ? statOf(p, 'INT') : statOf(p, 'AGI');
 }
-/** combat_formulas.attack_formula: (weapon_damage + main_stat × 2) × weapon_stat_multiplier */
-/** v0.1.3: weapon_damage × multiplier × (1 + main_stat × 1%). Variance is rolled per hit in computeHit. */
+/** combat_formulas.attack_formula (v0.2.3): floor(weapon × multiplier) + floor(main_stat / 2).
+ *  Every 2 points of the class main stat add +1 attack. Hidden from the player UI. */
 export function attack(p: PlayerData): number {
   const w = inst(p, p.equipment.weapon);
   const dmg = w ? w.weaponDamage : ASSUME.unarmedDamage;
   const mult = w ? w.statMultiplier : ASSUME.unarmedMultiplier;
-  let pct = 1;
-  try { pct = f('attack_per_main_stat_pct'); } catch { pct = 1; }
-  return Math.floor(dmg * mult * (1 + mainStat(p) * (pct / 100))) + (p.cheats?.atk ?? 0);
+  return Math.floor(dmg * mult) + Math.floor(mainStat(p) / 2) + (p.cheats?.atk ?? 0);
 }
 export function defense(p: PlayerData): number {
   let d = p.cheats?.def ?? 0;

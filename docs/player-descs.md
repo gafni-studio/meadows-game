@@ -176,3 +176,9 @@ The sheet is the source of truth. `desc` is shown in game (tooltips and NPC/ques
 - **Forager's Eye.** While hunting, Nature materials and Nature Essence drop a little more often.
 - **Elemental Attunement.** While hunting, Elemental materials and Elemental Essence drop a little more often.
 - **Ila.** Ten of a common material for one essence. Nature, Elemental, or Spirit — look at what you're holding.
+
+## v0.2.3 — shop weapon and berries
+
+- **Short Sword.** A short iron blade, sturdier than a practice sword.
+- **Strawberry.** A ripe meadow strawberry.
+- **Blueberry.** A small, tart blueberry.
