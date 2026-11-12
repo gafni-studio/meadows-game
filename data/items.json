@@ -1,6 +1,6 @@
 {
   "tab": "items",
-  "note": "NOTE: General item table. item_type = material | gear | currency | misc | consumable. subtype_id is used for materials only. Currencies: Nature / Elemental / Spirit Essence (category upgrades) and Monster Essence (basic skills only); Copper Coin is money. Consumables are meadow-flavored (Meadow Dew, Clear Dew, Spring Draught, Mint Draught, Barley Cake, Wild Apple, Mint Sprig). They can be bought from the Meadows vendor (npc_shop). Healing and MP drinks drop only from some thematically related monsters, not from every mob. Misc includes common junk, a few mid curios (found objects, hoarded things, byproducts — not a body-part trophy on every monster), and rare high-sell junk that only some monsters share. Crafting is deferred. Meadows leans earth. v0.1.2-descs: `desc` is the short player-facing line shown in tooltips (flavor only, no design notes). `notes` is design-only and is never shown in game. Mechanical consumable effects (\"Restores 40 HP\") live in notes and are shown as stats. `description` is kept in sync with `desc` for older exports.  v0.2.3: Wild Apple retired from shop and drops (kept so old bags still work). Strawberry restores HP, Blueberry restores MP; mouse and sheep each drop one, slightly above the old apple rate. Short Sword is a plain shop weapon at 30 Copper.",
+  "note": "NOTE: General item table. item_type = material | gear | currency | misc | consumable. subtype_id is used for materials only. Currencies: Nature / Elemental / Spirit Essence (category upgrades) and Monster Essence (basic skills only); Copper Coin is money. Consumables are meadow-flavored (Meadow Dew, Clear Dew, Spring Draught, Mint Draught, Barley Cake, Wild Apple, Mint Sprig). They can be bought from the Meadows vendor (npc_shop). Healing and MP drinks drop only from some thematically related monsters, not from every mob. Misc includes common junk, a few mid curios (found objects, hoarded things, byproducts — not a body-part trophy on every monster), and rare high-sell junk that only some monsters share. Crafting is deferred. Meadows leans earth. v0.1.2-descs: `desc` is the short player-facing line shown in tooltips (flavor only, no design notes). `notes` is design-only and is never shown in game. Mechanical consumable effects (\"Restores 40 HP\") live in notes and are shown as stats. `description` is kept in sync with `desc` for older exports.  v0.2.3: Wild Apple retired from shop and drops (kept so old bags still work). Strawberry restores HP, Blueberry restores MP; mouse and sheep each drop one, slightly above the old apple rate. Short Sword is a plain shop weapon at 30 Copper.  v0.2.4: Spark Shell (Spark Bug unique junk) and Pale Wing (Frost Moth unique junk).",
   "columns": [
     "id",
     "name",
@@ -1366,6 +1366,32 @@
       "description": "A short iron blade, sturdier than a practice sword.",
       "notes": "v0.2.3: Mara sells this for 30 Copper. Mid 13 damage (12–14) × 1.1, STR 1. A clear step up from the Wooden Sword (10×1.1) and below a Meadow Blade. Shop-only, not a drop.",
       "desc": "A short iron blade, sturdier than a practice sword."
+    },
+    {
+      "id": "spark_shell",
+      "name": "Spark Shell",
+      "item_type": "misc",
+      "subtype_id": null,
+      "native_zone": "meadows",
+      "passively_gatherable": false,
+      "sellable_only": true,
+      "sell_price": 48,
+      "description": "A shell that still holds a faint snap.",
+      "notes": "v0.2.4: unique extra on Spark Bug (2.4%). Sell-only junk, not a material or trophy. Design only in notes.",
+      "desc": "A shell that still holds a faint snap."
+    },
+    {
+      "id": "pale_wing",
+      "name": "Pale Wing",
+      "item_type": "misc",
+      "subtype_id": null,
+      "native_zone": "meadows",
+      "passively_gatherable": false,
+      "sellable_only": true,
+      "sell_price": 42,
+      "description": "A moth wing, cool to the touch.",
+      "notes": "v0.2.4: unique extra on Frost Moth (2.2%). Sell-only junk. Design only in notes.",
+      "desc": "A moth wing, cool to the touch."
     }
   ]
 }

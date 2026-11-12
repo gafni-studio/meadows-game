@@ -1,10 +1,10 @@
 {
   "source": "sheet/Game_Design_DB_v0.xlsx",
-  "exportedAt": "2026-11-12T16:12:33.318Z",
+  "exportedAt": "2026-11-12T16:22:08.697Z",
   "tabs": [
     "material_categories: 4 rows",
     "material_subtypes: 13 rows",
-    "items: 104 rows",
+    "items: 106 rows",
     "exchange: 15 rows",
     "npc_shop: 18 rows",
     "gear: 36 rows",
@@ -22,11 +22,11 @@
     "zones: 1 rows",
     "map_layout: 6 rows",
     "monsters: 16 rows",
-    "drop_tables: 233 rows",
+    "drop_tables: 245 rows",
     "starter_quests: 9 rows",
     "controls: 20 rows",
     "prototype_plan: 10 rows",
     "npcs: 4 rows",
-    "skill_quests: 13 rows"
+    "skill_quests: 17 rows"
   ]
 }

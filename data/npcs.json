@@ -21,7 +21,7 @@
       "name": "Pell",
       "role": "hint",
       "desc": "Welcome to Meadow Town! Head east to Sunny Pasture — mice and sheep leave you be unless you hit them, but watch the crows. The dirt path at the far east of the pasture leads on to the Dirt Banks. Press E to pick up drops, sell junk to Mara, and train with Calden.",
-      "notes": "Town greeter. Grants sq_welcome on first talk. Tutorial-length dialog is longer than item descs on purpose. v0.2.0: mentions the open dirt path to the Dirt Banks."
+      "notes": "Town greeter. Grants sq_welcome on first talk. Tutorial-length dialog is longer than item descs on purpose. v0.2.0: mentions the open dirt path to the Dirt Banks.  v0.2.4: After a first passive point, Pell offers The Dirt Path."
     },
     {
       "id": "calden",
