@@ -121,6 +121,12 @@
       "keys": "Esc",
       "context": "ui",
       "notes": "Close the topmost window, or pause if no window is open. Does not quit the browser tab."
+    },
+    {
+      "action": "quest_tracker",
+      "keys": "L",
+      "context": "ui",
+      "notes": "v0.2.3: Toggle the on-screen quest objectives tracker. J still opens the full journal. L was free after the journal moved to J."
     }
   ]
 }

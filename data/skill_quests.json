@@ -1,6 +1,6 @@
 {
   "tab": "skill_quests",
-  "note": "DRAFT — v0.2.1 / B-004 Warrior skill questlines. Discoverable: Power Strike and Rage start on a level-up; Earthbreaker and Flame Cleave start when the rare drop is picked up or inspected. Completing a line unlocks that skill at rank 1; further ranks train at Calden. Soul Guard is parked (see Pitch Book). `desc` is player-facing; `notes` is design-only. Rewards are on the last step. `trigger` is level:N or item:<id>. Gates are checked when Calden would finish the line.",
+  "note": "DRAFT — v0.2.1 / B-004 Warrior skill questlines. Discoverable: Power Strike and Rage start on a level-up; Earthbreaker and Flame Cleave start when the rare drop is picked up or inspected. Completing a line unlocks that skill at rank 1; further ranks train at Calden. Soul Guard is parked (see Pitch Book). `desc` is player-facing; `notes` is design-only. Rewards are on the last step. `trigger` is level:N or item:<id>. Gates are checked when Calden would finish the line.  v0.2.3: A Crack in the Dirt and Hot Edge only unlock training; they do not grant rank 1. The Weight of a Swing and Blood Up still grant rank 1.",
   "columns": [
     "id",
     "line_id",
@@ -189,7 +189,7 @@
       "name": "A Crack in the Dirt",
       "desc": "Bank-Cracker waits in a hollow of the banks.",
       "objective": "Defeat Bank-Cracker in the Dirt Banks and return to Calden.",
-      "notes": "Named Burrow Mole. Reward: Earthbreaker rank 1. Nature Essence ×12 does not skip rank 2 (r2 still costs on the ×1.6 curve from 40).",
+      "notes": "Named Burrow Mole. Reward: Earthbreaker rank 1. Nature Essence ×12 does not skip rank 2 (r2 still costs on the ×1.6 curve from 40).  v0.2.3: completing this line unlocks training at Calden (rank 0 → 1 is paid), and does NOT grant the skill at rank 1. Power Strike and Rage still grant rank 1.",
       "trigger": null,
       "gate_level": 3,
       "gate_stat": "STR",
@@ -243,7 +243,7 @@
       "name": "Hot Edge",
       "desc": "Cinderback leaves a Live Ember. Bring it to Calden.",
       "objective": "Defeat Cinderback in the Dirt Banks and bring its Live Ember to Calden.",
-      "notes": "Named Ember Beetle, guaranteed Live Ember. Reward: Flame Cleave rank 1. Elemental Essence ×12 is a taste, not a skipped rank.",
+      "notes": "Named Ember Beetle, guaranteed Live Ember. Reward: Flame Cleave rank 1. Elemental Essence ×12 is a taste, not a skipped rank.  v0.2.3: completing this line unlocks training at Calden (rank 0 → 1 is paid), and does NOT grant the skill at rank 1. Power Strike and Rage still grant rank 1.",
       "trigger": null,
       "gate_level": 6,
       "gate_stat": "STR",

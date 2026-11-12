@@ -1,6 +1,6 @@
 {
   "tab": "npc_shop",
-  "note": "DRAFT — Meadows town vendor (one NPC for now). Sells for Copper Coin only. Stock is unlimited in v0. Healing and MP drinks use meadow names (Meadow Dew, Clear Dew, Spring Draught, Mint Draught). Sell-back: misc with sellable_only = true (junk, curios, rare junk) at 100% of items.sell_price; consumables at 50% of shop price; gear at 50% of items.sell_price (or 50% of shop price if listed here). Materials and essences are not bought. Crafting is deferred. No leather or weapons in this shop — those stay as drops.",
+  "note": "DRAFT — Meadows town vendor (one NPC for now). Sells for Copper Coin only. Stock is unlimited in v0. Healing and MP drinks use meadow names (Meadow Dew, Clear Dew, Spring Draught, Mint Draught). Sell-back: misc with sellable_only = true (junk, curios, rare junk) at 100% of items.sell_price; consumables at 50% of shop price; gear at 50% of items.sell_price (or 50% of shop price if listed here). Materials and essences are not bought. Crafting is deferred. No leather or weapons in this shop — those stay as drops.  v0.2.3: Short Sword at 30 Copper (an exception to \"no weapons in this shop\"); Wild Apple replaced by Strawberry and Blueberry.",
   "columns": [
     "id",
     "item_id",
@@ -57,13 +57,13 @@
       "notes": "Restores 20 HP. Town food."
     },
     {
-      "id": "shop_apple",
-      "item_id": "wild_apple",
+      "id": "shop_strawberry",
+      "item_id": "strawberry",
       "role": "sell",
       "price": 5,
       "currency": "copper_coin",
       "stock": "unlimited",
-      "notes": "Restores 15 HP."
+      "notes": "Restores 18 HP. v0.2.3: replaces Wild Apple."
     },
     {
       "id": "shop_mint_sprig",
@@ -154,6 +154,24 @@
       "currency": "copper_coin",
       "stock": "none",
       "notes": "Vendor does not buy materials, category essences, Monster Essence, or currency. Exchange those via the exchange tab or keep them for training."
+    },
+    {
+      "id": "shop_blueberry",
+      "item_id": "blueberry",
+      "role": "sell",
+      "price": 5,
+      "currency": "copper_coin",
+      "stock": "unlimited",
+      "notes": "Restores 15 MP. v0.2.3."
+    },
+    {
+      "id": "shop_short_sword",
+      "item_id": "short_sword",
+      "role": "sell",
+      "price": 30,
+      "currency": "copper_coin",
+      "stock": "unlimited",
+      "notes": "v0.2.3: a plain step up from the starter Wooden Sword, 30 Copper."
     }
   ]
 }

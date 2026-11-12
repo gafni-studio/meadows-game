@@ -1,6 +1,6 @@
 {
   "tab": "combat_formulas",
-  "note": "DRAFT — v0 combat and progression math. All numbers are a starting baseline and should be tweaked after playtesting. Damage is skill% × attack − defense, with a small minimum. See the worked example at the bottom (level 5 Warrior vs Meadow Boar). Monster stats live on the monsters tab. Healing drinks are Meadow Dew / Clear Dew / Spring Draught / Mint Draught. v0.1.3: attack is +1% per main-stat point (not +2 flat); hp_per_str 2; per-hit variance 0.75–1.25; monster attack_min/max.",
+  "note": "DRAFT — v0 combat and progression math. All numbers are a starting baseline and should be tweaked after playtesting. Damage is skill% × attack − defense, with a small minimum. See the worked example at the bottom (level 5 Warrior vs Meadow Boar). Monster stats live on the monsters tab. Healing drinks are Meadow Dew / Clear Dew / Spring Draught / Mint Draught. v0.1.3: attack is +1% per main-stat point (not +2 flat); hp_per_str 2; per-hit variance 0.75–1.25; monster attack_min/max.  v0.2.3: attack is +1 per 2 main-stat points (flat), hidden from the player UI.",
   "columns": [
     "key",
     "value",
@@ -111,9 +111,9 @@
     },
     {
       "key": "attack_formula",
-      "value": "weapon_damage × weapon_stat_multiplier × (1 + main_stat × 0.01)",
-      "notes": "v0.1.3: was (weapon_damage + main_stat × 2) × multiplier, which made each STR point a huge flat bump (~+2.2 attack on a wooden sword). Now each main-stat point is +1% of weapon attack. Weapon damage and skill ranks are the main damage sources. main_stat is STR (Warrior), INT (Mage), or AGI (Rogue). Unarmed: weapon_damage 6, multiplier 1.0.",
-      "num": 1
+      "value": "floor(weapon_damage × weapon_stat_multiplier) + floor(main_stat / 2)",
+      "notes": "v0.2.3: was +1% per main-stat point, which felt weak early and strong late. Now every 2 points of the class main stat (STR Warrior, INT Mage, AGI Rogue) add +1 attack, a flat bonus after the weapon. The formula is hidden from the player. Unarmed: weapon_damage 6, multiplier 1.0.",
+      "num": 2
     },
     {
       "key": "damage_formula",
@@ -194,10 +194,10 @@
       "num": 20
     },
     {
-      "key": "food_wild_apple",
-      "value": "15 HP",
-      "notes": "Wild Apple.",
-      "num": 15
+      "key": "food_strawberry",
+      "value": "18 HP",
+      "notes": "Strawberry. v0.2.3: replaces Wild Apple.",
+      "num": 18
     },
     {
       "key": "mint_sprig",
@@ -344,9 +344,9 @@
       "num": 7
     },
     {
-      "key": "attack_per_main_stat_pct",
+      "key": "attack_per_2_main_stat",
       "value": 1,
-      "notes": "v0.1.3: percent damage per main-stat point (STR/INT/AGI). attack *= (1 + main_stat × this / 100).",
+      "notes": "v0.2.3: +1 attack per 2 main-stat points (floor). Replaces attack_per_main_stat_pct. Do not show this formula in the stats UI.",
       "num": 1
     },
     {
@@ -354,6 +354,12 @@
       "value": "0.75–1.25",
       "notes": "v0.1.3: uniform per-hit dice on every player hit (basic and skills). The equipped weapon’s rolled instance damage is the centre; this is extra swing. Documented in assumptions.DAMAGE.",
       "num": 0.75
+    },
+    {
+      "key": "food_blueberry",
+      "value": "15 MP",
+      "notes": "Blueberry. v0.2.3.",
+      "num": 15
     }
   ]
 }

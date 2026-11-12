@@ -577,6 +577,22 @@
       "weapon_damage_min": 15,
       "weapon_damage_max": 18,
       "desc": "A heavy club of packed stone."
+    },
+    {
+      "item_id": "short_sword",
+      "slot": "weapon",
+      "class_id": "warrior",
+      "required_stat": "STR",
+      "required_value": 1,
+      "stat_multiplier": 1.1,
+      "defense": 0,
+      "weapon_damage": 13,
+      "description": "A short iron blade, sturdier than a practice sword.",
+      "defense_min": 0,
+      "defense_max": 0,
+      "weapon_damage_min": 12,
+      "weapon_damage_max": 14,
+      "desc": "A short iron blade, sturdier than a practice sword."
     }
   ]
 }
