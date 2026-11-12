@@ -194,7 +194,7 @@ export const COMMANDS: Record<string, Cmd> = {
     },
   },
   quest: {
-    usage: 'quest [list|start|step|complete] [line]', help: 'List or drive skill questlines (ql_weight, ql_blood, ql_crack, ql_hot)', cheat: true,
+    usage: 'quest [list|start|step|complete] [line]', help: 'List or drive skill questlines (ql_weight, ql_blood, ql_crack, ql_hot, ql_dirt_path)', cheat: true,
     run: ([op, line]) => {
       const p = Game.player;
       if (!op || op === 'list') {

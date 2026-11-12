@@ -89,7 +89,7 @@ export const AREAS: Record<string, AreaGeometry> = {
     npcs: [],
     // west arrives just inside the pasture's east portal (at tile 128); east is Meadow Shrine (not yet open).
     portals: [{ x: 2, dir: 'west', arriveX: 126 }, { x: 112, dir: 'east', arriveX: 3 }],
-    spawnZones: { burrow_mole: [8, 70], earth_sprite: [30, 90], ember_beetle: [70, 108] },
+    spawnZones: { burrow_mole: [8, 70], earth_sprite: [30, 90], ember_beetle: [70, 108], spark_bug: [55, 108], frost_moth: [12, 52] },
     namedSpawns: [{ id: 'bank_cracker', x: 52 }, { id: 'cinderback', x: 96 }],
   },
 };

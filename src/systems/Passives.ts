@@ -9,6 +9,7 @@
 import { DB, tab, descOf } from '../data/db';
 import * as P from './Player';
 import { Game } from './GameState';
+import * as Q from './Quests';
 
 export interface PassiveNode {
   id: string; tree_id: string; name: string; effect_type: string; effect_per_rank: string;
@@ -116,6 +117,7 @@ export function startUpgrade(p: P.PlayerData, id: string, now = Date.now()): str
   const ms = upgradeMinutes(cur + 1) * 60_000;
   p.passiveUpgrade = { nodeId: id, targetRank: cur + 1, startedAt: now, doneAt: now + ms };
   Game.toast(`Upgrading ${n.name} to rank ${cur + 1} — ${formatDur(ms)}`, 'info');
+  Q.onPassive(p);
   Game.changed();
   Game.save();
   return null;

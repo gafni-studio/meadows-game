@@ -16,7 +16,7 @@ export interface QuestStepRow {
   gate_value?: number | null; reward_xp?: number | null; reward_coins?: number | null;
   reward_items?: string | null; unlock_skill?: string | null; giver?: string | null;
 }
-export interface QuestState { step: number; done: boolean; killed?: boolean; dummyHits?: number }
+export interface QuestState { step: number; done: boolean; killed?: boolean; dummyHits?: number; kills?: Record<string, number> }
 
 export type QuestLog = Record<string, QuestState>;
 
@@ -46,11 +46,29 @@ for (const [k, id] of Object.entries(KILL)) {
   KILL_LINE[id] = { line, step: Number(step) };
 }
 
+/** Counted hunts (any of the listed regulars). Keyed by line+step. */
+const HUNT: Record<string, Record<string, number>> = {
+  'ql_dirt_path:2': { crow: 4 },
+  'ql_dirt_path:4': { burrow_mole: 5, ember_beetle: 3 },
+};
+
+function huntDone(need: Record<string, number>, kills: Record<string, number> | undefined): boolean {
+  return Object.entries(need).every(([id, n]) => (kills?.[id] ?? 0) >= n);
+}
+
+function huntLabel(need: Record<string, number>, kills: Record<string, number> | undefined): string {
+  return Object.entries(need).map(([id, n]) => {
+    const have = Math.min(kills?.[id] ?? 0, n);
+    return `${DB.monsters[id]?.name ?? id} ${have}/${n}`;
+  }).join(', ');
+}
+
 /** Place to reach: area and optional x-range in tiles. */
 const REACH: Record<string, { area: string; xMin?: number; xMax?: number; nearPost?: boolean }> = {
   'ql_weight:1': { area: 'meadow_town', nearPost: true },
   'ql_blood:2': { area: 'sunny_pasture', xMin: 100, xMax: 130 },
   'ql_crack:2': { area: 'dirt_banks' },
+  'ql_dirt_path:3': { area: 'dirt_banks' },
 };
 
 const DUMMY: Record<string, number> = { 'ql_weight:3': 3 };
@@ -183,10 +201,30 @@ function grantSkill(p: P.PlayerData, id: string) {
 /** Level-up and load: start any level-triggered lines the player now qualifies for. */
 export function onLevel(p: P.PlayerData, silent = false): void {
   for (const line of LINES) {
-    const t = rowsOf(line)[0]?.trigger ?? '';
-    const m = String(t).match(/^level:(\d+)$/);
+    const trig = rowsOf(line)[0]?.trigger ?? '';
+    const m = String(trig).match(/^level:(\d+)$/);
     if (m && p.level >= Number(m[1])) start(p, line, silent);
   }
+  offerDirtPath(p, silent);
+}
+
+/** True once the last starter lesson is done: a first passive point spent, or the stub flag. */
+export function hasDirtPathPrereq(p: P.PlayerData): boolean {
+  if (p.questFlags?.sq_first_passive) return true;
+  if (p.passiveUpgrade) return true;
+  return Object.values(p.passiveRanks ?? {}).some((r) => (r ?? 0) >= 1);
+}
+
+/** Call after a first passive point is spent (or on load) to discover The Dirt Path. */
+export function offerDirtPath(p: P.PlayerData, silent = false): void {
+  if (!hasDirtPathPrereq(p)) return;
+  p.questFlags ??= {};
+  p.questFlags.sq_first_passive = true;
+  start(p, 'ql_dirt_path', silent);
+}
+
+export function onPassive(p: P.PlayerData): void {
+  offerDirtPath(p, false);
 }
 
 /** Pickup or inspect of a quest-start item. */
@@ -219,17 +257,43 @@ export function shouldSpawn(p: P.PlayerData, monsterId: string): boolean {
 
 export function onKill(p: P.PlayerData, monsterId: string): void {
   const k = KILL_LINE[monsterId];
-  if (!k) return;
-  const s = state(p, k.line);
-  if (!isActive(p, k.line) || s.step !== k.step) return;
-  setState(p, k.line, { ...s, killed: true });
-  if (monsterId === 'cinderback') {
-    P.addItem(p, 'live_ember', 1);
-    Game.toast('Live Ember — take it to Calden', 'rare', 'live_ember');
+  if (k) {
+    const s = state(p, k.line);
+    if (isActive(p, k.line) && s.step === k.step) {
+      setState(p, k.line, { ...s, killed: true });
+      if (monsterId === 'cinderback') {
+        P.addItem(p, 'live_ember', 1);
+        Game.toast('Live Ember — take it to Calden', 'rare', 'live_ember');
+      }
+      Game.toast(`${DB.monsters[monsterId]?.name ?? monsterId} falls. Return to Calden.`, 'info');
+      Game.changed();
+      Game.save();
+    }
   }
-  Game.toast(`${DB.monsters[monsterId]?.name ?? monsterId} falls. Return to Calden.`, 'info');
-  Game.changed();
-  Game.save();
+  for (const line of LINES) {
+    if (!isActive(p, line)) continue;
+    const s = state(p, line);
+    const need = HUNT[`${line}:${s.step}`];
+    if (!need || need[monsterId] == null) continue;
+    const kills = { ...(s.kills ?? {}) };
+    kills[monsterId] = (kills[monsterId] ?? 0) + 1;
+    setState(p, line, { ...s, kills });
+    if (huntDone(need, kills)) {
+      const last = (rowsOf(line).slice(-1)[0])?.step;
+      if (s.step === last) {
+        const who = row(line, s.step)?.giver === 'pell' ? 'Pell' : 'Calden';
+        Game.toast(`Return to ${who}.`, 'info');
+        Game.changed();
+        Game.save();
+      } else {
+        advance(p, line, line === 'ql_dirt_path' ? 'The path into the Dirt Banks is open. Follow it east.' : undefined);
+      }
+    } else {
+      Game.toast(huntLabel(need, kills), 'info');
+      Game.changed();
+      Game.save();
+    }
+  }
 }
 
 /** Reach-a-place checks. `postNear` is true when the player is at the practice post. */
@@ -281,6 +345,22 @@ export function talk(p: P.PlayerData, npc: string): string | null {
     const r = row(line, s.step);
     if (!r || (r.giver && r.giver !== npc)) continue;
     const key = `${line}:${s.step}`;
+
+    // The Dirt Path step 1: Pell sends you to the east pasture.
+    if (line === 'ql_dirt_path' && s.step === 1) {
+      advance(p, line, 'Defeat 4 Crows at the east end of Sunny Pasture.');
+      return 'The dirt path at the far east of the pasture goes on to the banks. Clear the crows that keep it — four of them — then walk through and hunt moles and the warm beetles. Come back when you have.';
+    }
+    const hunt = HUNT[key];
+    if (hunt && r.giver === npc) {
+      if (!huntDone(hunt, s.kills)) return `Still short. ${huntLabel(hunt, s.kills)}. ${r.objective}`;
+      if (s.step === (rowsOf(line).slice(-1)[0])!.step) {
+        complete(p, line);
+        return lastWords(line);
+      }
+      advance(p, line);
+      return 'That will do. ' + (row(line, s.step + 1)?.objective ?? '');
+    }
 
     // Talk-only step (Blood Up 1).
     if (line === 'ql_blood' && s.step === 1) {
@@ -345,6 +425,7 @@ function lastWords(line: string): string {
   if (line === 'ql_blood') return 'You stayed in it. Rage is yours. Remember the other half of the bargain.';
   if (line === 'ql_crack') return 'The ground answered. Earthbreaker training is open — come back to Calden with Nature Essence when you want to learn it.';
   if (line === 'ql_hot') return 'A clean, hot edge. Flame Cleave training is open — Elemental Essence will teach it.';
+  if (line === 'ql_dirt_path') return 'The banks are yours to hunt. Root and stone, and a little warmth — bring what you find back to town.';
   return `${lineName(line)} is done.`;
 }
 
@@ -357,7 +438,10 @@ export function wantsTalk(p: P.PlayerData, npc: string): boolean {
     if (!r || (r.giver && r.giver !== npc)) return false;
     const key = `${line}:${s.step}`;
     if (line === 'ql_blood' && s.step === 1) return true;
+    if (line === 'ql_dirt_path' && s.step === 1) return true;
     if (s.step === 1 && (line === 'ql_crack' || line === 'ql_hot')) return true;
+    const hunt = HUNT[key];
+    if (hunt && huntDone(hunt, s.kills)) return true;
     if (COLLECT[key] || KILL[key]) return true;
     return false;
   });
@@ -373,7 +457,12 @@ export function currentObjectives(p: P.PlayerData): { line: string; name: string
   for (const line of LINES) {
     if (!isActive(p, line)) continue;
     const r = currentRow(p, line);
-    if (r) out.push({ line, name: r.name, objective: r.objective });
+    if (r) {
+      const s = state(p, line);
+      const hunt = HUNT[`${line}:${s.step}`];
+      const obj = hunt ? `${r.objective} (${huntLabel(hunt, s.kills)})` : r.objective;
+      out.push({ line, name: r.name, objective: obj });
+    }
   }
   return out;
 }
@@ -396,8 +485,9 @@ export function journal(p: P.PlayerData): JournalEntry[] {
     else if (s.step >= 1) status = 'active';
     else {
       // Tease level-start lines; keep drop-start lines quiet until found.
-      const t = String(head.trigger ?? '');
-      if (t.startsWith('level:')) status = 'soon';
+      const trig = String(head.trigger ?? '');
+      if (trig.startsWith('level:')) status = 'soon';
+      else if (trig.startsWith('passive:') && hasDirtPathPrereq(p)) status = 'soon';
       else continue;
     }
     const last = (steps.slice(-1)[0]);

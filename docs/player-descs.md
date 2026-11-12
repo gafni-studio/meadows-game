@@ -182,3 +182,12 @@ The sheet is the source of truth. `desc` is shown in game (tooltips and NPC/ques
 - **Short Sword.** A short iron blade, sturdier than a practice sword.
 - **Strawberry.** A ripe meadow strawberry.
 - **Blueberry.** A small, tart blueberry.
+
+
+## v0.2.4 — The Dirt Path, Spark Bug, Frost Moth
+
+- **The Dirt Path.** Pell has a job past the east pasture, into the dirt.
+- **Spark Bug.** A bug that snaps with a little static when touched.
+- **Frost Moth.** A pale moth that comes out in the cold morning dew.
+- **Spark Shell.** A shell that still holds a faint snap.
+- **Pale Wing.** A moth wing, cool to the touch.

@@ -34,7 +34,7 @@ const fail = (msg) => { throw new Error(msg); };
   for (const [id, n] of Object.entries(wantMp)) if (mp[id] !== n) fail(`sheet mp_cost ${id} is ${mp[id]}, expected ${n}`);
   const drops = JSON.parse(readFileSync('data/drop_tables.json', 'utf8')).rows;
   const copper = Object.fromEntries(drops.filter((r) => r.item_id === 'copper_coin').map((r) => [r.monster_id, r.drop_rate]));
-  const wantCu = { crow: 80, burrow_mole: 80, earth_sprite: 80, ember_beetle: 82, spark_bug: 80, field_mouse: 70 };
+  const wantCu = { crow: 80, burrow_mole: 80, earth_sprite: 80, ember_beetle: 82, spark_bug: 80, frost_moth: 80, field_mouse: 70 };
   for (const [id, n] of Object.entries(wantCu)) if (copper[id] !== n) fail(`sheet copper ${id} is ${copper[id]}, expected ${n}`);
   console.log('sheet mp/copper ok');
 }
@@ -199,6 +199,8 @@ try {
   if (!q1 || q1.done || q1.step !== 1) fail(`level 2 did not start Weight: ${JSON.stringify(q1)}`);
   const track = await page.evaluate(() => document.querySelector('#quest-track')?.innerText ?? '');
   if (!/practice post/i.test(track)) fail(`quest tracker missing: ${track}`);
+  const dpEarly = await page.evaluate(() => window.__state.player.questLog?.ql_dirt_path);
+  if (dpEarly && (dpEarly.step >= 1 || dpEarly.done)) fail(`Dirt Path started before a first passive point: ${JSON.stringify(dpEarly)}`);
   console.log('journal start ok:', q1, track);
 
   // Practice post (tile 40), E for step 1
@@ -368,11 +370,18 @@ try {
     const alive = sc.monsters.filter((m) => m.alive);
     return { ids: [...new Set(alive.map((m) => m.def.id))].sort(), n: alive.length };
   });
-  for (const id of ['burrow_mole', 'earth_sprite', 'ember_beetle']) {
+  for (const id of ['burrow_mole', 'earth_sprite', 'ember_beetle', 'spark_bug', 'frost_moth']) {
     if (!banksMobs.ids.includes(id)) fail(`Dirt Banks missing ${id}: ${JSON.stringify(banksMobs)}`);
   }
-  if (banksMobs.n < 10) fail(`Dirt Banks spawn count low: ${JSON.stringify(banksMobs)}`);
+  if (banksMobs.n < 16) fail(`Dirt Banks spawn count low: ${JSON.stringify(banksMobs)}`);
   await shot('dirt-banks');
+  await page.evaluate(() => {
+    const sc = window.__state.scene;
+    const m = sc.monsters.find((x) => x.alive && x.def.id === 'spark_bug');
+    if (m) sc.player.x = m.x - 44;
+  });
+  await page.waitForTimeout(400);
+  await shot('spark-bug');
   // a few swings for a combat screenshot
   await page.evaluate(() => {
     const sc = window.__game.scene.getScene('World');
@@ -546,6 +555,87 @@ try {
   if (afterEx.twig !== beforeEx.twig - 10 || afterEx.ne !== beforeEx.ne + 1) fail(`10:1 Twig exchange failed: ${JSON.stringify({ afterEx, beforeEx })}`);
   await key('Escape');
   console.log('ila ok:', afterEx);
+
+  // ── v0.2.4 The Dirt Path (Pell, after a first passive) ──
+  await page.evaluate(() => window.__game?.events?.emit('close-all'));
+  await page.waitForTimeout(150);
+  const dpStart = await page.evaluate(() => window.__state.player.questLog?.ql_dirt_path);
+  if (!dpStart || dpStart.done || dpStart.step !== 1) fail(`first passive did not start The Dirt Path: ${JSON.stringify(dpStart)}`);
+  if ((await s()).area !== 'meadow_town') {
+    await key('`');
+    await page.keyboard.type('tp meadow_town'); await key('Enter');
+    await key('Escape', 250);
+    await page.waitForFunction(() => window.__state.player.area === 'meadow_town' && window.__game?.scene.isActive('World'), null, { timeout: 10000 });
+  }
+  await page.evaluate(() => { window.__state.scene.player.x = 36 * 32; });
+  await page.waitForTimeout(200);
+  await key('e', 450);
+  if (!(await visible()).includes('dialog')) fail('Pell did not open The Dirt Path dialog');
+  const pellDlg = await page.evaluate(() => document.querySelector('#p-dialog')?.innerText ?? '');
+  if (!/crow|dirt path|banks/i.test(pellDlg)) fail(`Pell Dirt Path dialog unexpected: ${pellDlg.slice(0, 500)}`);
+  await shot('pell-dirt-path');
+  await key('Enter', 250);
+  await key('Escape', 150);
+  const dpTalk = await page.evaluate(() => window.__state.player.questLog?.ql_dirt_path);
+  if (!dpTalk || dpTalk.step !== 2) fail(`Pell talk did not advance Dirt Path to step 2: ${JSON.stringify(dpTalk)}`);
+
+  await page.evaluate(() => {
+    const sc = window.__state.scene;
+    for (let i = 0; i < 4; i++) sc.onKill({ def: { id: 'crow', xp: 0 }, x: sc.player.x, y: sc.player.y, displayHeight: 20 });
+  });
+  const dpCrows = await page.evaluate(() => window.__state.player.questLog?.ql_dirt_path);
+  if (!dpCrows || dpCrows.step !== 3) fail(`4 Crow kills did not auto-advance Dirt Path: ${JSON.stringify(dpCrows)}`);
+
+  await key('`');
+  await page.keyboard.type('tp dirt_banks'); await key('Enter');
+  await key('Escape', 300);
+  await page.waitForFunction(() => window.__state.player.area === 'dirt_banks' && window.__game?.scene.isActive('World'), null, { timeout: 10000 });
+  await page.waitForTimeout(500);
+  const dpBanks = await page.evaluate(() => window.__state.player.questLog?.ql_dirt_path);
+  if (!dpBanks || dpBanks.step !== 4) fail(`reaching Dirt Banks did not advance Dirt Path: ${JSON.stringify(dpBanks)}`);
+
+  await page.evaluate(() => {
+    const sc = window.__state.scene;
+    for (let i = 0; i < 5; i++) sc.onKill({ def: { id: 'burrow_mole', xp: 0 }, x: sc.player.x, y: sc.player.y, displayHeight: 20 });
+    for (let i = 0; i < 3; i++) sc.onKill({ def: { id: 'ember_beetle', xp: 0 }, x: sc.player.x, y: sc.player.y, displayHeight: 20 });
+  });
+  const dpHunt = await page.evaluate(() => window.__state.player.questLog?.ql_dirt_path);
+  if (!dpHunt || dpHunt.done || dpHunt.step !== 4) fail(`Banks hunt should wait for Pell: ${JSON.stringify(dpHunt)}`);
+  if ((dpHunt.kills?.burrow_mole ?? 0) < 5 || (dpHunt.kills?.ember_beetle ?? 0) < 3) fail(`hunt counts short: ${JSON.stringify(dpHunt)}`);
+
+  const beforeRew = await page.evaluate(() => {
+    const p = window.__state.player;
+    return { coins: p.coins, ne: p.inventory.nature_essence ?? 0, ee: p.inventory.elemental_essence ?? 0, dew: p.inventory.meadow_dew ?? 0 };
+  });
+  await key('`');
+  await page.keyboard.type('tp meadow_town'); await key('Enter');
+  await key('Escape', 300);
+  await page.waitForFunction(() => window.__state.player.area === 'meadow_town' && window.__game?.scene.isActive('World'), null, { timeout: 10000 });
+  await page.evaluate(() => { window.__game?.events?.emit('close-all'); window.__state.scene.player.x = 36 * 32; });
+  await page.waitForTimeout(250);
+  await key('e', 450);
+  if (!(await visible()).includes('dialog')) fail('Pell did not open the Dirt Path return dialog');
+  const pellDone = await page.evaluate(() => document.querySelector('#p-dialog')?.innerText ?? '');
+  if (!/banks are yours|root and stone/i.test(pellDone)) fail(`Pell complete dialog unexpected: ${pellDone.slice(0, 500)}`);
+  await key('Enter', 300);
+  const afterRew = await page.evaluate(() => {
+    const p = window.__state.player;
+    const q = p.questLog?.ql_dirt_path;
+    return {
+      done: !!q?.done,
+      coins: p.coins,
+      ne: p.inventory.nature_essence ?? 0,
+      ee: p.inventory.elemental_essence ?? 0,
+      dew: p.inventory.meadow_dew ?? 0,
+    };
+  });
+  if (!afterRew.done) fail(`Dirt Path not complete: ${JSON.stringify({ afterRew, pellDone })}`);
+  if (afterRew.coins - beforeRew.coins !== 25) fail(`Dirt Path coins ${beforeRew.coins} → ${afterRew.coins}`);
+  if (afterRew.ne - beforeRew.ne !== 8) fail(`Dirt Path Nature Essence ${beforeRew.ne} → ${afterRew.ne}`);
+  if (afterRew.ee - beforeRew.ee !== 5) fail(`Dirt Path Elemental Essence ${beforeRew.ee} → ${afterRew.ee}`);
+  if (afterRew.dew - beforeRew.dew !== 2) fail(`Dirt Path Meadow Dew ${beforeRew.dew} → ${afterRew.dew}`);
+  console.log('dirt path ok:', afterRew);
+
 
   // ── v0.2.3 recheck of the 21 playtest notes ──
   // (1) knockback values, (2) mob speeds, (12) PS cost already asserted, (14) attack formula,
@@ -859,7 +949,7 @@ try {
     for (const [id, n] of Object.entries(wantMp)) {
       if (dataCheck.mp[id] !== n) fail(`mp_cost ${id} is ${dataCheck.mp[id]}, expected ${n}`);
     }
-    const wantCu = { crow: 80, burrow_mole: 80, earth_sprite: 80, ember_beetle: 82, spark_bug: 80, field_mouse: 70 };
+    const wantCu = { crow: 80, burrow_mole: 80, earth_sprite: 80, ember_beetle: 82, spark_bug: 80, frost_moth: 80, field_mouse: 70 };
     for (const [id, n] of Object.entries(wantCu)) {
       if (dataCheck.copper[id] !== n) fail(`copper ${id} is ${dataCheck.copper[id]}, expected ${n}`);
     }

@@ -27,7 +27,7 @@ export const ASSUME = {
   // v0.2.3: movement speed restored to v0.1.2 (only the animation was too fast).
   // Pasture: mouse 28, sheep 20, crow 38, default 24. Dirt Banks designed after the
   // v0.1.3 slowdown are scaled ×1.4 (28/20) so they match that original pace.
-  monsterSpeed: { field_mouse: 28, wool_sheep: 20, crow: 38, burrow_mole: 21, earth_sprite: 27, ember_beetle: 22, wool_shoulder: 18, bank_cracker: 20, cinderback: 21, default: 24 } as Record<string, number>,
+  monsterSpeed: { field_mouse: 28, wool_sheep: 20, crow: 38, burrow_mole: 21, earth_sprite: 27, ember_beetle: 22, wool_shoulder: 18, bank_cracker: 20, cinderback: 21, spark_bug: 25, frost_moth: 23, default: 24 } as Record<string, number>,
   // Player movement (px/s, px/s², px/s). v0.1.3: 148 (was 190, ≈−22%).
   playerSpeed: 148,
   gravity: 1300,
@@ -72,6 +72,8 @@ export const MONSTER_FEEL: Record<string, MonsterFeel> = {
   burrow_mole: { acc: 10, eva: 6, kbRes: 0.5, range: 4, windupMs: [350, 650] },
   earth_sprite: { acc: 11, eva: 11, kbRes: 0.15, range: 4, windupMs: [280, 550] },
   ember_beetle: { acc: 10, eva: 8, kbRes: 0.35, range: 4, windupMs: [300, 580] },
+  spark_bug: { acc: 12, eva: 11, kbRes: 0.2, range: 4, windupMs: [260, 520] },
+  frost_moth: { acc: 11, eva: 13, kbRes: 0.1, range: 4, windupMs: [320, 600] },
   wool_shoulder: { acc: 11, eva: 7, kbRes: 0.7, range: 4, windupMs: [320, 620] },
   bank_cracker: { acc: 12, eva: 7, kbRes: 0.65, range: 4, windupMs: [360, 680] },
   cinderback: { acc: 12, eva: 9, kbRes: 0.55, range: 4, windupMs: [320, 600] },

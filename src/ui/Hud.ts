@@ -466,6 +466,13 @@ export class Hud {
       this.open('skills');
       return;
     }
+    if (id === 'pell' && Q.wantsTalk(Game.player, 'pell')) {
+      const words = Q.talk(Game.player, 'pell') ?? '…';
+      this.dialogHtml = `<h3>${esc(name)}</h3><p>${esc(words)}</p>`;
+      this.sel.dialog = undefined;
+      this.open('dialog');
+      return;
+    }
     const lines: Record<string, string> = {};
     for (const n of Object.values(DB.npcs ?? {})) if (n.desc) lines[n.id] = n.desc;
     let extra = '';

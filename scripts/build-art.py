@@ -165,7 +165,7 @@ ICONS = {
     # v0.2.0 Dirt Banks
     'dry_root': hue(G('fa104'), 30, 1.15, 0.9),
     'tough_root': hue(G('fa104'), 25, 1.3, 0.65),
-    'warm_stone': hue(G('td102'), 28, 1.4, 1.15),
+    'warm_stone': hue(G('td102'), 28, 1.4, 1.15), 'spark_shell': hue(G('tt93'), 50, 1.6, 1.2), 'pale_wing': hue(G('fa36'), 200, 0.5, 1.3),
     'stone_club': hue(G('td129'), 28, 0.9, 0.85),
     'cracked_bank_stone': hue(G('pp7'), 30, 0.6, 1.0),
     'smoldering_scale': hue(G('tt93'), 15, 1.6, 1.1),
