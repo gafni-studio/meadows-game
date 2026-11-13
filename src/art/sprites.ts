@@ -38,6 +38,7 @@ export const SPRITES: Record<string, SpriteSlot> = {
   'npc.pell': char('npc_pell', 48, 48, 0x6aa84f, [10, 14, 3, 2]),
   'npc.calden': char('npc_calden', 48, 48, 0x8e7cc3, [10, 14, 3, 2]),
   'npc.ila': char('npc_ila', 48, 48, 0x45a5a5, [10, 14, 3, 2]),
+  'npc.tamsin': char('npc_tamsin', 48, 48, 0x4a6ad0, [10, 14, 3, 2]),
 
   // Monsters (one slot per monsters.id)
   'monster.field_mouse': char('monster_field_mouse', 36, 36, 0x9c8b7a, [12, 10, 2, 4]),

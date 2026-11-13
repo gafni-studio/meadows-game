@@ -1767,6 +1767,166 @@ try {
   await key('e', 250);
   if ((await visible()).includes('shop')) fail('E should close the shop');
   console.log('v0.2.7 paths ok');
+
+  // ══════════════ v0.2.8 Magician Path ══════════════
+  {
+    const sk = JSON.parse(readFileSync('data/skills.json', 'utf8')).rows;
+    const mag = Object.fromEntries(sk.filter((r) => r.path_id === 'magician').map((r) => [r.id, r]));
+    const chain = { magic_bolt: null, mana_shield: 'magic_bolt', fire_bolt: 'mana_shield', thorn_volley: 'mana_shield', chain_spark: 'thorn_volley' };
+    for (const [id, prev] of Object.entries(chain)) {
+      if (!mag[id] || (mag[id].prev_skill_id ?? null) !== prev) fail(`magician chain: ${id} should follow ${prev}, got ${mag[id]?.prev_skill_id}`);
+    }
+    if (mag.fire_bolt.branch !== 'elemental' || mag.chain_spark.branch !== 'elemental' || mag.thorn_volley.branch !== 'nature' || mag.mana_shield.type !== 'buff') fail('magician families / types wrong');
+    if (Object.values(mag).some((r) => /Frost|Spirit Drain/i.test(r.name))) fail('Frost Shard / Spirit Drain must not be implemented');
+    const sc2 = JSON.parse(readFileSync('data/skill_costs.json', 'utf8')).rows;
+    for (const id of Object.keys(chain)) {
+      for (let rk = 1; rk <= 10; rk++) {
+        const rows = sc2.filter((r) => r.skill_id === id && r.rank === rk);
+        if (!rows.some((r) => r.material_id === 'copper_coin')) fail(`${id} rank ${rk} has no recipe`);
+        for (const r of rows) {
+          if (r.quantity > 40 || ['heartwood', 'log'].includes(r.material_id)) fail(`${id} r${rk} ${r.material_id} ${r.quantity}`);
+        }
+      }
+    }
+    const first = (id) => Object.fromEntries(sc2.filter((r) => r.skill_id === id && r.rank === 1).map((r) => [r.material_id, r.quantity]));
+    if (!first('fire_bolt').elemental_essence || !first('thorn_volley').nature_essence || !first('chain_spark').elemental_essence || !first('chain_spark').lightning_shard) fail('family essence should be the main cost');
+    if (readFileSync('data/skills.json', 'utf8').includes('"energy_blast"')) fail('Energy Blast should be renamed to Magic Bolt');
+  }
+  await toTown();
+  // Tamsin's tutorial (after Calden's)
+  await page.evaluate(() => {
+    const p = window.__state.player;
+    p.questLog = { ql_weight: { step: 3, done: true }, ql_paths: { step: 4, done: true } };
+    p.skillRanks = { power_strike: 1 }; p.inventory = {}; p.coins = 0; p.skillBar = [null, null, null, null, null, null, 'meadow_dew', 'clear_dew'];
+    window.__state.player.cheats.god = true;
+  });
+  await con('level 1', 'heal');
+  await page.evaluate(() => { window.__state.player.questLog = { ql_weight: { step: 3, done: true }, ql_paths: { step: 4, done: true }, ql_quiet_work: { step: 3, done: true }, ql_warm_coat: { step: 2, done: true } }; window.__state.scene.levelUpFx(0); });
+  await settle(450);
+  if ((await marker('tamsin')) !== '!') fail(`Tamsin should show ! after Calden's tutorial, got ${await marker('tamsin')}`);
+  await page.evaluate(() => { window.__state.scene.player.x = window.__state.scene.npcs.find((n) => n.id === 'tamsin').x; });
+  await settle(250);
+  await key('e', 450);
+  const tTalk = [];
+  for (let i = 0; i < 12 && (await visible()).includes('dialog'); i++) {
+    tTalk.push(await page.evaluate(() => document.querySelector('#p-dialog .dlg-line')?.innerText ?? ''));
+    await key('Enter', 180);
+  }
+  const tAll = tTalk.join(' ');
+  for (const re of [/Magician Path/, /mana/i, /Magic Bolt/, /Mana Shield/, /Fire Bolt/, /Thorn Volley/, /Chain Spark/, /Elemental Essence/, /Nature Essence/, /K/]) if (!re.test(tAll)) fail(`Magician tutorial does not cover ${re}: ${tAll}`);
+  let mq = await page.evaluate(() => ({ q: window.__state.player.questLog.ql_magic, me: window.__state.player.inventory.monster_essence ?? 0, ts: window.__state.player.inventory.training_scroll ?? 0, coins: window.__state.player.coins }));
+  if (mq.q?.step !== 2 || mq.me < 20 || mq.ts < 8 || mq.coins < 22) fail(`Tamsin should hand over the Magic Bolt materials and advance: ${JSON.stringify(mq)}`);
+  await key('k', 400);
+  mq = await page.evaluate(() => window.__state.player.questLog.ql_magic);
+  if (mq.step !== 2) fail('opening the Warrior tab must not advance the Magician tutorial');
+  await key('Tab', 350);
+  mq = await page.evaluate(() => window.__state.player.questLog.ql_magic);
+  if (mq.step !== 3) fail(`switching to the Magician tab should advance the tutorial: ${JSON.stringify(mq)}`);
+  const mt = await page.evaluate(() => {
+    const st = (id) => (document.querySelector(`#p-skills [data-skill="${id}"]`)?.className.match(/st-(\w+)/) ?? [])[1];
+    return {
+      states: Object.fromEntries(['magic_bolt', 'mana_shield', 'fire_bolt', 'thorn_volley', 'chain_spark'].map((id) => [id, st(id)])),
+      lines: document.querySelectorAll('#p-skills .pathtree svg path.ln').length,
+      active: document.querySelector('#p-skills .tabs .on')?.textContent ?? '',
+      soon: /coming soon/i.test(document.querySelector('#p-skills')?.innerText ?? ''),
+    };
+  });
+  if (mt.states.magic_bolt !== 'available' || mt.states.mana_shield !== 'locked' || mt.states.fire_bolt !== 'locked' || mt.states.thorn_volley !== 'locked' || mt.states.chain_spark !== 'locked') fail(`magician tree states: ${JSON.stringify(mt)}`);
+  if (!/Magician/.test(mt.active) || mt.soon || mt.lines < 5) fail(`Magician tab should be a real tree: ${JSON.stringify(mt)}`);
+  await shot('paths-magician');
+  await page.evaluate(() => document.querySelector('#p-skills [data-skill="magic_bolt"]')?.dispatchEvent(new MouseEvent('mouseover', { bubbles: true })));
+  await key('Enter', 400);
+  mq = await page.evaluate(() => ({ q: window.__state.player.questLog.ql_magic, r: window.__state.player.skillRanks.magic_bolt, bar: [...window.__state.player.skillBar] }));
+  if (mq.r !== 1 || mq.q.step !== 4 || mq.bar.indexOf('magic_bolt') < 0 || mq.bar.indexOf('magic_bolt') > 3) fail(`Magic Bolt should train, auto-equip in an attack slot and advance: ${JSON.stringify(mq)}`);
+  await key('e', 300);
+  await settle(450);
+  if ((await marker('tamsin')) !== '?') fail(`Tamsin should show ? to finish, got ${await marker('tamsin')}`);
+  await page.evaluate(() => { window.__state.scene.player.x = window.__state.scene.npcs.find((n) => n.id === 'tamsin').x; });
+  await key('e', 450);
+  lastRewards = '';
+  await dismissDialog();
+  for (const re of [/The Quiet Spell/, /70 XP/, /20 Copper/, /4× Clear Dew/, /6× Monster Essence/]) if (!re.test(lastRewards)) fail(`Magician tutorial rewards missing ${re}: ${lastRewards}`);
+  // afterwards, E at Tamsin opens the Paths window on the Magician tab
+  await key('e', 450);
+  const tamsinTab = await page.evaluate(() => ({ open: !document.querySelector('#p-skills')?.hidden, tab: document.querySelector('#p-skills .tabs .on')?.textContent ?? '' }));
+  if (!tamsinTab.open || !/Magician/.test(tamsinTab.tab)) fail(`E at Tamsin after the tutorial should open the Magician tab: ${JSON.stringify(tamsinTab)}`);
+  await key('Escape');
+  console.log('magician tutorial ok');
+
+  // ── casting: projectiles land when they arrive, not on the key press ──
+  const bArena = async (mobs, opts = {}) => page.evaluate(({ mobs, opts }) => {
+    const w = window.__state.scene, p = window.__state.player;
+    w.monsters.forEach((m) => m.destroy()); w.monsters = []; w.bolts.forEach((b) => b.head.destroy()); w.bolts = [];
+    p.cheats.god = true; p.level = 8; p.mp = 999; p.hp = 9999; window.__state.cooldowns = {}; w.facing = 1; w.player.setFlipX(false); w.swingReadyAt = 0; w.player.x = 400;
+    for (const id of ['magic_bolt', 'mana_shield', 'fire_bolt', 'thorn_volley', 'chain_spark']) p.skillRanks[id] = 1;
+    w.__ft = []; if (!w.__ftHooked) { const o = w.floatText.bind(w); w.floatText = (x, y, t, c, z) => { w.__ft.push(String(t)); return o(x, y, t, c, z); }; w.__ftHooked = true; }
+    w.__mobs = mobs.map((dx) => { const m = w.spawnMonster(opts.mob ?? 'field_mouse', 400 + dx); m.body.setVelocityX(0); m.speed = 0; m.hp = 9999; m.def.hp = 9999; return m; });
+    return w.__mobs.length;
+  }, { mobs, opts });
+  const hps = () => page.evaluate(() => window.__state.scene.__mobs.map((m) => m.hp));
+  const bCast = async (id) => { await page.evaluate((sid) => { window.__state.cooldowns = {}; window.__state.scene.swingReadyAt = 0; window.__state.scene.useSkill(sid); }, id); };
+  // Magic Bolt: spend MP, a bolt is in the air, no damage yet; it connects ~150 px away
+  await bArena([170]);
+  const mpA = await page.evaluate(() => window.__state.player.mp);
+  await bCast('magic_bolt');
+  await settle(60);
+  const early = await page.evaluate(() => ({ bolts: window.__state.scene.bolts.length, hp: window.__state.scene.__mobs[0].hp, mp: window.__state.player.mp }));
+  if (early.bolts !== 1 || early.hp !== 9999) fail(`a Magic Bolt should be in flight and not have hit yet: ${JSON.stringify(early)}`);
+  if (mpA - early.mp < 7.5) fail(`Magic Bolt should cost its MP: ${mpA} → ${early.mp}`);
+  await shot('magic-bolt-flight');
+  await settle(700);
+  if ((await hps())[0] >= 9999) fail('Magic Bolt never connected');
+  // out of range: nothing happens to a far mob
+  await bArena([480]);
+  await bCast('magic_bolt'); await settle(1200);
+  if ((await hps())[0] !== 9999) fail('a bolt must fizzle at the end of its range');
+  // Fire Bolt: Weak on a Field Mouse and leaves a burn
+  await bArena([170]);
+  await bCast('fire_bolt'); await settle(260);
+  await shot('fire-bolt-flight');
+  await settle(700);
+  const fire = await page.evaluate(() => ({ hp: window.__state.scene.__mobs[0].hp, burns: window.__state.scene.burns.length, ft: window.__state.scene.__ft.slice() }));
+  if (fire.hp >= 9999 || !fire.ft.includes('Weak!') || fire.burns < 1) fail(`Fire Bolt should hit a beast hard (Weak) and leave a burn: ${JSON.stringify(fire)}`);
+  // Fire Bolt is Elemental: Immune on an Earth Sprite
+  await bArena([170], { mob: 'earth_sprite' });
+  await bCast('fire_bolt'); await settle(1000);
+  const imm2 = await page.evaluate(() => ({ hp: window.__state.scene.__mobs[0].hp, ft: window.__state.scene.__ft.slice() }));
+  if (imm2.hp !== 9999 || !imm2.ft.includes('Immune')) fail(`Fire Bolt on an Earth Sprite should be Immune: ${JSON.stringify(imm2)}`);
+  // Thorn Volley: three thorns
+  await bArena([150]);
+  await bCast('thorn_volley'); await settle(30);
+  await settle(180);
+  const thorns = await page.evaluate(() => window.__state.scene.bolts.length + window.__state.scene.__ft.filter((t) => /^\d+$/.test(t)).length);
+  if (thorns < 3) fail(`Thorn Volley should throw three thorns, saw ${thorns}`);
+  await shot('thorn-volley');
+  await settle(800);
+  // Chain Spark: hits the first foe and jumps to others, each weaker
+  await bArena([150, 230, 310]);
+  await bCast('chain_spark'); await settle(1500);
+  const chained = await hps();
+  if (chained.some((h) => h >= 9999)) fail(`Chain Spark should reach all three foes: ${JSON.stringify(chained)}`);
+  const dmg = chained.map((h) => 9999 - h);
+  console.log('chain damage by link:', dmg);
+  // Mana Shield: a buff that dulls incoming hits and ends cleanly
+  await page.evaluate(() => { window.__state.scene.monsters.forEach((m) => m.destroy()); window.__state.scene.monsters = []; });
+  const took = async (shield) => page.evaluate((withShield) => {
+    const w = window.__state.scene, p = window.__state.player;
+    p.cheats.god = false; p.hp = 5000; window.__state.invulnUntil = 0; window.__state.buffs = {}; window.__state.cooldowns = {};
+    if (withShield) { w.swingReadyAt = 0; w.useSkill('mana_shield'); }
+    const m = w.spawnMonster('burrow_mole', w.player.x); const d = m.def; const save = [d.attack_min, d.attack_max, d.attack];
+    d.attack_min = 100; d.attack_max = 100; d.attack = 100;
+    const before = p.hp; w.monsterSwings(m, m.x, true);
+    d.attack_min = save[0]; d.attack_max = save[1]; d.attack = save[2];
+    const lost = before - p.hp; m.destroy(); w.monsters = w.monsters.filter((x) => x !== m);
+    return { lost, active: (window.__state.buffs.mana_shield ?? 0) > Date.now() };
+  }, shield);
+  const plain = await took(false);
+  const warded = await took(true);
+  if (!warded.active || !(warded.lost < plain.lost) || warded.lost < plain.lost * 0.5) fail(`Mana Shield should dull hits by about a third: ${JSON.stringify({ plain, warded })}`);
+  await shot('mana-shield');
+  await page.evaluate(() => { window.__state.buffs.mana_shield = Date.now() - 1; });
+  await settle(250);
+  console.log('magician combat ok', { plain: plain.lost, warded: warded.lost, chain: dmg });
 } finally {
   await browser.close();
   server.kill();

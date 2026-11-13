@@ -11,7 +11,7 @@
  * Buffs / shields: effect × (1 + N% × scaling ranks).
  */
 import { DB, SkillDef, tab } from '../data/db';
-import { ASSUME } from '../data/assumptions';
+import { ASSUME, BOLT } from '../data/assumptions';
 import * as P from './Player';
 import * as Q from './Quests';
 
@@ -189,6 +189,12 @@ export function rageNumbers(p: P.PlayerData): { dealtPct: number; takenPct: numb
   return { dealtPct: Math.round(base.dealtPct * k), takenPct: Math.round(base.takenPct * k) };
 }
 
+/** v0.2.8 Mana Shield: percent less damage taken, 30% + 5% per rank beyond 1 (basic scaling), capped at 60%. */
+export function manaShieldPct(p: P.PlayerData): number {
+  const k = effectScale('mana_shield', rankOf(p, 'mana_shield'));
+  return Math.min(BOLT.shieldMaxPct, Math.round(BOLT.shieldBasePct * k));
+}
+
 /** Soul Guard shield = 18% of max HP × effect scale. */
 export function shieldAmount(p: P.PlayerData): number {
   return Math.round(P.maxHp(p) * 0.18 * effectScale('soul_guard', rankOf(p, 'soul_guard')));
@@ -215,7 +221,7 @@ export function rankPreview(id: string, rank: number): string {
       const verb = rank === 0 ? 'Learn at' : `Rank ${rank}:`;
       return `${verb} ${a}% damage · further ranks +${pct}% each (${later}% at rank ${Math.max(next, 2)})`;
     }
-    return `${a}% → ${b}% damage`;
+    return id === 'thorn_volley' ? `${a}% → ${b}% damage per thorn (×3)` : `${a}% → ${b}% damage`;
   }
   if (id === 'rage') {
     const n = (rk: number) => {
@@ -231,6 +237,10 @@ export function rankPreview(id: string, rank: number): string {
   }
   if (id === 'dig_in') {
     return `+50% defense for 60s`;
+  }
+  if (id === 'mana_shield') {
+    const n = (rk: number) => Math.min(BOLT.shieldMaxPct, Math.round(BOLT.shieldBasePct * effectScale('mana_shield', rk)));
+    return `${n(Math.max(1, rank))}% less damage → ${n(next)}%`;
   }
   return s.effect;
 }
@@ -259,6 +269,18 @@ export const TREE_LAYOUT: Record<string, { nodes: Record<string, TreeNodePos>; f
       { c: 2, r: 2, from: 'dig_in', label: 'Soul Guard', family: 'spiritual' },
       { c: 2, r: 3, from: 'rage', label: 'later', family: 'basic' },
       { c: 3, r: 1, from: 'flame_cleave', label: 'later', family: 'spiritual' },
+    ],
+  },
+  magician: {
+    nodes: {
+      magic_bolt: { c: 0, r: 1 },
+      mana_shield: { c: 1, r: 1 },
+      fire_bolt: { c: 2, r: 0 }, thorn_volley: { c: 2, r: 2 },
+      chain_spark: { c: 3, r: 2 },
+    },
+    future: [
+      { c: 3, r: 0, from: 'fire_bolt', label: 'later', family: 'elemental' },
+      { c: 4, r: 2, from: 'chain_spark', label: 'later', family: 'spiritual' },
     ],
   },
 };

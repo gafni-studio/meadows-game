@@ -13,7 +13,7 @@ export interface AreaGeometry {
   chest?: number; // storage chest x (tiles)
   platforms: { x: number; y: number; w: number }[]; // tile coords: x, height above ground, width
   decor: { slot: string; x: number }[];
-  npcs: { id: 'mara' | 'pell' | 'calden' | 'ila'; name: string; x: number; role: 'shop' | 'hint' | 'soon' | 'trainer' | 'exchange' }[];
+  npcs: { id: 'mara' | 'pell' | 'calden' | 'ila' | 'tamsin'; name: string; x: number; role: 'shop' | 'hint' | 'soon' | 'trainer' | 'exchange' | 'path' }[];
   portals: { x: number; dir: 'east' | 'west'; arriveX: number }[];
   /** x-ranges (tiles) where each monster type spawns. */
   spawnZones: Record<string, [number, number]>;
@@ -42,6 +42,7 @@ export const AREAS: Record<string, AreaGeometry> = {
       { id: 'calden', name: 'Calden (Trainer)', x: 21, role: 'trainer' },
       { id: 'ila', name: 'Ila (Exchange)', x: 27, role: 'exchange' },
       { id: 'pell', name: 'Pell', x: 36, role: 'hint' },
+      { id: 'tamsin', name: 'Tamsin (Magician)', x: 32, role: 'path' },
     ],
     portals: [{ x: 42, dir: 'east', arriveX: 3 }],
     spawnZones: {},

@@ -1,6 +1,6 @@
 {
   "source": "sheet/Game_Design_DB_v0.xlsx",
-  "exportedAt": "2026-11-13T23:04:11.826Z",
+  "exportedAt": "2026-11-13T23:16:42.988Z",
   "tabs": [
     "material_categories: 4 rows",
     "material_subtypes: 13 rows",
@@ -9,8 +9,8 @@
     "npc_shop: 18 rows",
     "gear: 37 rows",
     "classes: 3 rows",
-    "skills: 17 rows",
-    "skill_costs: 375 rows",
+    "skills: 18 rows",
+    "skill_costs: 588 rows",
     "gathering_trees: 4 rows",
     "gathering_sources: 16 rows",
     "passive_nodes: 27 rows",
@@ -26,8 +26,8 @@
     "starter_quests: 9 rows",
     "controls: 20 rows",
     "prototype_plan: 10 rows",
-    "npcs: 4 rows",
-    "skill_quests: 28 rows",
+    "npcs: 5 rows",
+    "skill_quests: 32 rows",
     "paths: 2 rows"
   ]
 }

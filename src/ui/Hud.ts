@@ -210,6 +210,7 @@ export class Hud {
       e.preventDefault();
       const ids = Sk.PATHS.map((x) => x.id);
       this.pathTab = ids[(ids.indexOf(this.pathTab) + 1) % ids.length];
+      Q.onPathView(Game.player, this.pathTab);
       this.sel.skills = undefined;
       this.renderPanels();
       return;
@@ -463,7 +464,7 @@ export class Hud {
 
   // ───────────────────────── windows ─────────────────────────
   private open(p: Panel) {
-    if (p === 'skills' && !this.stack.includes('skills')) Q.onTreeOpen(Game.player);
+    if (p === 'skills' && !this.stack.includes('skills')) Q.onPathView(Game.player, this.pathTab);
     if (!this.stack.includes(p) && (p === 'inventory' || p === 'storage' || p === 'shop')) this.sel[p] = undefined; // reopen at the first item
     this.stack = this.stack.filter((x) => x !== p);
     this.stack.push(p);
@@ -480,6 +481,13 @@ export class Hud {
     if (role === 'exchange') {
       if (Q.wantsTalk(Game.player, id)) { this.openTalk(Q.talk(Game.player, id)); return; }
       this.open('exchange'); return;
+    }
+    if (role === 'path') {
+      // v0.2.8 Tamsin: her tutorial first; once it is done, E opens the Paths window on the Magician tab.
+      if (Q.wantsTalk(Game.player, id)) { this.openTalk(Q.talk(Game.player, id)); return; }
+      if (Q.isDone(Game.player, 'ql_magic')) { this.pathTab = 'magician'; this.open('skills'); return; }
+      this.openTalk(Q.greeting(id));
+      return;
     }
     if (role === 'trainer') {
       if (Q.wantsTalk(Game.player, id)) { this.openTalk(Q.talk(Game.player, id)); return; }
@@ -1173,7 +1181,7 @@ export class Hud {
       this.close('drop');
       if (id) { this.doDrop(id, d.act === 'drop1' ? 1 : (this.dropUid ? 1 : Game.player.inventory[id] ?? 0), this.dropUid); this.dropUid = null; }
     }
-    else if (d.ptab) { this.pathTab = d.ptab; this.sel.skills = undefined; }
+    else if (d.ptab) { this.pathTab = d.ptab; Q.onPathView(p, d.ptab); this.sel.skills = undefined; }
     else if (d.invtab) { this.invTab = d.invtab as typeof this.invTab; this.sel.inventory = undefined; }
     else if (d.act === 'askdrop') { this.requestDrop(d.item ?? this.dropItem ?? '', d.uid); }
     else if (d.act === 'bind' && d.item && d.slot) {

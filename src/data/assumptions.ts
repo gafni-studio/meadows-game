@@ -20,7 +20,7 @@ export const ASSUME = {
   // Power Strike kills a Field Mouse in ~4 hits (sheet target: 3-5 hits).
   starterWeapon: 'club',
   // Not in sheet: skill cooldowns. The worked example assumes a 1s Power Strike cooldown.
-  cooldownMs: { power_strike: 800, rage: 60000, earthbreaker: 2400, flame_cleave: 2000, soul_guard: 30000, root_lash: 1600, dig_in: 4000 } as Record<string, number>,
+  cooldownMs: { power_strike: 800, rage: 60000, earthbreaker: 2400, flame_cleave: 2000, soul_guard: 30000, root_lash: 1600, dig_in: 4000, magic_bolt: 700, mana_shield: 20000, fire_bolt: 1600, thorn_volley: 2000, chain_spark: 2400 } as Record<string, number>,
   potionCooldownMs: 400,
   // Not in sheet: hurt invulnerability after taking a hit, monster swing interval and speeds.
   hurtInvulnMs: 700,
@@ -106,6 +106,11 @@ export const ATTACK_FEEL: Record<string, { kb: number; hitstunMs: number }> = {
   earthbreaker: { kb: 600, hitstunMs: 900 }, // AoE slam; the "short stun"
   flame_cleave: { kb: 700, hitstunMs: 450 },
   root_lash: { kb: 900, hitstunMs: 400 },
+  // v0.2.8 Magician Path: projectiles push less than melee
+  magic_bolt: { kb: 180, hitstunMs: 300 },
+  fire_bolt: { kb: 320, hitstunMs: 380 },
+  thorn_volley: { kb: 110, hitstunMs: 220 },
+  chain_spark: { kb: 150, hitstunMs: 260 },
   dig_in: { kb: 0, hitstunMs: 0 },
   rage: { kb: 0, hitstunMs: 0 },
 };
@@ -205,7 +210,7 @@ export const MOB_JUMP = { maxRisePx: 80, velocity: 470 };
  * Basic is never weak or immune. Contact damage is Basic.
  */
 export type School = 'basic' | 'nature' | 'elemental';
-export const SKILL_SCHOOL: Record<string, School> = { earthbreaker: 'nature', root_lash: 'nature', flame_cleave: 'elemental' };
+export const SKILL_SCHOOL: Record<string, School> = { earthbreaker: 'nature', root_lash: 'nature', flame_cleave: 'elemental', fire_bolt: 'elemental', thorn_volley: 'nature', chain_spark: 'elemental' };
 export const AFFINITY: Record<string, { weak?: School; immune?: School }> = {
   field_mouse: { weak: 'elemental' }, wool_sheep: { weak: 'elemental' }, crow: { weak: 'elemental' },
   burrow_mole: { weak: 'elemental' }, meadow_boar: { weak: 'elemental' }, old_stump: { weak: 'elemental' },
@@ -216,3 +221,18 @@ export const AFFINITY: Record<string, { weak?: School; immune?: School }> = {
   shrine_wisp: { weak: 'nature' }, dusk_wisp: { weak: 'nature' }, night_stump: { weak: 'nature' },
 };
 export const WEAK_MUL = 1.5;
+
+/** v0.2.8 Magician Path projectiles (px, px/s). The player throws from about chest height in front of the hands. */
+export const BOLT = {
+  speed: { magic_bolt: 470, fire_bolt: 410, thorn_volley: 540, chain_spark: 540 } as Record<string, number>,
+  range: 320,
+  hitRadius: 10,
+  thornFanDeg: 7,
+  thornStaggerMs: 70,
+  chainJumps: 3,
+  chainReachPx: 150,
+  chainFalloff: 0.75,
+  chainDelayMs: 110,
+  shieldBasePct: 30,
+  shieldMaxPct: 60,
+};

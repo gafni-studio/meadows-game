@@ -1,6 +1,6 @@
 {
   "tab": "npcs",
-  "note": "NOTE: Player-facing NPC lines. `desc` is shown in the talk dialog (or kept for later if the role opens a window directly). `notes` is design-only and is never shown in game. v0.1.2-descs.",
+  "note": "NOTE: Player-facing NPC lines. `desc` is shown in the talk dialog (or kept for later if the role opens a window directly). `notes` is design-only and is never shown in game. v0.1.2-descs.  v0.2.8: Tamsin, the Magician Path tutorial giver in Meadow Town.",
   "columns": [
     "id",
     "name",
@@ -36,6 +36,13 @@
       "role": "exchange",
       "desc": "Ten of a common material for one essence. Nature, Elemental, or Spirit — look at what you're holding.",
       "notes": "v0.2.2: 10:1 essence bench is open (exchange tab). role=exchange opens the bench. desc is player-facing; kept even though the window opens directly, for documentation.  v0.2.5: gives The Quiet Work (passive-tree intro) after The Weight of a Swing. Multi-line dialogue. E opens dialogue when she wants to talk, otherwise the exchange bench."
+    },
+    {
+      "id": "tamsin",
+      "name": "Tamsin",
+      "role": "path",
+      "desc": "Magic is mostly patience, and a great deal of mana. Walk the Magician Path when you are ready.",
+      "notes": "v0.2.8. Dreamy and exact; counts under her breath. Gives The Quiet Spell. After it, E opens the Paths window on the Magician tab."
     }
   ]
 }

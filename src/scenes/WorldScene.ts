@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { DB, f, consumableEffect } from '../data/db';
-import { ANIM, ASSUME, TILE, ATTACK_FEEL, PLAYER_HIT_KB, REGEN, HIT_MONSTER, RANGED, CONTACT, SKILL_SCHOOL } from '../data/assumptions';
+import { ANIM, ASSUME, TILE, ATTACK_FEEL, PLAYER_HIT_KB, REGEN, HIT_MONSTER, RANGED, CONTACT, SKILL_SCHOOL, BOLT } from '../data/assumptions';
 import { AREAS, AreaGeometry } from '../world/areas';
 import { SPRITES, iconKey, DROP_SIZE } from '../art/sprites';
 import { fitSlot, applyBody } from '../art/SpriteFactory';
@@ -20,6 +20,8 @@ const GROUND_H = 64;
 
 interface Drop extends Phaser.Physics.Arcade.Image { itemId: string; qty: number; expireAt: number; rare: boolean; inst?: GearInstance; picking?: boolean }
 interface Shot { img: Phaser.GameObjects.Image; vx: number; vy: number; dieAt: number; m: Monster }
+/** A Magician Path projectile in flight (v0.2.8). */
+interface Bolt { kind: Fx.BoltKind; head: Phaser.GameObjects.Container; vx: number; vy: number; dir: number; mul: number; travelled: number }
 
 export class WorldScene extends Phaser.Scene {
   private areaId = 'meadow_town';
@@ -46,6 +48,7 @@ export class WorldScene extends Phaser.Scene {
   private playerBaseScale = { x: 1, y: 1 };
   private burns: { m: Monster; perTick: number; next: number; until: number }[] = [];
   private shots: Shot[] = [];
+  private bolts: Bolt[] = [];
   private chestX: number | null = null;
   private chestImg?: Phaser.GameObjects.Image;
   private postX: number | null = null;
@@ -66,6 +69,7 @@ export class WorldScene extends Phaser.Scene {
     this.npcs = [];
     this.portals = [];
     this.shots = [];
+    this.bolts = [];
     this.burns = [];
     this.chestX = null;
     this.chestImg = undefined;
@@ -306,6 +310,7 @@ export class WorldScene extends Phaser.Scene {
       else if (!Game.dead && m.alive && m.engaged && this.touching(m)) this.monsterSwings(m, m.x, true);
     }
     this.updateShots(time, delta);
+    this.updateBolts(delta);
     this.tickBurns(time);
 
     for (const d of this.drops.getChildren() as Drop[]) if (time > d.expireAt) d.destroy();
@@ -342,6 +347,7 @@ export class WorldScene extends Phaser.Scene {
       this.glow.fillStyle(0xc4a06a, 0.08 + 0.05 * Math.sin(wall / 180));
       this.glow.fillEllipse(this.player.x, this.player.y - 18, 60, 52);
     }
+    if ((Game.buffs.mana_shield ?? 0) > wall) Fx.wardGlow(this.glow, this.player.x, this.player.y - 22, wall);
     if (!active) return;
     const perSec = P.hpRegenPerSec(p);
     p.hp = Math.min(max, p.hp + (perSec * delta) / 1000);
@@ -517,6 +523,16 @@ export class WorldScene extends Phaser.Scene {
       Game.buffs.soul_guard = now + (s.duration_s ?? 20) * 1000;
       Game.toast(`Soul Guard: ${Game.shield} HP shield`, 'info');
       ok = true;
+    } else if (id === 'mana_shield') {
+      p.mp -= s.mp_cost;
+      this.lastCombatAt = Game.now;
+      const dur = s.duration_s ?? 45;
+      Game.buffs.mana_shield = now + dur * 1000;
+      Game.toast(`Mana Shield: ${Sk.manaShieldPct(p)}% less damage for ${dur}s`, 'info');
+      Fx.wardBurst(this, this.player.x, this.player.y - 22);
+      ok = true;
+    } else if (id === 'magic_bolt' || id === 'fire_bolt' || id === 'thorn_volley' || id === 'chain_spark') {
+      ok = this.castBolt(id, mul, s.mp_cost, s.duration_s ?? 0);
     } else if (id === 'earthbreaker') {
       ok = this.castStrike(mul, s.mp_cost, 'earthbreaker', { aoe: 90, stun: true });
     } else if (id === 'flame_cleave') {
@@ -537,6 +553,122 @@ export class WorldScene extends Phaser.Scene {
     // A press while a swing is still recovering is "not ready": ignored, never queued.
     if (ok) Game.cooldowns[id] = now + Sk.cooldownOf(id);
     Game.changed();
+  }
+
+  // ───────────── Magician Path projectiles (v0.2.8) ─────────────
+  /** Throw a bolt, a thorn volley or a spark from the hands. Damage lands when the projectile arrives. */
+  private castBolt(kind: Fx.BoltKind, mul: number, mpCost: number, burnS: number): boolean {
+    const p = Game.player;
+    const now = Game.now;
+    if (now < this.swingReadyAt) return false;
+    if (p.mp < mpCost) { Game.toast('Not enough MP', 'warn'); this.swingReadyAt = now + 300; return false; }
+    p.mp -= mpCost;
+    this.swingReadyAt = now + 300;
+    this.lastCombatAt = now;
+    const facing = this.facing;
+    this.swingFx(kind);
+    Fx.castFlash(this, kind, this.player.x + facing * 20, this.player.y - 26);
+    const angles = kind === 'thorn_volley' ? [-BOLT.thornFanDeg, 0, BOLT.thornFanDeg] : [0];
+    angles.forEach((deg, i) => {
+      const launch = () => this.launchBolt(kind, mul, facing, deg, burnS);
+      if (i === 0) launch(); else this.time.delayedCall(i * BOLT.thornStaggerMs, launch);
+    });
+    return true;
+  }
+
+  private launchBolt(kind: Fx.BoltKind, mul: number, facing: number, angleDeg: number, burnS: number): void {
+    if (Game.dead || !this.player) return;
+    const a = Phaser.Math.DegToRad(angleDeg);
+    const sp = BOLT.speed[kind];
+    const vx = facing * Math.cos(a) * sp, vy = Math.sin(a) * sp;
+    const head = Fx.boltHead(this, kind, this.player.x + facing * 20, this.player.y - 26, Math.atan2(vy, vx));
+    (head as Phaser.GameObjects.Container & { burnS?: number }).burnS = burnS;
+    this.bolts.push({ kind, head, vx, vy, dir: facing, mul, travelled: 0 });
+  }
+
+  private updateBolts(delta: number): void {
+    if (!this.bolts.length) return;
+    this.bolts = this.bolts.filter((b) => {
+      const dt = delta / 1000;
+      b.head.x += b.vx * dt;
+      b.head.y += b.vy * dt;
+      b.travelled += Math.hypot(b.vx, b.vy) * dt;
+      Fx.boltTick(this, b.kind, b.head, b.dir);
+      for (const m of this.monsters) {
+        if (!m.alive) continue;
+        if (Math.abs(m.x - b.head.x) > m.halfW + BOLT.hitRadius) continue;
+        if (b.head.y < m.y - m.displayHeight - 4 || b.head.y > m.y + 6) continue;
+        this.boltHit(b, m);
+        return false;
+      }
+      const gone = b.travelled > BOLT.range || b.head.y > this.groundY + 8 || b.head.x < 0 || b.head.x > this.geo.widthTiles * TILE;
+      if (gone) {
+        // out of range: the bolt fizzles into a few motes
+        Fx.boltImpact(this, b.kind === 'fire_bolt' ? 'magic_bolt' : b.kind, b.head.x, b.head.y, false);
+        b.head.destroy();
+        return false;
+      }
+      return true;
+    });
+  }
+
+  private boltHit(b: Bolt, m: Monster): void {
+    const burnS = (b.head as Phaser.GameObjects.Container & { burnS?: number }).burnS ?? 0;
+    const x = b.head.x, y = b.head.y;
+    b.head.destroy();
+    const out = this.skillHit(m, b.mul, b.kind, this.player.x, { burnS });
+    Fx.boltImpact(this, b.kind, x, y, out.crit);
+    if (out.landed) {
+      Fx.hitStop(this, out.crit ? 56 : 36);
+      if (b.kind === 'chain_spark') this.chainJump(m, b.mul, new Set([m]), BOLT.chainJumps);
+    }
+  }
+
+  /** Chain Spark: leap from foe to foe, each jump a beat later and 25% weaker. */
+  private chainJump(from: Monster, mul: number, seen: Set<Monster>, left: number): void {
+    if (left <= 0) return;
+    let best: Monster | null = null;
+    let bd = Infinity;
+    for (const m of this.monsters) {
+      if (!m.alive || seen.has(m)) continue;
+      const dx = Math.abs(m.x - from.x), dy = Math.abs(m.y - from.y);
+      if (dx > BOLT.chainReachPx || dy > 90) continue;
+      const d = Math.hypot(dx, dy);
+      if (d < bd) { bd = d; best = m; }
+    }
+    if (!best) return;
+    const next = best;
+    seen.add(next);
+    const x0 = from.x, y0 = from.y - from.displayHeight * 0.5;
+    this.time.delayedCall(BOLT.chainDelayMs, () => {
+      if (!next.alive || Game.dead) return;
+      const x1 = next.x, y1 = next.y - next.displayHeight * 0.5;
+      Fx.lightningLink(this, x0, y0, x1, y1);
+      const m2 = mul * BOLT.chainFalloff;
+      const out = this.skillHit(next, m2, 'chain_spark', x0);
+      Fx.boltImpact(this, 'chain_spark', x1, y1, out.crit);
+      this.chainJump(next, m2, seen, left - 1);
+    });
+  }
+
+  /** One skill hit on one monster: hit roll, affinity, damage, knockback, burn. Used by projectiles. */
+  private skillHit(m: Monster, mul: number, kind: keyof typeof ATTACK_FEEL, fromX: number, opt: { burnS?: number } = {}): { landed: boolean; crit: boolean } {
+    const p = Game.player;
+    const topY = m.y - m.displayHeight - 12;
+    const hitY = m.y - m.displayHeight * 0.45;
+    if (!rollHit(P.accuracy(p), m.feel.eva, p.level, m.def.level)) { this.floatText(m.x, topY, 'MISS', '#c8c8c8', 15); return { landed: false, crit: false }; }
+    const aff = affinityOf(m.def.id, SKILL_SCHOOL[kind]);
+    if (aff === 'immune') { this.floatText(m.x, topY, 'Immune', '#9fd8ff', 15); m.provoke(); return { landed: false, crit: false }; }
+    const rage = this.buffActive('rage') ? Sk.rageNumbers(p).dealtPct : 0;
+    let { dmg, crit } = computeHit(P.attack(p), mul, m.def.defense, P.critChance(p), rage);
+    if (aff === 'weak') { dmg = weakDamage(dmg); this.floatText(m.x, topY - 16, 'Weak!', '#ff9a3a', 11); }
+    const color = crit ? '#ffcf33' : aff === 'weak' ? '#ff9a3a' : ({ magic_bolt: '#cfe6ff', fire_bolt: '#ffb070', thorn_volley: '#b6ee86', chain_spark: '#a6ecff' } as Record<string, string>)[kind] ?? '#ffffff';
+    this.floatText(m.x, topY, `${dmg}`, color, crit ? 20 : aff === 'weak' ? 18 : 16);
+    const feel = ATTACK_FEEL[kind];
+    if (m.hurt(dmg, fromX, feel.kb, feel.hitstunMs)) this.onKill(m);
+    else if (opt.burnS && m.alive) this.applyBurn(m, Math.max(1, Math.floor(dmg * 0.35)), opt.burnS);
+    Fx.hitSparks(this, m.x, hitY, crit, Fx.BOLT_COLORS[kind as Fx.BoltKind]?.glow ?? 0xfff2c0);
+    return { landed: true, crit };
   }
 
   /** Multi-target skill strike (Earthbreaker AoE, Flame Cleave wide swing). */
@@ -678,6 +810,11 @@ export class WorldScene extends Phaser.Scene {
     const digging = this.buffActive('dig_in');
     const matk = rollMonsterAttack(m.def.attack, m.def.attack_min, m.def.attack_max) * (contact ? CONTACT.fraction : 1);
     let dmg = p.cheats.god ? 0 : incomingDamage(matk, P.defense(p) * (digging ? 1.5 : 1), taken);
+    // v0.2.8 Mana Shield: a ward that dulls every incoming hit (swings, pebbles and bumps alike).
+    if (this.buffActive('mana_shield') && dmg > 0) {
+      dmg = Math.max(1, dmg - Math.floor((dmg * Sk.manaShieldPct(p)) / 100));
+      this.floatText(this.player.x + 18, this.player.y - 74, 'ward', '#9fd0ff', 11);
+    }
     if (Game.shield > 0 && (Game.buffs.soul_guard ?? 0) > Date.now()) {
       const absorbed = Math.min(Game.shield, dmg);
       Game.shield -= absorbed;

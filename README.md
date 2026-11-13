@@ -1,4 +1,4 @@
-# Meadows — prototype v0.2.7
+# Meadows — prototype v0.2.8
 
 A 2D side-scrolling browser MMORPG prototype (MapleStory-style real-time grinding, later Travian-style offline growth).
 v0.2 is a **single-player** slice of the Meadows zone: **Meadow Town** (hub + Mara's shop), **Sunny Pasture** (levels 1-3), and **Dirt Banks** (levels 3-6), reached by the east path from the pasture.
@@ -57,6 +57,10 @@ Hovering a tile with the mouse selects it too, and the preview panel shows the i
 
 **Why these keys:** no modifier keys are used, so gameplay can't trigger browser shortcuts (Ctrl+W closes the tab, etc.). Phaser calls `preventDefault` on every bound key, and a small guard blocks stray Ctrl+letter page shortcuts (Ctrl+S, Ctrl+P, ...). The hotbar is 1–6 (skills or consumables); Q and G still fire slots 5 and 6, instead of the sheet's Q/R potion keys.
 
+
+## What's new in v0.2.8 (Magician Path)
+
+A second Path: ranged and MP-hungry. **Magic Bolt → Mana Shield → Fire Bolt / Thorn Volley → Chain Spark**, with projectiles you can see in the air, family-coloured effects and damage that lands when they arrive (Chain Spark leaps between foes, Fire Bolt burns, Thorn Volley throws three thorns, Mana Shield wards you for a third less damage). A new town NPC, **Tamsin**, runs the tutorial (**The Quiet Spell**). The Magician tab of the Paths window (**K**, Tab to switch) is a full tree. Write-up in `docs/v0.2.8.md`.
 
 ## What's new in v0.2.7 (Paths)
 

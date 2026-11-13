@@ -553,3 +553,152 @@ export function fireBloom(scene: SC, x: number, y: number): void {
     scene.tweens.add({ targets: e, x: x + Math.cos(a) * (18 + Math.random() * 22), y: y + Math.sin(a) * (18 + Math.random() * 22) - 12, alpha: 0, duration: 300 + Math.random() * 160, ease: 'Cubic.easeOut', onComplete: () => e.destroy() });
   }
 }
+
+// ───────────── v0.2.8 Magician Path ─────────────
+export type BoltKind = 'magic_bolt' | 'fire_bolt' | 'thorn_volley' | 'chain_spark';
+/** Family colours: neutral energy is a cool white-blue, fire is orange, thorns green, sparks electric cyan. */
+export const BOLT_COLORS: Record<BoltKind, { core: number; glow: number; edge: number }> = {
+  magic_bolt: { core: 0xffffff, glow: 0x8fc8ff, edge: 0x3a6ab0 },
+  fire_bolt: { core: 0xfff0a0, glow: 0xff6a20, edge: 0x7a1608 },
+  thorn_volley: { core: 0xd8f59a, glow: 0x55b255, edge: 0x1f5a1f },
+  chain_spark: { core: 0xffffff, glow: 0x7fe4ff, edge: 0x2a7ab0 },
+};
+
+/** The projectile's head: a small container the scene moves each frame. */
+export function boltHead(scene: SC, kind: BoltKind, x: number, y: number, rot = 0): Phaser.GameObjects.Container {
+  const col = BOLT_COLORS[kind];
+  const c = scene.add.container(x, y).setDepth(15);
+  if (kind === 'thorn_volley') {
+    // a dark-edged green thorn pointing along its flight
+    const tip = scene.add.triangle(0, 0, -9, -4, -9, 4, 10, 0, col.glow, 1).setStrokeStyle(2, col.edge, 1);
+    const hi = scene.add.triangle(0, 0, -5, -1.5, -5, 1.5, 8, 0, col.core, 0.9);
+    c.add([tip, hi]);
+    c.setRotation(rot);
+    return c;
+  }
+  const halo = scene.add.circle(0, 0, kind === 'fire_bolt' ? 13 : 11, col.glow, 0.32);
+  const body = scene.add.circle(0, 0, kind === 'fire_bolt' ? 8 : 6.5, col.glow, 0.95).setStrokeStyle(2, col.edge, 0.9);
+  const core = scene.add.circle(0, 0, kind === 'fire_bolt' ? 4.5 : 3.5, col.core, 1);
+  c.add([halo, body, core]);
+  scene.tweens.add({ targets: halo, scale: 1.35, alpha: 0.18, duration: 160, yoyo: true, repeat: -1 });
+  if (kind === 'chain_spark') {
+    const arcs = scene.add.graphics();
+    c.add(arcs);
+    c.setData('arcs', arcs);
+  }
+  return c;
+}
+
+/** Per-frame life for a bolt head: a trail of fading motes, and crackle for the spark. */
+export function boltTick(scene: SC, kind: BoltKind, head: Phaser.GameObjects.Container, dir: number): void {
+  const col = BOLT_COLORS[kind];
+  const x = head.x, y = head.y;
+  if (kind === 'chain_spark') {
+    const arcs = head.getData('arcs') as Phaser.GameObjects.Graphics | undefined;
+    if (arcs) {
+      arcs.clear();
+      for (let i = 0; i < 3; i++) {
+        const a = Math.random() * Math.PI * 2;
+        arcs.lineStyle(2, i ? col.glow : 0xffffff, 0.95);
+        arcs.beginPath();
+        arcs.moveTo(Math.cos(a) * 5, Math.sin(a) * 5);
+        arcs.lineTo(Math.cos(a + 0.3) * 11 + (Math.random() - 0.5) * 4, Math.sin(a + 0.3) * 11 + (Math.random() - 0.5) * 4);
+        arcs.lineTo(Math.cos(a) * 15, Math.sin(a) * 15);
+        arcs.strokePath();
+      }
+    }
+  }
+  if (Math.random() < 0.85) {
+    const sz = kind === 'fire_bolt' ? 3 + Math.random() * 3 : 2 + Math.random() * 2;
+    const m = scene.add.circle(x - dir * (4 + Math.random() * 6), y + (Math.random() - 0.5) * 8, sz, Math.random() < 0.4 ? col.core : col.glow, 0.9).setDepth(14);
+    scene.tweens.add({ targets: m, x: m.x - dir * 14, y: m.y + (kind === 'fire_bolt' ? -10 : (Math.random() - 0.5) * 8), alpha: 0, scale: 0.2, duration: kind === 'thorn_volley' ? 160 : 260, onComplete: () => m.destroy() });
+  }
+}
+
+/** A brief flash at the caster's hands when a bolt leaves. */
+export function castFlash(scene: SC, kind: BoltKind, x: number, y: number): void {
+  const col = BOLT_COLORS[kind];
+  const c = scene.add.circle(x, y, 5, col.glow, 0.8).setDepth(15);
+  scene.tweens.add({ targets: c, radius: 16, alpha: 0, duration: 150, ease: 'Cubic.easeOut', onComplete: () => c.destroy() });
+  const r = scene.add.circle(x, y, 3, col.core, 1).setDepth(16);
+  scene.tweens.add({ targets: r, radius: 8, alpha: 0, duration: 110, onComplete: () => r.destroy() });
+}
+
+/** The crisp impact where a bolt lands, in the bolt's own colours. */
+export function boltImpact(scene: SC, kind: BoltKind, x: number, y: number, crit = false): void {
+  const col = BOLT_COLORS[kind];
+  if (kind === 'fire_bolt') { fireBloom(scene, x, y); return; }
+  const flash = scene.add.circle(x, y, 6, col.core, 0.95).setDepth(16);
+  scene.tweens.add({ targets: flash, radius: crit ? 26 : 18, alpha: 0, duration: 170, ease: 'Cubic.easeOut', onComplete: () => flash.destroy() });
+  const ring = scene.add.circle(x, y, 8, col.glow, 0).setStrokeStyle(3, col.glow, 0.95).setDepth(15);
+  scene.tweens.add({ targets: ring, radius: crit ? 30 : 22, alpha: 0, duration: 220, ease: 'Cubic.easeOut', onUpdate: () => ring.setStrokeStyle(3 * ring.alpha + 1, col.glow, ring.alpha), onComplete: () => ring.destroy() });
+  const n = kind === 'thorn_volley' ? 6 : 9;
+  for (let i = 0; i < n; i++) {
+    const a = (Math.PI * 2 * i) / n + Math.random() * 0.5;
+    const len = 14 + Math.random() * 14;
+    if (kind === 'thorn_volley') {
+      // leaf-green shards
+      const sh = scene.add.rectangle(x, y, 3, 7, i % 2 ? col.glow : col.core, 1).setDepth(16).setRotation(a);
+      scene.tweens.add({ targets: sh, x: x + Math.cos(a) * len, y: y + Math.sin(a) * len - 6, alpha: 0, angle: sh.angle + 120, duration: 260, ease: 'Cubic.easeOut', onComplete: () => sh.destroy() });
+    } else {
+      const ln = g(scene, 16);
+      scene.tweens.addCounter({ from: 0, to: 1, duration: 170, ease: 'Cubic.easeOut', onUpdate: (tw) => {
+        const t = tw.getValue() ?? 0;
+        ln.clear();
+        ln.lineStyle(2.5, i % 2 ? col.glow : col.core, 1 - t);
+        ln.lineBetween(x + Math.cos(a) * (4 + t * 6), y + Math.sin(a) * (4 + t * 6), x + Math.cos(a) * (6 + t * len), y + Math.sin(a) * (6 + t * len));
+      }, onComplete: () => ln.destroy() });
+    }
+  }
+}
+
+/** The lightning link of Chain Spark: a jagged line between two foes, crackling for a moment. */
+export function lightningLink(scene: SC, x0: number, y0: number, x1: number, y1: number): void {
+  const col = BOLT_COLORS.chain_spark;
+  const gfx = g(scene, 15);
+  const draw = (alpha: number) => {
+    gfx.clear();
+    const segs = 7;
+    for (const [w, c, a] of [[6, col.glow, 0.35], [3, col.glow, 0.9], [1.5, 0xffffff, 1]] as [number, number, number][]) {
+      gfx.lineStyle(w, c, a * alpha);
+      gfx.beginPath();
+      gfx.moveTo(x0, y0);
+      for (let i = 1; i < segs; i++) {
+        const t = i / segs;
+        gfx.lineTo(x0 + (x1 - x0) * t + (Math.random() - 0.5) * 14, y0 + (y1 - y0) * t + (Math.random() - 0.5) * 14);
+      }
+      gfx.lineTo(x1, y1);
+      gfx.strokePath();
+    }
+  };
+  scene.tweens.addCounter({ from: 1, to: 0, duration: 200, onUpdate: (tw) => draw(tw.getValue() ?? 0), onComplete: () => gfx.destroy() });
+}
+
+/** Mana Shield going up: a ring and a quick dome of hexagonal sparkle. */
+export function wardBurst(scene: SC, x: number, y: number): void {
+  const col = BOLT_COLORS.magic_bolt;
+  const ring = scene.add.ellipse(x, y, 20, 24, col.glow, 0.0).setStrokeStyle(4, 0xcfe8ff, 0.95).setDepth(14);
+  scene.tweens.add({ targets: ring, width: 74, height: 84, alpha: 0, duration: 420, ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
+  const dome = scene.add.ellipse(x, y, 62, 72, col.glow, 0.28).setStrokeStyle(2, 0xffffff, 0.8).setDepth(14);
+  scene.tweens.add({ targets: dome, scaleX: 1.12, scaleY: 1.12, alpha: 0, duration: 520, ease: 'Sine.easeOut', onComplete: () => dome.destroy() });
+  for (let i = 0; i < 12; i++) {
+    const a = (Math.PI * 2 * i) / 12;
+    const sp = scene.add.rectangle(x + Math.cos(a) * 30, y + Math.sin(a) * 36, 3, 3, 0xffffff, 1).setDepth(15).setAngle(45);
+    scene.tweens.add({ targets: sp, x: x + Math.cos(a) * 44, y: y + Math.sin(a) * 52 - 8, alpha: 0, duration: 480, ease: 'Cubic.easeOut', onComplete: () => sp.destroy() });
+  }
+}
+
+/** The lingering ward while Mana Shield lasts, redrawn each frame by the scene (ends cleanly with the buff). */
+export function wardGlow(gfx: Phaser.GameObjects.Graphics, x: number, y: number, wall: number): void {
+  const a = 0.32 + 0.14 * Math.sin(wall / 220);
+  gfx.fillStyle(0x8fc8ff, 0.1 + 0.05 * Math.sin(wall / 220));
+  gfx.fillEllipse(x, y, 58, 68);
+  gfx.lineStyle(3, 0xcfe8ff, a);
+  gfx.strokeEllipse(x, y, 58, 68);
+  // two slowly turning sparkle points on the ward
+  for (let i = 0; i < 2; i++) {
+    const t = wall / 700 + i * Math.PI;
+    gfx.fillStyle(0xffffff, 0.85);
+    gfx.fillRect(x + Math.cos(t) * 29 - 1.5, y + Math.sin(t) * 34 - 1.5, 3, 3);
+  }
+}

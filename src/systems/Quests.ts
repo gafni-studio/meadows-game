@@ -260,16 +260,17 @@ export function offerDirtPath(p: P.PlayerData, silent = false): void {
   start(p, 'ql_dirt_path', silent);
 }
 
-/** The Paths window (K) was opened: step 2 of Calden's tutorial. */
-export function onTreeOpen(p: P.PlayerData): void {
-  const s = state(p, 'ql_paths');
-  if (isActive(p, 'ql_paths') && s.step === 2) advance(p, 'ql_paths', 'Train Power Strike to rank 2 in the tree (select it, Enter).');
+/** The Paths window (K) was opened, or its tab switched: step 2 of the Paths tutorials. */
+export function onPathView(p: P.PlayerData, pathId: string): void {
+  if (isActive(p, 'ql_paths') && state(p, 'ql_paths').step === 2) advance(p, 'ql_paths', 'Train Power Strike to rank 2 in the tree (select it, Enter).');
+  if (pathId === 'magician' && isActive(p, 'ql_magic') && state(p, 'ql_magic').step === 2) advance(p, 'ql_magic', 'Train Magic Bolt in the tree (select it, Enter).');
   checkPaths(p);
 }
 /** Step 3 of the tutorial: Power Strike at rank 2. Called on training and on opening the tree. */
 export function checkPaths(p: P.PlayerData): void {
   const s = state(p, 'ql_paths');
   if (isActive(p, 'ql_paths') && s.step === 3 && (p.skillRanks.power_strike ?? 0) >= 2) advance(p, 'ql_paths', 'Rank two. Return to Calden.');
+  if (isActive(p, 'ql_magic') && state(p, 'ql_magic').step === 3 && (p.skillRanks.magic_bolt ?? 0) >= 1) advance(p, 'ql_magic', 'Magic Bolt is yours. Return to Tamsin.');
 }
 
 export function onPassive(p: P.PlayerData): void {
@@ -506,6 +507,27 @@ const TALK: Record<string, string[]> = {
     'Go on. Ila has the slow work, and the pasture has teeth.',
   ],
 
+  // Tamsin — the Magician Path tutorial (v0.2.8). Dreamy, exact, counts under her breath.
+  'ql_magic:1:ok': [
+    'Oh. You are holding your breath. Don’t. It spends mana you have not got.',
+    'I walk the Magician Path. Any Hero may. It is the second Path, and it throws things from far away.',
+    'Everything here costs mana. More than a swing costs breath. Clear Dew and a steady hand are half the craft.',
+    'The chain: Magic Bolt first. Then Mana Shield. Then Fire Bolt, or Thorn Volley, and Chain Spark after the thorns.',
+    'Families still pay. Elemental Essence for the fire and the spark, Nature Essence for the thorns. Monster Essence for the first two.',
+    'Here is what a first bolt costs. Press K, and find the Magician Path.',
+  ],
+  'ql_magic:2:wait': [
+    'K. Then the second tab: Magician Path. Count the nodes. Five.',
+  ],
+  'ql_magic:3:wait': [
+    'Magic Bolt. Learn it in the tree and keep it in an attack slot. Then count your mana.',
+  ],
+  'ql_magic:4:done': [
+    'One bolt, and your mana dipped. Good.',
+    'It comes back slowly. Drink when you must. Q and G are for exactly that.',
+    'Stand back and throw from afar. That is the whole Path, to begin with.',
+  ],
+
   // Pell — warm, folksy, knows the paths.
   'ql_dirt_path:1:ok': [
     'You look like you’ve set something growing. Good.',
@@ -573,6 +595,11 @@ const ILA_KIT: [string, number][] = [
   ['nature_essence', 20], ['pebble', 16], ['bark', 12],
 ];
 const ILA_KIT_COPPER = 18;
+/** Tutorial lines (steps 2-3 are done by the player; step 4 is the turn-in). */
+const TUTORIALS = new Set(['ql_paths', 'ql_magic']);
+/** v0.2.8: Tamsin's kit = the Magic Bolt rank 1 recipe (Monster Essence 20, Training Scroll 8, Copper 22). */
+const MAGIC_KIT: [string, number][] = [['monster_essence', 20], ['training_scroll', 8]];
+const MAGIC_KIT_COPPER = 22;
 /** v0.2.7: Calden's tutorial kit = the Power Strike rank 2 recipe (Monster Essence 24, Training Scroll 10, Clay 16, Copper 25). */
 const PATHS_KIT: [string, number][] = [['monster_essence', 24], ['training_scroll', 10], ['clay', 16]];
 const PATHS_KIT_COPPER = 25;
@@ -604,12 +631,12 @@ export function talk(p: P.PlayerData, npc: string): TalkResult | null {
     const last = (rowsOf(line).slice(-1)[0])!.step;
 
     // Talk-only first steps.
-    if (line === 'ql_paths' && s.step > 1) {
-      if (s.step === 4) return say(npc, TALK['ql_paths:4:done'], () => complete(p, line));
-      return say(npc, TALK[`ql_paths:${s.step}:wait`]);
+    if (TUTORIALS.has(line) && s.step > 1) {
+      if (s.step === 4) return say(npc, TALK[`${line}:4:done`], () => complete(p, line));
+      return say(npc, TALK[`${line}:${s.step}:wait`]);
     }
     if ((line === 'ql_dirt_path' || line === 'ql_blood' || line === 'ql_quiet_work'
-      || line === 'ql_warm_coat' || line === 'ql_dirt_keeps' || line === 'ql_paths') && s.step === 1) {
+      || line === 'ql_warm_coat' || line === 'ql_dirt_keeps' || TUTORIALS.has(line)) && s.step === 1) {
       return say(npc, TALK[`${line}:1:ok`] ?? [r.objective], () => {
         if (line === 'ql_paths') {
           // the exact Power Strike rank 2 recipe, so the tutorial can be finished
@@ -617,7 +644,12 @@ export function talk(p: P.PlayerData, npc: string): TalkResult | null {
           p.coins += PATHS_KIT_COPPER;
           Game.toast('Calden hands you the materials for Power Strike rank 2', 'rare');
         }
-        const toast = line === 'ql_paths' ? 'Press K and look at the Warrior Path.' : line === 'ql_dirt_path' ? 'Defeat 4 Crows at the east end of Sunny Pasture.'
+        if (line === 'ql_magic') {
+          for (const [id, n] of MAGIC_KIT) P.addItem(p, id, n);
+          p.coins += MAGIC_KIT_COPPER;
+          Game.toast('Tamsin hands you the materials for Magic Bolt', 'rare');
+        }
+        const toast = line === 'ql_magic' ? 'Press K and open the Magician Path tab.' : line === 'ql_paths' ? 'Press K and look at the Warrior Path.' : line === 'ql_dirt_path' ? 'Defeat 4 Crows at the east end of Sunny Pasture.'
           : line === 'ql_blood' ? 'Rage is a bargain — hit harder, get hit harder. Walk to the east pasture.'
           : undefined;
         advance(p, line, toast);
@@ -688,6 +720,12 @@ export function talk(p: P.PlayerData, npc: string): TalkResult | null {
 
 /** A few lore lines when Pell (or another hint NPC) is spoken to with no quest to advance. */
 export function greeting(npc: string): TalkResult | null {
+  if (npc === 'tamsin') {
+    return say('tamsin', [
+      'Mm. One, two, three. Sorry, counting. It helps.',
+      'The Magician Path throws things from far away and spends a great deal of mana doing it. Come back once Calden has shown you the Paths.',
+    ]);
+  }
   if (npc === 'pell') {
     return say('pell', [
       'Meadow Town sits easy, for now. The pasture to the east is honest work — mice and sheep leave you be unless you hit them. Watch the crows.',
@@ -729,7 +767,7 @@ export function wantsTalk(p: P.PlayerData, npc: string): boolean {
     if (!r || (r.giver && r.giver !== npc)) return false;
     const key = `${line}:${s.step}`;
     if (s.step === 1) return true; // every line’s opener is a talk
-    if (line === 'ql_paths') return true; // steps 2-4: a reminder, or the turn-in
+    if (TUTORIALS.has(line)) return true; // steps 2-4: a reminder, or the turn-in
     const hunt = HUNT[key];
     if (hunt && huntDone(hunt, s.kills) && r.giver === npc) return true;
     if (hunt && r.giver === npc) return true; // reminder
@@ -745,7 +783,7 @@ export function hotStartable(p: P.PlayerData): boolean {
 }
 
 /** Lines whose first step is "talk to the giver" (the opening conversation). */
-const TALK_OPENERS = new Set(['ql_dirt_path', 'ql_blood', 'ql_quiet_work', 'ql_warm_coat', 'ql_dirt_keeps', 'ql_paths']);
+const TALK_OPENERS = new Set(['ql_dirt_path', 'ql_blood', 'ql_quiet_work', 'ql_warm_coat', 'ql_dirt_keeps', 'ql_paths', 'ql_magic']);
 
 /**
  * v0.2.6 marker above a quest NPC: `!` a quest is available (or its opening talk is waiting),
@@ -761,7 +799,7 @@ export function markerFor(p: P.PlayerData, npc: string): '!' | '?' | null {
     const key = `${line}:${s.step}`;
     const last = rowsOf(line).slice(-1)[0]!.step;
     if (TALK_OPENERS.has(line) && s.step === 1) { avail = true; continue; }
-    if (line === 'ql_paths') { if (s.step === 4) return '?'; continue; } // steps 2-3 are on the player
+    if (TUTORIALS.has(line)) { if (s.step === 4) return '?'; continue; } // steps 2-3 are on the player
     if (s.step === 1 && (line === 'ql_crack' || line === 'ql_hot')) {
       const scaleOk = line !== 'ql_hot' || (p.inventory.smoldering_scale ?? 0) > 0;
       if (gateOk(p, line).ok && scaleOk) return '?';

@@ -1,6 +1,6 @@
 {
   "tab": "paths",
-  "note": "NOTE: v0.2.7. A Path is an open skill tree a Hero can train. Any Hero can train any path; a skill needs the previous skill in its chain (rank 1+) plus materials. Levels are only a pacing guide for recipe cost: green ~ L5, blue ~ L10, orange ~ L20 (out of scope).",
+  "note": "NOTE: v0.2.7. A Path is an open skill tree a Hero can train. Any Hero can train any path; a skill needs the previous skill in its chain (rank 1+) plus materials. Levels are only a pacing guide for recipe cost: green ~ L5, blue ~ L10, orange ~ L20 (out of scope).  v0.2.8: Magician Path is live (Magic Bolt, Mana Shield, Fire Bolt, Thorn Volley, Chain Spark).",
   "columns": [
     "id",
     "name",
@@ -17,8 +17,8 @@
     {
       "id": "magician",
       "name": "Magician Path",
-      "status": "soon",
-      "description": "Ranged and MP-hungry. Arrives in v0.2.8."
+      "status": "live",
+      "description": "Ranged and MP-hungry: Magic Bolt at the root, a ward, and Fire, Thorn and Spark branches."
     }
   ]
 }
