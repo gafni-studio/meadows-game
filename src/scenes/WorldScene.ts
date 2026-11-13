@@ -34,6 +34,7 @@ export class WorldScene extends Phaser.Scene {
   private swingReadyAt = 0;
   private npcs: { x: number; id: string; role: string; name: string; marker?: Phaser.GameObjects.Text }[] = [];
   private lastMarkerAt = 0;
+  private wasMenu = false;
   private portals: { x: number; dir: string; arriveX: number; target?: string }[] = [];
   private prompt!: Phaser.GameObjects.Text;
   private sword!: Phaser.GameObjects.Image;
@@ -240,6 +241,9 @@ export class WorldScene extends Phaser.Scene {
     const p = Game.player;
     const body = this.player.body as Phaser.Physics.Arcade.Body;
     const menu = Game.menuOpen || Game.consoleOpen;
+    // v0.2.7: a key that closed a window (E) must not also act in the world on the next frame.
+    if (menu) this.wasMenu = true;
+    else if (this.wasMenu) { this.wasMenu = false; this.controls.clear(); }
 
     // v0.2.3: Rage tint is driven by the live buff (Date.now()), so a leftover red
     // tint cannot stick after the buff ends or after a scene restart.
@@ -272,6 +276,8 @@ export class WorldScene extends Phaser.Scene {
       if (this.controls.pressed('skill4')) this.useHotbar(3);
       if (this.controls.pressed('skill5')) this.useHotbar(4);
       if (this.controls.pressed('skill6')) this.useHotbar(5);
+      if (this.controls.pressed('skill7')) this.useHotbar(6);
+      if (this.controls.pressed('skill8')) this.useHotbar(7);
       if (this.controls.pressed('interact')) this.interact();
       // Walk wobble: ~35% slower than v0.1.2 (period 95 vs 70) and tied to actual move speed.
       const spd = Math.abs(body.velocity.x);
@@ -400,10 +406,8 @@ export class WorldScene extends Phaser.Scene {
       Fx.hitStop(this, crit ? Fx.FX.hitstopSmash + 20 : Fx.FX.hitstopSmash);
       Fx.shake(this, crit ? 110 : 90, crit ? 0.007 : 0.005);
     } else {
-      // The normal attack is the overhead smash: it flashes where it lands.
-      Fx.impactFlash(this, hitX, hitY, 0xffe066, crit ? 28 : 22);
       Fx.hitStop(this, crit ? Fx.FX.hitstopCrit : Fx.FX.hitstopBasic);
-      if (crit) Fx.shake(this, 70, 0.0045);
+      if (crit) { Fx.impactFlash(this, hitX, hitY, 0xffe066, 24); Fx.shake(this, 70, 0.0045); }
     }
   }
 
@@ -434,16 +438,22 @@ export class WorldScene extends Phaser.Scene {
       return;
     }
     if (kind === 'basic') {
-      // v0.2.6: the normal attack is the old Power Strike smash, reaching the end of the basic range (70).
-      s.setVisible(false);
-      Fx.overheadSmash(this, ox, oy, this.facing, reach, onImpact);
+      // v0.2.7: the normal attack is a quick swing / slash that reaches the real melee range (70 px).
+      s.setVisible(true).setFlipX(this.facing < 0).setTint(0xffffff);
+      s.setPosition(this.player.x + this.facing * 14, this.player.y - 18);
+      s.setAngle(-80 * this.facing);
+      this.tweens.add({
+        targets: s, angle: 70 * this.facing, duration: Fx.FX.basicMs, ease: 'Cubic.easeIn',
+        onComplete: () => s.setVisible(false),
+      });
+      Fx.slashArc(this, ox, oy, this.facing, { reach, duration: Fx.FX.basicMs, onImpact });
       this.tweens.add({
         targets: this.player,
-        scaleX: this.playerBaseScale.x * 1.08,
-        scaleY: this.playerBaseScale.y * 0.94,
-        duration: Fx.FX.smashWindupMs,
+        scaleX: this.playerBaseScale.x * 1.06,
+        scaleY: this.playerBaseScale.y * 0.97,
+        duration: Math.floor(Fx.FX.basicMs * 0.45),
         yoyo: true,
-        ease: 'Cubic.easeIn',
+        ease: 'Sine.easeInOut',
         onComplete: () => this.player.setScale(this.playerBaseScale.x, this.playerBaseScale.y),
       });
       return;

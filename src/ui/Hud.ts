@@ -8,6 +8,7 @@ import * as P from '../systems/Player';
 import { iconUrl, skillIconUrl } from '../art/sprites';
 import { displayName, formatAffix, instanceQuality, isGear, makeGear, GearInstance } from '../systems/Gear';
 import * as Sk from '../systems/Skills';
+import { SLOT_KEYS, GROUP_SLOTS } from '../systems/Bar';
 import * as Q from '../systems/Quests';
 import * as Pa from '../systems/Passives';
 import * as Ex from '../systems/Exchange';
@@ -41,6 +42,7 @@ export class Hud {
   private sel: Partial<Record<Panel, string>> = {}; // selected data-key per panel
   private shopTab: 'buy' | 'sell' = 'buy';
   private treeTab: 'nature' | 'elemental' = 'nature';
+  private pathTab = 'warrior';
   private lastSettleAt = 0;
   private areaName = '';
   private dialogHtml = '';
@@ -73,7 +75,7 @@ export class Hud {
       <div id="levelup" hidden></div>
       <div id="questup" hidden></div>
       <div id="quest-track" hidden></div>
-      <div id="help">F attack · 1–6 hotbar · E talk · I bag · C stats · K skills · J journal · L objectives · T tree · Esc${DEV_CONSOLE ? ' · `' : ''}</div>
+      <div id="help">F attack · 1–4 attacks · 5–6 buffs · Q/G potions · E talk · I bag · C hero · K paths · J journal · L objectives · T passives · Esc${DEV_CONSOLE ? ' · `' : ''}</div>
       <div id="dead" hidden>Defeated…</div>
       ${PANELS.map((p) => `<div class="panel" id="p-${p}" hidden></div>`).join('')}
       <div id="console" hidden><div id="console-out"></div><input id="console-in" autocomplete="off" spellcheck="false" placeholder="type help, Enter to run, Esc to close" /></div>`;
@@ -141,6 +143,12 @@ export class Hud {
       if ((k === 'x' || k === 'X' || k === 'Delete') && top === 'inventory' && cur?.dataset.item && cur.dataset.c === 'bag') { e.preventDefault(); this.requestDrop(cur.dataset.item, cur.dataset.uid); return; }
       if (k === '1' && top === 'storage' && cur?.dataset.item && cur.dataset.idx) { e.preventDefault(); this.transfer(cur, 1); return; }
     }
+    // v0.2.7: E also closes the NPC window it opened (shop, training, exchange, storage, talk).
+    if ((k === 'e' || k === 'E') && !e.ctrlKey && !e.altKey && !e.metaKey && top && ['shop', 'skills', 'exchange', 'storage', 'dialog'].includes(top)) {
+      e.preventDefault();
+      this.close(top);
+      return;
+    }
     if (!e.ctrlKey && !e.altKey && !e.metaKey) {
       if (k === 'i' || k === 'I') { this.toggle('inventory'); return; }
       if (k === 'c' || k === 'C') { this.toggle('stats'); return; }
@@ -162,22 +170,23 @@ export class Hud {
       e.preventDefault();
       const cur = this.selectedEl('skills');
       if (cur?.dataset.skill && Sk.known(Game.player, cur.dataset.skill)) {
-        Sk.assignBar(Game.player, Number(k) - 1, cur.dataset.skill);
-        this.toast(`Bound ${DB.skills[cur.dataset.skill].name} to ${k}`, 'info');
-        Game.save(); Game.changed();
-      }
+        const err = Sk.assignBar(Game.player, Number(k) - 1, cur.dataset.skill);
+        if (err) this.toast(err, 'warn');
+        else { this.toast(`Equipped ${DB.skills[cur.dataset.skill].name} in slot ${k}`, 'info'); Game.save(); Game.changed(); }
+      } else if (cur?.dataset.skill) this.toast('Train it first', 'warn');
       return;
     }
-    if (top === 'inventory' && ['1', '2', '3', '4', '5', '6'].includes(k) && !this.held) {
+    if (top === 'inventory' && ['q', 'Q', 'g', 'G'].includes(k) && !this.held) {
       e.preventDefault();
       const cur = this.selectedEl('inventory');
       const id = cur?.dataset.item;
       if (id && DB.items[id]?.item_type === 'consumable') {
-        Sk.assignBar(Game.player, Number(k) - 1, id);
-        this.toast(`Bound ${DB.items[id].name} to ${k}`, 'info');
+        const slot = k.toLowerCase() === 'q' ? 6 : 7;
+        Sk.assignBar(Game.player, slot, id);
+        this.toast(`Bound ${DB.items[id].name} to ${SLOT_KEYS[slot]}`, 'info');
         Game.save(); Game.changed();
       } else if (id) {
-        this.toast('Only consumables and skills can be bound to the hotbar', 'warn');
+        this.toast('Only potions and food can be bound to Q or G', 'warn');
       }
       return;
     }
@@ -197,6 +206,14 @@ export class Hud {
       return;
     }
     if (k === 'Tab' && top === 'shop') { e.preventDefault(); this.shopTab = this.shopTab === 'buy' ? 'sell' : 'buy'; this.sel.shop = undefined; this.renderPanels(); }
+    if (k === 'Tab' && top === 'skills') {
+      e.preventDefault();
+      const ids = Sk.PATHS.map((x) => x.id);
+      this.pathTab = ids[(ids.indexOf(this.pathTab) + 1) % ids.length];
+      this.sel.skills = undefined;
+      this.renderPanels();
+      return;
+    }
     if (k === 'Tab' && top === 'passives') { e.preventDefault(); this.treeTab = this.treeTab === 'nature' ? 'elemental' : 'nature'; this.sel.passives = undefined; this.renderPanels(); }
   }
 
@@ -206,7 +223,7 @@ export class Hud {
   private selectedEl(panel: Panel): HTMLElement | null {
     const els = this.navEls(panel);
     // Default to the first tile (not the tab row) so Enter acts on an item right away.
-    return els.find((el) => el.dataset.key === this.sel[panel]) ?? els.find((el) => el.classList.contains('tile') && !!el.dataset.item && el.dataset.mode !== 'equipped') ?? els.find((el) => el.classList.contains('tile') && el.dataset.mode !== 'equipped') ?? els.find((el) => el.classList.contains('tile')) ?? els[0] ?? null;
+    return els.find((el) => el.dataset.key === this.sel[panel]) ?? els.find((el) => el.classList.contains('pnode')) ?? els.find((el) => el.classList.contains('tile') && !!el.dataset.item && el.dataset.mode !== 'equipped') ?? els.find((el) => el.classList.contains('tile') && el.dataset.mode !== 'equipped') ?? els.find((el) => el.classList.contains('tile')) ?? els[0] ?? null;
   }
 
   /** Spatial navigation: nearest element in the arrow's direction; wraps in DOM order for ←/→. */
@@ -263,7 +280,7 @@ export class Hud {
     $('#hud .hp').classList.toggle('regen', Game.regenActive);
     set('#hud .mp', p.mp, mm, `MP ${Math.floor(p.mp)} / ${mm}`);
     set('#hud .xp', p.xp, nx, `XP ${p.xp} / ${nx} (${((p.xp / nx) * 100).toFixed(1)}%)`);
-    $('#lvl').textContent = `Lv ${p.level} Warrior${p.unspent ? ` (+${p.unspent} pts)` : ''}${p.cheated ? ' ⚑' : ''}`;
+    $('#lvl').textContent = `Lv ${p.level} Hero${p.unspent ? ` (+${p.unspent} pts)` : ''}${p.cheated ? ' ⚑' : ''}`;
     $('#lvl').title = p.cheated ? 'Test console used on this save' : '';
     $('#area').textContent = this.areaName;
     $('#coins').innerHTML = `<img src="${iconUrl('copper_coin')}"> ${p.coins} Copper${p.cheats.god ? ' · <b>GOD</b>' : ''}`;
@@ -303,29 +320,30 @@ export class Hud {
     if (line) line.innerHTML = prodHtml;
 
     const cd = (id: string) => Math.max(0, (Game.cooldowns[id] ?? 0) - now);
-    const slot = (key: string, label: string, sub: string, cdMs: number, total: number, icon = '') =>
-      `<div class="slot"><kbd>${key}</kbd>${icon ? `<img src="${icon}">` : ''}<div>${label}</div><small>${sub}</small>${cdMs > 0 ? `<em style="height:${(cdMs / total) * 100}%"></em>` : ''}</div>`;
+    // v0.2.7: grouped slots (attack 1-4, buff 5-6, potions Q/G). Icon boxed and centred, one-line names.
+    const slot = (key: string, name: string, sub: string, cdMs: number, total: number, icon = '') =>
+      `<div class="slot${name ? '' : ' empty'}"><kbd>${key}</kbd><div class="s-ico">${icon ? `<img src="${icon}" alt="">` : ''}</div><div class="s-name">${esc(name || '—')}</div><small class="s-sub">${esc(sub)}</small>${cdMs > 0 ? `<em style="height:${(cdMs / total) * 100}%"></em>` : ''}</div>`;
     const bar = Sk.barOf(p);
-    const barSlot = (key: string, i: number) => {
+    const barSlot = (i: number) => {
+      const key = SLOT_KEYS[i];
       const id = bar[i];
-      if (!id) return slot(key, '—', 'empty', 0, 1);
+      if (!id) return slot(key, '', 'empty', 0, 1);
       if (Sk.isHotbarSkill(id)) {
         const sk = DB.skills[id];
         const r = Sk.rankOf(p, id);
-        const sub = sk.damage_multiplier ? `${Math.round(Sk.damageMul(id, r) * 100)}% · ${sk.mp_cost} MP` : `${sk.mp_cost} MP · r${r}`;
-        return slot(key, `${sk.name}${r ? ` r${r}` : ''}`, sub, cd(id), Sk.cooldownOf(id), skillIconUrl(id));
+        return slot(key, sk.name, `r${r} · ${sk.mp_cost} MP`, cd(id), Sk.cooldownOf(id), skillIconUrl(id));
       }
       if (Sk.isHotbarItem(id)) {
         const it = DB.items[id];
         const n = p.inventory[id] ?? 0;
-        const potionCd = cd('potion');
-        return slot(key, it.name, n ? `×${n}` : 'none', potionCd, ASSUME.potionCooldownMs ?? 1000, iconUrl(id));
+        return slot(key, it.name, n ? `×${n}` : 'none', cd('potion'), ASSUME.potionCooldownMs ?? 1000, iconUrl(id));
       }
-      return slot(key, '—', 'empty', 0, 1);
+      return slot(key, '', 'empty', 0, 1);
     };
+    const grp = (label: string, idx: number[]) => `<div class="hb-group"><div class="hb-label">${label}</div><div class="hb-slots">${idx.map(barSlot).join('')}</div></div>`;
     const html =
-      slot('F', 'Attack', 'hold', 0, 1) +
-      [0, 1, 2, 3, 4, 5].map((i) => barSlot(String(i + 1), i)).join('');
+      `<div class="hb-group"><div class="hb-label">Basic</div><div class="hb-slots">${slot('F', 'Attack', 'hold', 0, 1)}</div></div>` +
+      grp('Attacks', GROUP_SLOTS.attack) + grp('Buffs', GROUP_SLOTS.buff) + grp('Potions', GROUP_SLOTS.potion);
     const hb = $('#hotbar');
     if (hb.dataset.last !== html) { hb.innerHTML = html; hb.dataset.last = html; }
   }
@@ -445,6 +463,7 @@ export class Hud {
 
   // ───────────────────────── windows ─────────────────────────
   private open(p: Panel) {
+    if (p === 'skills' && !this.stack.includes('skills')) Q.onTreeOpen(Game.player);
     if (!this.stack.includes(p) && (p === 'inventory' || p === 'storage' || p === 'shop')) this.sel[p] = undefined; // reopen at the first item
     this.stack = this.stack.filter((x) => x !== p);
     this.stack.push(p);
@@ -720,33 +739,74 @@ export class Hud {
 
   private renderSkills() {
     const p = Game.player;
-    const BRANCH: Record<string, string> = { basic: 'Basic', nature: 'Nature', elemental: 'Elemental', spiritual: 'Spiritual' };
-    const tiles = Sk.skillsFor(p.classId).filter((sk) => Sk.canSee(p, sk)).map((sk) => {
-      const r = Sk.rankOf(p, sk.id);
-      const un = Sk.unlockStatus(p, sk);
-      const costs = r < (sk.max_rank ?? 10) ? Sk.nextCost(sk.id, r + 1) : [];
-      const afford = costs.length > 0 && Sk.canAfford(p, costs);
-      const maxed = r >= (sk.max_rank ?? 10);
-      const dim = !un.ok || (!afford && !maxed);
-      const known = Sk.known(p, sk.id);
-      const qty = known ? `r${r}` : (un.ok ? 'learn' : '—');
-      const attr = `data-skill="${sk.id}" data-mode="${known ? 'skill' : 'locked'}"${!maxed && un.ok ? ` data-train="${sk.id}"` : ''}`;
-      return `<button class="tile${dim ? ' dim' : ''} t-skill t-${sk.branch}" data-nav data-key="sk:${sk.id}" ${attr}>
-        <img src="${skillIconUrl(sk.id)}" alt="">
-        <span class="qty">${qty}</span><span class="price">${BRANCH[sk.branch] ?? sk.branch}</span></button>`;
-    }).join('');
-    const bound = Sk.barOf(p).map((id, i) => {
-      let label = '<i>empty</i>';
-      if (id && Sk.isHotbarSkill(id)) label = `<img src="${skillIconUrl(id)}"> ${esc(DB.skills[id].name)}`;
-      else if (id && Sk.isHotbarItem(id)) label = `<img src="${iconUrl(id)}"> ${esc(DB.items[id].name)}`;
-      else if (id) label = esc(id);
-      return `<span class="barbind"><kbd>${i + 1}</kbd>${label}</span>`;
-    }).join('');
-    $('#p-skills').innerHTML = `<div class="frame-title">Skill training <small>(K)</small><button class="x" data-close="skills">×</button></div>
-      <p class="muted">Train at Calden, or open this window with K. Essence is the main gate; rares are only needed at ranks 5 and 10. Press 1–6 to bind the selected skill or potion.</p>
-      <div class="barbinds">${bound}</div>
-      <div class="split"><div class="grid sk">${tiles}</div><div class="preview" id="skills-preview"></div></div>
-      ${hint('←↑↓→ select · Enter train / learn · 1-6 bind · Esc close')}`;
+    const FAMILY: Record<string, string> = { basic: 'Basic', nature: 'Nature', elemental: 'Elemental', spiritual: 'Spirit' };
+    const paths = Sk.PATHS;
+    const path = paths.find((x) => x.id === this.pathTab) ?? paths[0];
+    const tabs = paths.map((x) => `<button data-nav data-key="ptab:${x.id}" data-ptab="${x.id}" class="${x.id === path.id ? 'on' : ''}">${esc(x.name)}${x.status === 'soon' ? ' <small>(soon)</small>' : ''}</button>`).join('');
+    // equip slots: attack 1-4, buff 5-6 (potions live on Q / G and are bound from the bag)
+    const bar = Sk.barOf(p);
+    const slotHtml = (i: number) => {
+      const id = bar[i];
+      const sk = id ? DB.skills[id] : null;
+      return `<span class="eq-slot${sk ? ' full' : ''}"><kbd>${SLOT_KEYS[i]}</kbd>${sk ? `<img src="${skillIconUrl(sk.id)}" alt=""><span class="eq-name">${esc(sk.name)}</span>` : '<span class="eq-name empty">empty</span>'}</span>`;
+    };
+    const equip = `<div class="equipbar"><div class="eq-group"><span class="eq-label">Attack</span>${GROUP_SLOTS.attack.map(slotHtml).join('')}</div>
+      <div class="eq-group"><span class="eq-label">Buff</span>${GROUP_SLOTS.buff.map(slotHtml).join('')}</div></div>`;
+    let tree = '';
+    const layout = Sk.TREE_LAYOUT[path.id];
+    if (path.status === 'soon' || !layout) {
+      tree = `<div class="path-soon"><b>${esc(path.name)}</b><p>${esc(path.description)}</p><p class="muted">Coming soon.</p></div>`;
+    } else {
+      const NW = 84, NH = 92, GX = 118, GY = 104, PAD = 10;
+      const px = (c: number) => PAD + c * GX, py = (r: number) => PAD + r * GY;
+      const lines: string[] = [];
+      const nodes: string[] = [];
+      let maxC = 0, maxR = 0;
+      const mid = (c: number, r: number) => ({ rx: px(c) + NW, lx: px(c), y: py(r) + NH / 2 });
+      for (const sk of Sk.pathSkills(path.id)) {
+        const pos = layout.nodes[sk.id];
+        if (!pos) continue;
+        maxC = Math.max(maxC, pos.c); maxR = Math.max(maxR, pos.r);
+        const prev = Sk.prevOf(sk);
+        if (prev && layout.nodes[prev.id]) {
+          const a = mid(layout.nodes[prev.id].c, layout.nodes[prev.id].r), b = mid(pos.c, pos.r);
+          const lit = Sk.known(p, prev.id);
+          const cx = (a.rx + b.lx) / 2;
+          lines.push(`<path class="ln fam-${sk.branch}${lit ? ' lit' : ''}" d="M ${a.rx} ${a.y} C ${cx} ${a.y}, ${cx} ${b.y}, ${b.lx} ${b.y}"/>`);
+        }
+      }
+      for (const f of layout.future) {
+        const from = layout.nodes[f.from];
+        if (!from) continue;
+        const a = mid(from.c, from.r), b = mid(f.c, f.r);
+        const cx = (a.rx + b.lx) / 2;
+        maxC = Math.max(maxC, f.c); maxR = Math.max(maxR, f.r);
+        lines.push(`<path class="ln future fam-${f.family}" d="M ${a.rx} ${a.y} C ${cx} ${a.y}, ${cx} ${b.y}, ${b.lx} ${b.y}"/>`);
+        nodes.push(`<div class="pnode future fam-${f.family}" style="left:${px(f.c)}px;top:${py(f.r)}px"><span class="pn-q">?</span><span class="pn-name">${esc(f.label)}</span></div>`);
+      }
+      for (const sk of Sk.pathSkills(path.id)) {
+        const pos = layout.nodes[sk.id];
+        if (!pos) continue;
+        const r = Sk.rankOf(p, sk.id);
+        const st = Sk.nodeState(p, sk);
+        const max = sk.max_rank ?? 10;
+        const costs = r < max ? Sk.nextCost(sk.id, r + 1) : [];
+        const afford = costs.length > 0 && Sk.canAfford(p, costs);
+        const un = Sk.unlockStatus(p, sk);
+        const label = st === 'trained' ? `rank ${r}` : st === 'available' ? (afford ? 'learn' : 'learn…') : 'locked';
+        const attr = `data-skill="${sk.id}" data-mode="${st === 'trained' ? 'skill' : 'locked'}"${r < max && un.ok ? ` data-train="${sk.id}"` : ''}`;
+        nodes.push(`<button class="pnode st-${st} fam-${sk.branch}${st === 'available' && !afford ? ' poor' : ''}" style="left:${px(pos.c)}px;top:${py(pos.r)}px" data-nav data-key="sk:${sk.id}" ${attr}>
+          <span class="pn-ico"><img src="${skillIconUrl(sk.id)}" alt=""></span>
+          <span class="pn-name">${esc(sk.name)}</span><span class="pn-state">${label}</span><span class="pn-fam">${FAMILY[sk.branch] ?? sk.branch}</span></button>`);
+      }
+      const W = px(maxC) + NW + PAD, Hh = py(maxR) + NH + PAD;
+      tree = `<div class="pathtree" style="width:${W}px;height:${Hh}px"><svg width="${W}" height="${Hh}" viewBox="0 0 ${W} ${Hh}">${lines.join('')}</svg>${nodes.join('')}</div>`;
+    }
+    $('#p-skills').innerHTML = `<div class="frame-title">Paths <small>(K)</small><button class="x" data-close="skills">×</button></div>
+      <div class="tabs">${tabs}</div>
+      ${equip}
+      <div class="split paths"><div class="treewrap">${tree}</div><div class="preview" id="skills-preview"></div></div>
+      ${hint('←↑↓→ select · Enter train / learn · 1–4 equip an attack · 5–6 equip a buff · Tab switch path · Esc close')}`;
   }
 
     /** Item preview for the hovered/selected tile. */
@@ -805,7 +865,7 @@ export class Hud {
     if (mode === 'inv') {
       btns.push(`<button data-act="askdrop" data-item="${id}"${piece ? ` data-uid="${piece.uid}"` : ''}>Drop</button>`);
       if (it.item_type === 'consumable') {
-        for (let i = 1; i <= 6; i++) btns.push(`<button data-act="bind" data-item="${id}" data-slot="${i}">${i}</button>`);
+        for (const i of GROUP_SLOTS.potion) btns.push(`<button data-act="bind" data-item="${id}" data-slot="${i + 1}">${SLOT_KEYS[i]}</button>`);
       }
     }
     const action: Record<string, string> = {
@@ -900,12 +960,15 @@ export class Hud {
       : r >= max ? 'Max rank'
       : Sk.canAfford(p, costs) ? `Enter: ${known ? 'train' : 'learn'} rank ${r + 1}` : '<span class="warn">Missing materials</span>';
     const bound = Sk.barOf(p).indexOf(id);
-    box.innerHTML = `<div class="pv-head"><img src="${skillIconUrl(id)}"><div><div class="pv-name">${esc(sk.name)}</div><div class="pv-type">${sk.branch} · ${sk.type} · rank ${r}/${max}${bound >= 0 ? ` · bound to ${bound + 1}` : ''}</div></div></div>
+    const slotsHint = sk.type === 'buff' ? '5–6: equip' : '1–4: equip';
+    const prevSk = Sk.prevOf(sk);
+    box.innerHTML = `<div class="pv-head"><img src="${skillIconUrl(id)}"><div><div class="pv-name">${esc(sk.name)}</div><div class="pv-type">${sk.branch} · ${sk.type === 'buff' ? 'buff' : 'attack'} · rank ${r}/${max}${bound >= 0 ? ` · slot ${SLOT_KEYS[bound]}` : ''}</div></div></div>
+      ${prevSk ? `<div class="pv-chain">Needs ${esc(prevSk.name)} ${Sk.known(p, prevSk.id) ? '✓' : '(not learned)'}</div>` : '<div class="pv-chain">Root of the path</div>'}
       <p>${esc(descOf(sk))}</p>
       <div class="pv-eff">${esc(sk.effect)}</div>
       <div class="pv-eff">${esc(Sk.rankPreview(id, r))} · ${sk.mp_cost} MP</div>
       ${r < max ? `<table class="pv-stats"><tr><th colspan="2">Cost for rank ${r + 1}</th></tr>${costRows}</table>` : ''}
-      <div class="pv-act">${act}${known ? ' · 1-6: bind' : ''}</div>`;
+      <div class="pv-act">${act}${known ? ` · ${slotsHint}` : ''}</div>`;
   }
 
 
@@ -1060,8 +1123,8 @@ export class Hud {
       ? `<div class="equip-title">Equipment</div><table class="derived equip">${equipRows}</table><div class="muted equip-total">From gear: ${esc(gearBits.join(' · ') || 'nothing')}</div>`
       : '';
     const rage = Sk.rageNumbers(p);
-    $('#p-stats').innerHTML = `<div class="frame-title">Character <small>(C)</small><button class="x" data-close="stats">×</button></div>
-      <p>Level ${p.level} Warrior · Points to spend: <b>${p.unspent}</b></p>
+    $('#p-stats').innerHTML = `<div class="frame-title">Hero <small>(C)</small><button class="x" data-close="stats">×</button></div>
+      <p>Level ${p.level} Hero · Points to spend: <b>${p.unspent}</b></p>
       <div class="statlist">${rows}</div>
       <table class="derived">
         <tr><td>Attack</td><td>${P.attack(p)}</td></tr><tr><td>Defense</td><td>${P.defense(p)}</td></tr>
@@ -1110,12 +1173,13 @@ export class Hud {
       this.close('drop');
       if (id) { this.doDrop(id, d.act === 'drop1' ? 1 : (this.dropUid ? 1 : Game.player.inventory[id] ?? 0), this.dropUid); this.dropUid = null; }
     }
+    else if (d.ptab) { this.pathTab = d.ptab; this.sel.skills = undefined; }
     else if (d.invtab) { this.invTab = d.invtab as typeof this.invTab; this.sel.inventory = undefined; }
     else if (d.act === 'askdrop') { this.requestDrop(d.item ?? this.dropItem ?? '', d.uid); }
     else if (d.act === 'bind' && d.item && d.slot) {
       if (DB.items[d.item]?.item_type === 'consumable') {
         Sk.assignBar(p, Number(d.slot) - 1, d.item);
-        this.toast(`Bound ${DB.items[d.item].name} to ${d.slot}`, 'info');
+        this.toast(`Bound ${DB.items[d.item].name} to ${SLOT_KEYS[Number(d.slot) - 1]}`, 'info');
         Game.save();
       }
     }

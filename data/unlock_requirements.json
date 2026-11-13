@@ -1,6 +1,6 @@
 {
   "tab": "unlock_requirements",
-  "note": "DRAFT — Unlock rules are not final. target_type 'material' refers to items.id; 'source' to gathering_sources.source_id (DEPRECATED with item sources); 'skill' to skills.id. unlock_cursed_dust is still in use (Cursed Dust drops from Night Stump once Heartwood is owned). Source-discovery unlocks are kept for reference only. Skills: basic from start; nature = level 3 + 5 main-stat points; elemental = level 6 + 10; spiritual = level 8 + 15. Where a skill has both a level and a stat gate, both rows must be met.",
+  "note": "DRAFT — Unlock rules are not final. target_type 'material' refers to items.id; 'source' to gathering_sources.source_id (DEPRECATED with item sources); 'skill' to skills.id. unlock_cursed_dust is still in use (Cursed Dust drops from Night Stump once Heartwood is owned). Source-discovery unlocks are kept for reference only. Skills: basic from start; nature = level 3 + 5 main-stat points; elemental = level 6 + 10; spiritual = level 8 + 15. Where a skill has both a level and a stat gate, both rows must be met.  v0.2.7: Warrior Path skills have no level or stat gate any more (chain + materials only); their rows were removed.",
   "columns": [
     "id",
     "target_type",
@@ -59,22 +59,6 @@
       "requirement_value": 1
     },
     {
-      "id": "unlock_rage",
-      "target_type": "skill",
-      "target_id": "rage",
-      "requirement_type": "start",
-      "requirement_id": "none",
-      "requirement_value": 1
-    },
-    {
-      "id": "unlock_power_strike",
-      "target_type": "skill",
-      "target_id": "power_strike",
-      "requirement_type": "start",
-      "requirement_id": "none",
-      "requirement_value": 1
-    },
-    {
       "id": "unlock_energy_shield",
       "target_type": "skill",
       "target_id": "energy_shield",
@@ -107,22 +91,6 @@
       "requirement_value": 1
     },
     {
-      "id": "unlock_earthbreaker_level",
-      "target_type": "skill",
-      "target_id": "earthbreaker",
-      "requirement_type": "level",
-      "requirement_id": "player_level",
-      "requirement_value": 3
-    },
-    {
-      "id": "unlock_earthbreaker_stat",
-      "target_type": "skill",
-      "target_id": "earthbreaker",
-      "requirement_type": "stat",
-      "requirement_id": "STR",
-      "requirement_value": 5
-    },
-    {
       "id": "unlock_thorn_bind_level",
       "target_type": "skill",
       "target_id": "thorn_bind",
@@ -153,22 +121,6 @@
       "requirement_type": "stat",
       "requirement_id": "AGI",
       "requirement_value": 5
-    },
-    {
-      "id": "unlock_flame_cleave_level",
-      "target_type": "skill",
-      "target_id": "flame_cleave",
-      "requirement_type": "level",
-      "requirement_id": "player_level",
-      "requirement_value": 6
-    },
-    {
-      "id": "unlock_flame_cleave_stat",
-      "target_type": "skill",
-      "target_id": "flame_cleave",
-      "requirement_type": "stat",
-      "requirement_id": "STR",
-      "requirement_value": 10
     },
     {
       "id": "unlock_firebolt_level",
@@ -249,38 +201,6 @@
       "requirement_type": "stat",
       "requirement_id": "AGI",
       "requirement_value": 15
-    },
-    {
-      "id": "unlock_root_lash_level",
-      "target_type": "skill",
-      "target_id": "root_lash",
-      "requirement_type": "level",
-      "requirement_id": null,
-      "requirement_value": 4
-    },
-    {
-      "id": "unlock_root_lash_str",
-      "target_type": "skill",
-      "target_id": "root_lash",
-      "requirement_type": "stat",
-      "requirement_id": "STR",
-      "requirement_value": 6
-    },
-    {
-      "id": "unlock_dig_in_level",
-      "target_type": "skill",
-      "target_id": "dig_in",
-      "requirement_type": "level",
-      "requirement_id": null,
-      "requirement_value": 5
-    },
-    {
-      "id": "unlock_dig_in_str",
-      "target_type": "skill",
-      "target_id": "dig_in",
-      "requirement_type": "stat",
-      "requirement_id": "STR",
-      "requirement_value": 7
     }
   ]
 }

@@ -58,7 +58,7 @@ export function newPlayer(): PlayerData {
     version: 1, classId: 'warrior', level: 1, xp: 0, unspent: pts,
     stats: { STR: 0, INT: 0, AGI: 0, SPI: 0 }, hp: 1, mp: 1, coins: 0,
     inventory: {}, bagSlots: [], storage: {}, storageSlots: [], gearItems: {}, equipment: {}, area: 'meadow_town', x: 200,
-    skillRanks: {}, skillBar: [null, null, null, null, 'meadow_dew', 'clear_dew'],
+    skillRanks: {}, skillBar: [null, null, null, null, null, null, 'meadow_dew', 'clear_dew'],
     questFlags: {}, questLog: {},
     passiveRanks: {}, passiveFrac: {},
     cheats: { atk: 0, def: 0, maxHp: 0, dropMul: 1, god: false },

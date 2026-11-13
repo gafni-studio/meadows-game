@@ -1,13 +1,13 @@
 {
   "source": "sheet/Game_Design_DB_v0.xlsx",
-  "exportedAt": "2026-11-13T18:25:52.037Z",
+  "exportedAt": "2026-11-13T23:04:11.826Z",
   "tabs": [
     "material_categories: 4 rows",
     "material_subtypes: 13 rows",
-    "items: 106 rows",
+    "items: 107 rows",
     "exchange: 15 rows",
     "npc_shop: 18 rows",
-    "gear: 36 rows",
+    "gear: 37 rows",
     "classes: 3 rows",
     "skills: 17 rows",
     "skill_costs: 375 rows",
@@ -15,7 +15,7 @@
     "gathering_sources: 16 rows",
     "passive_nodes: 27 rows",
     "passive_costs: 225 rows",
-    "unlock_requirements: 34 rows",
+    "unlock_requirements: 24 rows",
     "ability_stats: 4 rows",
     "game_rules: 16 rows",
     "combat_formulas: 62 rows",
@@ -27,6 +27,7 @@
     "controls: 20 rows",
     "prototype_plan: 10 rows",
     "npcs: 4 rows",
-    "skill_quests: 24 rows"
+    "skill_quests: 28 rows",
+    "paths: 2 rows"
   ]
 }

@@ -18,10 +18,17 @@ img { image-rendering: pixelated; }
 @keyframes regen { 50% { box-shadow: 0 0 0 2px #7dff9b44, 0 0 4px #7dff9b; } }
 #coins { color: #f2c94c; margin-top: 4px; display: flex; align-items: center; gap: 4px; } #coins img { width: 18px; }
 #buffs { color: #ffb4a8; font-size: 12px; }
-#hotbar { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; }
-.slot { position: relative; width: 86px; height: 56px; background: #000b; border: 2px solid #5b4630; border-radius: 6px; padding: 3px 4px; font-size: 11px; overflow: hidden; }
-.slot kbd { font: bold 10px monospace; color: #ffe08a; } .slot small { color: #bbb; display: block; }
-.slot img { position: absolute; right: 3px; top: 3px; width: 22px; }
+#hotbar { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; align-items: flex-end; }
+.slot { position: relative; width: 76px; height: 70px; background: #000b; border: 2px solid #5b4630; border-radius: 6px; padding: 2px 3px; font-size: 10px; overflow: hidden; text-align: center; }
+.slot kbd { position: absolute; left: 3px; top: 1px; font: bold 10px monospace; color: #ffe08a; text-shadow: 0 1px 0 #000; } .slot small { color: #bbb; display: block; }
+.slot .s-ico { height: 30px; margin: 3px auto 0; display: flex; align-items: center; justify-content: center; }
+.slot .s-ico img { max-width: 28px; max-height: 28px; width: auto; height: auto; image-rendering: pixelated; }
+.slot .s-name { font-size: 10px; line-height: 12px; color: #fff6dc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.slot .s-sub { font-size: 9px; line-height: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slot.empty { opacity: 0.55; border-style: dashed; }
+.hb-group { display: flex; flex-direction: column; gap: 2px; }
+.hb-label { font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase; color: #c9b48a; text-align: center; text-shadow: 0 1px 0 #000; }
+.hb-slots { display: flex; gap: 4px; }
 .slot em { position: absolute; left: 0; right: 0; bottom: 0; background: #000a; }
 #toasts { position: absolute; left: 10px; bottom: 78px; display: flex; flex-direction: column-reverse; gap: 2px; width: 380px; }
 .toast { display: flex; align-items: center; gap: 8px; align-self: flex-start; max-width: 380px; background: linear-gradient(90deg, #1d1810ee, #2c2418cc);
@@ -211,3 +218,42 @@ img { image-rendering: pixelated; }
 .equip-title { color: #c9b48a; font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; margin: 8px 0 2px; }
 table.equip td:first-child { color: #c9b48a; white-space: nowrap; padding-right: 8px; }
 .equip-total { font-size: 12px; margin-top: 2px; }
+
+/* v0.2.7: Paths window */
+#p-skills { width: 800px; }
+.paths { align-items: flex-start; gap: 12px; }
+.treewrap { overflow: auto; max-height: 420px; padding: 2px; background: #00000030; border-radius: 6px; }
+.pathtree { position: relative; }
+.pathtree svg { position: absolute; left: 0; top: 0; pointer-events: none; }
+.pathtree .ln { fill: none; stroke-width: 3; stroke-linecap: round; opacity: 0.35; stroke: #8a7a4a; }
+.pathtree .ln.lit { opacity: 0.95; stroke-width: 4; }
+.pathtree .ln.future { stroke-dasharray: 5 6; opacity: 0.35; }
+.fam-basic { --fam: #d4b25a; } .fam-nature { --fam: #5fb35f; } .fam-elemental { --fam: #ef7f32; } .fam-spiritual { --fam: #9a7cf0; } .fam-lightning { --fam: #6ac8ff; }
+.pathtree .ln { stroke: var(--fam); }
+.pnode { position: absolute; width: 84px; height: 92px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; padding: 5px 3px 3px !important;
+  background: #2a2216 !important; border: 3px solid var(--fam) !important; border-radius: 10px !important; color: #fff6dc; text-align: center; }
+.pnode .pn-ico { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: #0006; border-radius: 6px; }
+.pnode .pn-ico img { max-width: 34px; max-height: 34px; width: auto; height: auto; image-rendering: pixelated; }
+.pnode .pn-name { font-size: 10.5px; line-height: 13px; margin-top: 3px; max-width: 78px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold; }
+.pnode .pn-state { font-size: 10px; line-height: 12px; color: #ffe08a; }
+.pnode .pn-fam { font-size: 8px; line-height: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--fam); }
+.pnode.st-locked { filter: grayscale(0.85); opacity: 0.55; border-style: dashed !important; }
+.pnode.st-locked .pn-state { color: #b8a878; }
+.pnode.st-available { box-shadow: 0 0 10px var(--fam); animation: pnpulse 1.6s ease-in-out infinite; }
+.pnode.st-available.poor { box-shadow: none; animation: none; opacity: 0.85; }
+.pnode.st-trained { background: linear-gradient(#3a3322, #2a2216) !important; box-shadow: inset 0 0 0 2px #ffffff22; }
+.pnode.st-trained .pn-state { color: #9be7ff; font-weight: bold; }
+.pnode.sel { outline: 3px solid #ffe066; outline-offset: 2px; }
+@keyframes pnpulse { 0%, 100% { box-shadow: 0 0 6px var(--fam); } 50% { box-shadow: 0 0 14px var(--fam); } }
+.pnode.future { width: 84px; height: 92px; border: 2px dashed var(--fam); border-radius: 10px; opacity: 0.35; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; }
+.pnode.future .pn-q { font-size: 24px; color: var(--fam); } .pnode.future .pn-name { font-size: 10px; margin-top: 4px; color: #c9b48a; font-weight: normal; }
+.path-soon { padding: 30px 20px; width: 440px; text-align: center; color: #c9b48a; }
+.equipbar { display: flex; gap: 18px; flex-wrap: wrap; margin: 4px 0 8px; }
+.eq-group { display: flex; align-items: center; gap: 4px; }
+.eq-label { font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase; color: #c9b48a; margin-right: 2px; }
+.eq-slot { display: flex; align-items: center; gap: 4px; min-width: 96px; max-width: 120px; height: 26px; padding: 0 5px; background: #0006; border: 2px dashed #5b4630; border-radius: 6px; font-size: 10.5px; }
+.eq-slot.full { border-style: solid; }
+.eq-slot kbd { font: bold 10px monospace; color: #ffe08a; }
+.eq-slot img { width: 18px; height: 18px; object-fit: contain; image-rendering: pixelated; flex: none; }
+.eq-slot .eq-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .eq-slot .eq-name.empty { color: #8a7a5a; }
+.pv-chain { font-size: 11px; color: #c9b48a; margin: 2px 0 4px; }

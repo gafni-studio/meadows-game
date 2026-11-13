@@ -16,9 +16,9 @@ export const ASSUME = {
   // combat_formulas.attack_formula notes: unarmed weapon_damage 6, multiplier 1.0.
   unarmedDamage: 6,
   unarmedMultiplier: 1.0,
-  // Not in sheet: starting gear. Warrior starts with a Wooden Sword so a level-1
+  // Not in sheet: starting gear. The Hero starts with a Club (same numbers as the old Wooden Sword) so a level-1
   // Power Strike kills a Field Mouse in ~4 hits (sheet target: 3-5 hits).
-  starterWeapon: 'wooden_sword',
+  starterWeapon: 'club',
   // Not in sheet: skill cooldowns. The worked example assumes a 1s Power Strike cooldown.
   cooldownMs: { power_strike: 800, rage: 60000, earthbreaker: 2400, flame_cleave: 2000, soul_guard: 30000, root_lash: 1600, dig_in: 4000 } as Record<string, number>,
   potionCooldownMs: 400,

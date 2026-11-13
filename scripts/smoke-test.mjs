@@ -264,7 +264,7 @@ try {
   console.log('gear/whodrops ok:', hides);
   // hotbar: defaults on a fresh-enough bar; give a dew (chest may already hold the shop stack) and bind it to 3
   const bar0 = await page.evaluate(() => [...window.__state.player.skillBar]);
-  if (bar0[0] !== null || bar0.length !== 6 || bar0[4] !== 'meadow_dew' || bar0[5] !== 'clear_dew') fail(`hotbar defaults: ${JSON.stringify(bar0)}`);
+  if (bar0.length !== 8 || bar0.slice(0, 6).some((x) => x !== null) || bar0[6] !== 'meadow_dew' || bar0[7] !== 'clear_dew') fail(`hotbar defaults (4 attack, 2 buff, 2 potion): ${JSON.stringify(bar0)}`);
   await key('`');
   await page.keyboard.type('item meadow_dew 1'); await key('Enter');
   await key('Escape');
@@ -276,10 +276,10 @@ try {
     return t.dataset.item;
   });
   if (picked !== 'meadow_dew') fail(`could not highlight Meadow Dew: ${picked}`);
-  await key('3', 200);
+  await key('g', 200); // potions bind to Q (HP slot) or G (MP slot) from the bag
   await key('Escape', 150);
   const bar1 = await page.evaluate(() => [...window.__state.player.skillBar]);
-  if (bar1[2] !== 'meadow_dew') fail(`inventory 3 did not bind Meadow Dew: ${JSON.stringify(bar1)}`);
+  if (bar1[7] !== 'meadow_dew' || bar1[6] !== 'clear_dew') fail(`inventory G did not bind Meadow Dew (swapping with Clear Dew): ${JSON.stringify(bar1)}`);
   console.log('hotbar ok:', bar1);
 
 
@@ -574,6 +574,16 @@ try {
   await page.keyboard.type('tp meadow_town'); await key('Enter');
   await key('Escape', 400);
   await page.waitForFunction(() => window.__state.player.area === 'meadow_town', null, { timeout: 8000 });
+  // v0.2.7: Root Lash follows Earthbreaker in the chain. Locked without it, available with it.
+  await key('k', 350);
+  const lockedMsg = await page.evaluate(() => {
+    const t = document.querySelector('#p-skills [data-skill="root_lash"]');
+    t?.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    return { cls: t?.className ?? '', pv: document.querySelector('#skills-preview')?.innerText ?? '' };
+  });
+  if (!/st-locked/.test(lockedMsg.cls) || !/Learn Earthbreaker first/.test(lockedMsg.pv)) fail(`Root Lash should be locked until Earthbreaker is learned: ${JSON.stringify(lockedMsg)}`);
+  await key('Escape');
+  await page.evaluate(() => { window.__state.player.skillRanks.earthbreaker = 1; window.__game.events.emit('changed'); });
   await key('k', 350);
   const rootSel = await page.evaluate(() => {
     const t = document.querySelector('#p-skills [data-skill="root_lash"]');
@@ -592,6 +602,7 @@ try {
   if (!/Root Lash/i.test(nature.text)) fail('Root Lash preview missing');
   await shot('root-lash');
   await key('Escape');
+  await page.evaluate(() => { delete window.__state.player.skillRanks.earthbreaker; }); // back to untrained for the quest checks below
   console.log('root lash ok:', nature.root);
 
   // ── Passive tree (T) + Ila 10:1 bench ──
@@ -1130,7 +1141,8 @@ try {
     text: (document.querySelector('#p-skills')?.innerText ?? '').slice(0, 300),
   }));
   if (!skillsVis.eb) fail(`Earthbreaker hidden after Crack discovered: ${JSON.stringify({ ...skillsVis, startOut })}`);
-  if (skillsVis.fc) fail('Flame Cleave visible before Hot Edge is discovered');
+  // v0.2.7: every node is on the tree; Flame Cleave is shown LOCKED until Earthbreaker (and Hot Edge) are done.
+  if (!skillsVis.fc || !(await page.evaluate(() => /st-locked/.test(document.querySelector('#p-skills [data-skill="flame_cleave"]')?.className ?? '')))) fail('Flame Cleave should be on the tree as a locked node');
   if (skillsVis.rank !== 0) fail(`Earthbreaker already ranked: ${skillsVis.rank}`);
   await key('Escape', 80);
   // Bank-Cracker must appear in the Dirt Banks from Crack step 2 onward.
@@ -1447,7 +1459,7 @@ try {
   });
   await key('c', 300);
   const cTxt = await page.evaluate(() => document.querySelector('#p-stats')?.innerText ?? '');
-  for (const re of [/Equipment/i, /Wooden Sword/, /Weapon damage/, /Sturdy Hide Cap/, /Defense \+2/, /\+2 STR/, /\+12 Max HP/, /\(\+2 from gear\)/]) {
+  for (const re of [/Equipment/i, /Club — Weapon damage 10/, /Weapon damage/, /Sturdy Hide Cap/, /Defense \+2/, /\+2 STR/, /\+12 Max HP/, /\(\+2 from gear\)/]) {
     if (!re.test(cTxt)) fail(`character screen missing ${re}: ${cTxt}`);
   }
   if (/Rage/.test(cTxt)) fail('Rage row shown without the buff');
@@ -1555,7 +1567,7 @@ try {
   // ── Hot Edge (section 17) ──
   await toTown();
   // Calden's other lines (Blood Up, A Crack in the Dirt) are finished, so only Hot Edge can mark him.
-  await page.evaluate(() => { window.__state.player.questLog = { ql_weight: { step: 3, done: true }, ql_blood: { step: 3, done: true }, ql_crack: { step: 4, done: true } }; });
+  await page.evaluate(() => { window.__state.player.questLog = { ql_weight: { step: 3, done: true }, ql_blood: { step: 3, done: true }, ql_crack: { step: 4, done: true }, ql_paths: { step: 4, done: true } }; });
   await con('level 6', 'heal');
   await settle(350);
   if ((await marker('calden')) !== '!') fail(`Calden should show ! at level 6 for Hot Edge, got ${await marker('calden')}`);
@@ -1623,6 +1635,138 @@ try {
     if (!re.test(asm)) fail(`assumptions.ts is missing ${re}`);
   }
   console.log('v0.2.6 behaviour ok');
+
+  // ══════════════ v0.2.7 Paths ══════════════
+  const sheetMon = Object.fromEntries(JSON.parse(readFileSync('data/monsters.json', 'utf8')).rows.map((r) => [r.id, r.xp]));
+  if (sheetMon.field_mouse !== 4 || sheetMon.wool_sheep !== 8 || sheetMon.crow !== 17 || sheetMon.burrow_mole !== 23) fail(`mob XP wrong: ${JSON.stringify(sheetMon)}`);
+  await toTown();
+  await page.evaluate(() => {
+    const p = window.__state.player;
+    p.questLog = {}; p.questFlags = {}; p.skillRanks = {}; p.skillBar = [null, null, null, null, null, null, 'meadow_dew', 'clear_dew'];
+    p.cheats.god = false; p.stats.STR = 0; p.inventory = {}; p.coins = 0;
+    window.__state.cooldowns = {};
+  });
+  await con('level 1', 'heal');
+  // Hero, not Warrior, in everything the player reads
+  const lvlTxt = await page.evaluate(() => document.querySelector('#lvl')?.textContent ?? '');
+  if (!/Hero/.test(lvlTxt) || /Warrior/.test(lvlTxt)) fail(`HUD should say Hero: ${lvlTxt}`);
+  await key('c', 250);
+  const heroC = await page.evaluate(() => document.querySelector('#p-stats')?.innerText ?? '');
+  if (!/Level 1 Hero/.test(heroC) || /Level \d+ Warrior/.test(heroC)) fail(`character screen should say Hero: ${heroC.slice(0, 200)}`);
+  await key('Escape');
+  // a fresh Hero starts with a Club (same numbers as the old Wooden Sword)
+  const startGear = await page.evaluate(() => {
+    const p = window.__state.player;
+    const w = p.gearItems[p.equipment.weapon];
+    return { id: w?.itemId, dmg: w?.weaponDamage, mult: w?.statMultiplier };
+  });
+  if (startGear.id !== 'club' && startGear.id !== 'wooden_sword') fail(`unexpected weapon ${JSON.stringify(startGear)}`);
+  console.log('hero/club ok', startGear);
+
+  // Pell's markers (The Dirt Path): ! when available, ? when a step is ready
+  await page.evaluate(() => { window.__state.player.questLog.ql_dirt_path = { step: 1, done: false }; });
+  await settle(400);
+  if ((await marker('pell')) !== '!') fail(`Pell should show ! for The Dirt Path, got ${await marker('pell')}`);
+  await page.evaluate(() => { window.__state.player.questLog.ql_dirt_path = { step: 4, done: false, kills: { burrow_mole: 5, ember_beetle: 3 } }; });
+  await settle(400);
+  if ((await marker('pell')) !== '?') fail(`Pell should show ? when the hunt is done, got ${await marker('pell')}`);
+  await page.evaluate(() => { window.__state.player.questLog.ql_dirt_path = { step: 4, done: false, kills: { burrow_mole: 2 } }; });
+  await settle(400);
+  if (await marker('pell')) fail('Pell should show nothing while the hunt is unfinished');
+  await page.evaluate(() => { delete window.__state.player.questLog.ql_dirt_path; });
+
+  // Calden's Paths tutorial after The Weight of a Swing
+  await con('quest complete ql_weight');
+  await settle(250);
+  for (let i = 0; i < 3 && (await visible()).includes('rewards'); i++) await key('Enter', 200);
+  await settle(400);
+  if ((await marker('calden')) !== '!') fail(`Calden should show ! for the Paths tutorial, got ${await marker('calden')}`);
+  await page.evaluate(() => { window.__state.scene.player.x = window.__state.scene.npcs.find((n) => n.id === 'calden').x; });
+  await settle(200);
+  await key('e', 400);
+  const pathsDlg = await page.evaluate(() => document.querySelector('#p-dialog')?.innerText ?? '');
+  if (!/Hero|Path/i.test(pathsDlg)) fail(`Calden Paths talk unexpected: ${pathsDlg}`);
+  // E closes a talk window (v0.2.7)
+  await key('e', 250);
+  if ((await visible()).includes('dialog')) fail('E should close the talk window');
+  await key('e', 400);
+  if (!(await visible()).includes('dialog')) fail('E should reopen the talk after closing');
+  const pageTexts = [];
+  for (let i = 0; i < 12 && (await visible()).includes('dialog'); i++) {
+    pageTexts.push(await page.evaluate(() => document.querySelector('#p-dialog .dlg-line')?.innerText ?? ''));
+    await key('Enter', 180);
+  }
+  const all = pageTexts.join(' ');
+  for (const re of [/Path/, /Basic, Nature, Elemental/, /essence/i, /previous|before it in the chain|chain/i, /Ila/, /K/]) if (!re.test(all)) fail(`Paths tutorial does not cover ${re}: ${all}`);
+  let pq = await page.evaluate(() => ({ q: window.__state.player.questLog.ql_paths, me: window.__state.player.inventory.monster_essence ?? 0, clay: window.__state.player.inventory.clay ?? 0 }));
+  if (pq.q?.step !== 2 || pq.me < 24 || pq.clay < 16) fail(`Paths talk should advance to step 2 and hand over the kit: ${JSON.stringify(pq)}`);
+  // open the tree: step 2 -> 3, and check the picture
+  await key('k', 400);
+  const tree = await page.evaluate(() => {
+    const st = (id) => (document.querySelector(`#p-skills [data-skill="${id}"]`)?.className.match(/st-(\w+)/) ?? [])[1];
+    return {
+      states: Object.fromEntries(['power_strike', 'earthbreaker', 'dig_in', 'rage', 'root_lash', 'flame_cleave'].map((id) => [id, st(id)])),
+      lines: document.querySelectorAll('#p-skills .pathtree svg path.ln').length,
+      lit: document.querySelectorAll('#p-skills .pathtree svg path.ln.lit').length,
+      future: document.querySelectorAll('#p-skills .pnode.future').length,
+      tabs: [...document.querySelectorAll('#p-skills .tabs button')].map((b) => b.textContent.trim()),
+      slots: [...document.querySelectorAll('#p-skills .eq-slot')].length,
+      fams: [...new Set([...document.querySelectorAll('#p-skills .pnode[data-skill]')].map((n) => (n.className.match(/fam-(\w+)/) ?? [])[1]))].sort(),
+      txt: document.querySelector('#p-skills')?.innerText ?? '',
+    };
+  });
+  if (tree.states.power_strike !== 'trained' || tree.states.dig_in !== 'available' || tree.states.earthbreaker !== 'locked' || tree.states.rage !== 'locked' || tree.states.root_lash !== 'locked' || tree.states.flame_cleave !== 'locked') fail(`tree states: ${JSON.stringify(tree.states)}`);
+  if (tree.lines < 6 || tree.lit < 3 || tree.future < 3) fail(`tree lines/future slots: ${JSON.stringify({ l: tree.lines, lit: tree.lit, f: tree.future })}`);
+  if (!tree.tabs.some((t) => /Warrior Path/.test(t)) || !tree.tabs.some((t) => /Magician Path/.test(t))) fail(`path tabs: ${JSON.stringify(tree.tabs)}`);
+  if (tree.slots !== 6) fail(`equip bar should show 4 attack + 2 buff slots, got ${tree.slots}`);
+  if (tree.fams.join() !== 'basic,elemental,nature') fail(`family colours: ${tree.fams}`);
+  await shot('paths-tree');
+  pq = await page.evaluate(() => window.__state.player.questLog.ql_paths);
+  if (pq.step !== 3) fail(`opening the tree should advance the tutorial to step 3: ${JSON.stringify(pq)}`);
+  // next-unlock cost on an available node
+  const dig = await page.evaluate(() => {
+    const t = document.querySelector('#p-skills [data-skill="dig_in"]');
+    t?.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    return document.querySelector('#skills-preview')?.innerText ?? '';
+  });
+  if (!/Cost for rank 1/.test(dig) || !/Needs Power Strike/.test(dig)) fail(`available node should show its cost and chain: ${dig}`);
+  // train Power Strike to rank 2
+  await page.evaluate(() => {
+    const t = document.querySelector('#p-skills [data-skill="power_strike"]');
+    t?.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+  });
+  await key('Enter', 400);
+  pq = await page.evaluate(() => ({ q: window.__state.player.questLog.ql_paths, r: window.__state.player.skillRanks.power_strike }));
+  if (pq.r !== 2 || pq.q.step !== 4) fail(`training Power Strike to rank 2 should advance the tutorial: ${JSON.stringify(pq)}`);
+  // equip: Dig In is a buff -> slots 5-6 only
+  await page.evaluate(() => {
+    window.__state.player.skillRanks.dig_in = 1;
+    window.__game.events.emit('changed');
+    document.querySelector('#p-skills [data-skill="dig_in"]')?.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+  });
+  await key('2', 150);
+  if ((await page.evaluate(() => window.__state.player.skillBar[1])) === 'dig_in') fail('a buff must not fit an attack slot');
+  await key('5', 150);
+  if ((await page.evaluate(() => window.__state.player.skillBar[4])) !== 'dig_in') fail('Dig In should equip to a buff slot (5)');
+  // E closes the Paths window too
+  await key('e', 250);
+  if ((await visible()).includes('skills')) fail('E should close the Paths window');
+  await settle(350);
+  if ((await marker('calden')) !== '?') fail(`Calden should show ? to finish the tutorial, got ${await marker('calden')}`);
+  await page.evaluate(() => { window.__state.scene.player.x = window.__state.scene.npcs.find((n) => n.id === 'calden').x; });
+  await key('e', 400);
+  lastRewards = '';
+  await dismissDialog();
+  for (const re of [/The Hero's Paths/, /60 XP/, /20 Copper/, /6× Monster Essence/, /4× Training Scroll/]) if (!re.test(lastRewards)) fail(`Paths rewards missing ${re}: ${lastRewards}`);
+  if (!(await page.evaluate(() => window.__state.player.questLog.ql_paths.done))) fail('Paths tutorial should be complete');
+  // E toggles the shop: open, then close
+  await page.evaluate(() => { window.__state.scene.player.x = window.__state.scene.npcs.find((n) => n.id === 'mara').x; });
+  await settle(200);
+  await key('e', 350);
+  if (!(await visible()).includes('shop')) fail('E should open the shop');
+  await key('e', 250);
+  if ((await visible()).includes('shop')) fail('E should close the shop');
+  console.log('v0.2.7 paths ok');
 } finally {
   await browser.close();
   server.kill();

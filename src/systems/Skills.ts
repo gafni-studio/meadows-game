@@ -56,7 +56,25 @@ export function unlockReq(s: SkillDef): { level: number; stat: number } {
   return UNLOCK[s.unlock_stage] ?? UNLOCK.start;
 }
 
+// ───────────── Paths (v0.2.7) ─────────────
+export interface PathDef { id: string; name: string; status: 'live' | 'soon'; description: string }
+export const PATHS = tab<PathDef>('paths');
+/** The skills of a path in tree order (root first), so keyboard order matches the picture. */
+export function pathSkills(pathId: string): SkillDef[] {
+  const order = Object.keys(TREE_LAYOUT[pathId]?.nodes ?? {});
+  const rank = (id: string) => { const i = order.indexOf(id); return i < 0 ? 999 : i; };
+  return Object.values(DB.skills).filter((s) => s.path_id === pathId).sort((a, b) => rank(a.id) - rank(b.id));
+}
+export function prevOf(s: SkillDef): SkillDef | undefined { return s.prev_skill_id ? DB.skills[s.prev_skill_id] : undefined; }
+/** locked = the previous skill (or its quest) is missing; available = can be trained; trained = rank 1+. */
+export type NodeState = 'locked' | 'available' | 'trained';
+export function nodeState(p: P.PlayerData, s: SkillDef): NodeState {
+  if (known(p, s.id)) return 'trained';
+  return unlockStatus(p, s).ok ? 'available' : 'locked';
+}
+
 export function canSee(p: P.PlayerData, s: SkillDef): boolean {
+  if (s.path_id) return true; // every node of a path is on the tree
   if (s.class_id !== p.classId) return false;
   // v0.2.3: quest-gated skills stay hidden until the quest is discovered
   // (active or done). Once visible they stay locked until the quest is finished,
@@ -70,10 +88,16 @@ export function canSee(p: P.PlayerData, s: SkillDef): boolean {
 }
 
 export function unlockStatus(p: P.PlayerData, s: SkillDef): { ok: boolean; reason?: string } {
+  // v0.2.7: a path skill needs its previous skill at rank 1+ and (where one exists) its quest. No level gate.
+  if (s.path_id) {
+    const prev = prevOf(s);
+    if (prev && !known(p, prev.id)) return { ok: false, reason: `Learn ${prev.name} first` };
+  }
   if (Q.skillLockedByQuest(s.id) && !Q.skillQuestDone(p, s.id)) {
     const name = Q.lineName(Q.lineOfSkill(s.id) ?? '');
     return { ok: false, reason: `Complete ${name} in your journal (J)` };
   }
+  if (s.path_id) return { ok: true };
   const r = unlockReq(s);
   const main = P.mainStat(p);
   const statName = s.scaling_stat ?? (p.classId === 'warrior' ? 'STR' : 'INT');
@@ -123,7 +147,7 @@ export function pay(p: P.PlayerData, costs: Cost[]): boolean {
 /** Train the next rank. Returns an error string, or null on success. */
 export function train(p: P.PlayerData, id: string): string | null {
   const s = skill(id);
-  if (!s || s.class_id !== p.classId) return 'Unknown skill';
+  if (!s || (!s.path_id && s.class_id !== p.classId)) return 'Unknown skill';
   const cur = rankOf(p, id);
   const max = s.max_rank ?? 10;
   if (cur >= max) return 'Already at max rank';
@@ -134,13 +158,8 @@ export function train(p: P.PlayerData, id: string): string | null {
   if (!pay(p, costs)) return 'Missing materials';
   p.skillRanks[id] = cur + 1;
   // Auto-bind a newly learned skill to the first empty hotbar slot.
-  if (cur === 0) {
-    p.skillBar ??= defaultBar();
-    if (!p.skillBar.includes(id)) {
-      const i = p.skillBar.findIndex((x) => !x);
-      if (i >= 0) p.skillBar[i] = id;
-    }
-  }
+  if (cur === 0) autoBind(barOf(p), id);
+  Q.checkPaths(p);
   return null;
 }
 
@@ -175,41 +194,8 @@ export function shieldAmount(p: P.PlayerData): number {
   return Math.round(P.maxHp(p) * 0.18 * effectScale('soul_guard', rankOf(p, 'soul_guard')));
 }
 
-export function defaultBar(): (string | null)[] { return [null, null, null, null, 'meadow_dew', 'clear_dew']; }
-
-export function migrateBar(p: P.PlayerData): void {
-  const def = defaultBar();
-  if (!p.skillBar || !p.skillBar.length) { p.skillBar = def.slice(); return; }
-  if (p.skillBar.length < 6) {
-    const next = p.skillBar.slice();
-    while (next.length < 6) next.push(null);
-    if (!next[4]) next[4] = 'meadow_dew';
-    if (!next[5]) next[5] = 'clear_dew';
-    p.skillBar = next;
-  }
-}
-
-export function barOf(p: P.PlayerData): (string | null)[] {
-  migrateBar(p);
-  return p.skillBar;
-}
-
-export function isHotbarItem(id: string | null | undefined): boolean {
-  return !!id && !!DB.items[id] && DB.items[id].item_type === 'consumable';
-}
-export function isHotbarSkill(id: string | null | undefined): boolean {
-  return !!id && !!DB.skills[id];
-}
-
-export function assignBar(p: P.PlayerData, slot: number, id: string | null): void {
-  const bar = barOf(p);
-  if (slot < 0 || slot > 5) return;
-  if (id) {
-    const i = bar.indexOf(id);
-    if (i >= 0) bar[i] = bar[slot]; // swap if already bound
-  }
-  bar[slot] = id;
-}
+import { autoBind, barOf } from './Bar';
+export { defaultBar, migrateBar, barOf, isHotbarItem, isHotbarSkill, assignBar, autoBind } from './Bar';
 
 export function cooldownOf(id: string): number { return ASSUME.cooldownMs[id] ?? 2000; }
 
@@ -254,3 +240,25 @@ export function digInWindowMs(_p: P.PlayerData): number {
   const s = skill('dig_in');
   return (s?.duration_s ?? 60) * 1000;
 }
+
+/**
+ * Tree layout per path: column / row of each node, plus the empty "future" slots the design drawing leaves
+ * open (not implemented; shown dashed). Rows may be fractional.
+ */
+export interface TreeNodePos { c: number; r: number }
+export interface FutureSlot { c: number; r: number; from: string; label: string; family: 'basic' | 'nature' | 'elemental' | 'spiritual' }
+export const TREE_LAYOUT: Record<string, { nodes: Record<string, TreeNodePos>; future: FutureSlot[] }> = {
+  warrior: {
+    nodes: {
+      power_strike: { c: 0, r: 1.5 },
+      earthbreaker: { c: 1, r: 0.5 }, dig_in: { c: 1, r: 1.5 }, rage: { c: 1, r: 2.5 },
+      root_lash: { c: 2, r: 0 }, flame_cleave: { c: 2, r: 1 },
+    },
+    future: [
+      { c: 0, r: 2.9, from: 'power_strike', label: 'later', family: 'basic' },
+      { c: 2, r: 2, from: 'dig_in', label: 'Soul Guard', family: 'spiritual' },
+      { c: 2, r: 3, from: 'rage', label: 'later', family: 'basic' },
+      { c: 3, r: 1, from: 'flame_cleave', label: 'later', family: 'spiritual' },
+    ],
+  },
+};

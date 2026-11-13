@@ -1,5 +1,5 @@
 import { PlayerData, newPlayer, maxHp, maxMp, migrateGear } from './Player';
-import { migrateBar } from './Skills';
+import { migrateBar } from './Bar';
 import { migrateQuests } from './Quests';
 import { settle } from './Passives';
 import { DB } from '../data/db';

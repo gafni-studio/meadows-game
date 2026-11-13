@@ -10,6 +10,7 @@ import * as P from './Player';
 import { Game } from './GameState'
 import { playSfx } from './Sfx';
 import { isGear, makeGear } from './Gear';
+import { autoBind, barOf } from './Bar';
 
 export interface QuestStepRow {
   id: string; line_id: string; step: number; name: string; desc: string; objective: string;
@@ -221,12 +222,7 @@ function complete(p: P.PlayerData, line: string): void {
 
 function grantSkill(p: P.PlayerData, id: string) {
   if ((p.skillRanks[id] ?? 0) < 1) p.skillRanks[id] = 1;
-  p.skillBar ??= [null, null, null, null, 'meadow_dew', 'clear_dew'];
-  while (p.skillBar.length < 6) p.skillBar.push(null);
-  if (!p.skillBar.includes(id)) {
-    const i = p.skillBar.findIndex((x) => !x);
-    if (i >= 0) p.skillBar[i] = id;
-  }
+  autoBind(barOf(p), id);
 }
 
 /** Level-up and load: start any level-triggered lines the player now qualifies for. */
@@ -262,6 +258,18 @@ export function offerDirtPath(p: P.PlayerData, silent = false): void {
   p.questFlags ??= {};
   p.questFlags.sq_first_passive = true;
   start(p, 'ql_dirt_path', silent);
+}
+
+/** The Paths window (K) was opened: step 2 of Calden's tutorial. */
+export function onTreeOpen(p: P.PlayerData): void {
+  const s = state(p, 'ql_paths');
+  if (isActive(p, 'ql_paths') && s.step === 2) advance(p, 'ql_paths', 'Train Power Strike to rank 2 in the tree (select it, Enter).');
+  checkPaths(p);
+}
+/** Step 3 of the tutorial: Power Strike at rank 2. Called on training and on opening the tree. */
+export function checkPaths(p: P.PlayerData): void {
+  const s = state(p, 'ql_paths');
+  if (isActive(p, 'ql_paths') && s.step === 3 && (p.skillRanks.power_strike ?? 0) >= 2) advance(p, 'ql_paths', 'Rank two. Return to Calden.');
 }
 
 export function onPassive(p: P.PlayerData): void {
@@ -477,6 +485,27 @@ const TALK: Record<string, string[]> = {
     'Flame Cleave training is open. Elemental Essence will teach it.',
   ],
 
+  // Calden — the Paths tutorial (v0.2.7).
+  'ql_paths:1:ok': [
+    'A Hero is not one thing. A Hero walks Paths.',
+    'A Path is a tree of skills. You walk the Warrior Path: Power Strike at the root, and branches that grow from it.',
+    'Every skill has a family. Basic, Nature, Elemental. A family’s essence pays for its skills: Nature Essence for Nature, Elemental Essence for Elemental.',
+    'You need the skill before it in the chain, at least rank one, before you can learn the next. Earthbreaker follows Power Strike. Root Lash and Flame Cleave follow Earthbreaker.',
+    'The slow work is Ila’s: passives. Roots in the dirt that yield while you are away. Ask her.',
+    'Take these. Essence, scrolls, clay, a little copper. Press K and look at the Warrior Path.',
+  ],
+  'ql_paths:2:wait': [
+    'Press K. Look at the Warrior Path: what you have, what is locked, what you can reach.',
+  ],
+  'ql_paths:3:wait': [
+    'Train Power Strike to rank two. Select it in the tree and press Enter. Keep it in an attack slot, 1 to 4.',
+  ],
+  'ql_paths:4:done': [
+    'Rank two. You felt that.',
+    'The tree is yours. Locked only means not yet. Learn the skill before it, gather the essence, and it opens.',
+    'Go on. Ila has the slow work, and the pasture has teeth.',
+  ],
+
   // Pell — warm, folksy, knows the paths.
   'ql_dirt_path:1:ok': [
     'You look like you’ve set something growing. Good.',
@@ -544,6 +573,9 @@ const ILA_KIT: [string, number][] = [
   ['nature_essence', 20], ['pebble', 16], ['bark', 12],
 ];
 const ILA_KIT_COPPER = 18;
+/** v0.2.7: Calden's tutorial kit = the Power Strike rank 2 recipe (Monster Essence 24, Training Scroll 10, Clay 16, Copper 25). */
+const PATHS_KIT: [string, number][] = [['monster_essence', 24], ['training_scroll', 10], ['clay', 16]];
+const PATHS_KIT_COPPER = 25;
 
 function waitPages(line: string, step: number, fallback: string): string[] {
   return TALK[`${line}:${step}:wait`]?.length ? TALK[`${line}:${step}:wait`] : [fallback];
@@ -572,10 +604,20 @@ export function talk(p: P.PlayerData, npc: string): TalkResult | null {
     const last = (rowsOf(line).slice(-1)[0])!.step;
 
     // Talk-only first steps.
+    if (line === 'ql_paths' && s.step > 1) {
+      if (s.step === 4) return say(npc, TALK['ql_paths:4:done'], () => complete(p, line));
+      return say(npc, TALK[`ql_paths:${s.step}:wait`]);
+    }
     if ((line === 'ql_dirt_path' || line === 'ql_blood' || line === 'ql_quiet_work'
-      || line === 'ql_warm_coat' || line === 'ql_dirt_keeps') && s.step === 1) {
+      || line === 'ql_warm_coat' || line === 'ql_dirt_keeps' || line === 'ql_paths') && s.step === 1) {
       return say(npc, TALK[`${line}:1:ok`] ?? [r.objective], () => {
-        const toast = line === 'ql_dirt_path' ? 'Defeat 4 Crows at the east end of Sunny Pasture.'
+        if (line === 'ql_paths') {
+          // the exact Power Strike rank 2 recipe, so the tutorial can be finished
+          for (const [id, n] of PATHS_KIT) P.addItem(p, id, n);
+          p.coins += PATHS_KIT_COPPER;
+          Game.toast('Calden hands you the materials for Power Strike rank 2', 'rare');
+        }
+        const toast = line === 'ql_paths' ? 'Press K and look at the Warrior Path.' : line === 'ql_dirt_path' ? 'Defeat 4 Crows at the east end of Sunny Pasture.'
           : line === 'ql_blood' ? 'Rage is a bargain — hit harder, get hit harder. Walk to the east pasture.'
           : undefined;
         advance(p, line, toast);
@@ -687,6 +729,7 @@ export function wantsTalk(p: P.PlayerData, npc: string): boolean {
     if (!r || (r.giver && r.giver !== npc)) return false;
     const key = `${line}:${s.step}`;
     if (s.step === 1) return true; // every line’s opener is a talk
+    if (line === 'ql_paths') return true; // steps 2-4: a reminder, or the turn-in
     const hunt = HUNT[key];
     if (hunt && huntDone(hunt, s.kills) && r.giver === npc) return true;
     if (hunt && r.giver === npc) return true; // reminder
@@ -702,7 +745,7 @@ export function hotStartable(p: P.PlayerData): boolean {
 }
 
 /** Lines whose first step is "talk to the giver" (the opening conversation). */
-const TALK_OPENERS = new Set(['ql_dirt_path', 'ql_blood', 'ql_quiet_work', 'ql_warm_coat', 'ql_dirt_keeps']);
+const TALK_OPENERS = new Set(['ql_dirt_path', 'ql_blood', 'ql_quiet_work', 'ql_warm_coat', 'ql_dirt_keeps', 'ql_paths']);
 
 /**
  * v0.2.6 marker above a quest NPC: `!` a quest is available (or its opening talk is waiting),
@@ -718,6 +761,7 @@ export function markerFor(p: P.PlayerData, npc: string): '!' | '?' | null {
     const key = `${line}:${s.step}`;
     const last = rowsOf(line).slice(-1)[0]!.step;
     if (TALK_OPENERS.has(line) && s.step === 1) { avail = true; continue; }
+    if (line === 'ql_paths') { if (s.step === 4) return '?'; continue; } // steps 2-3 are on the player
     if (s.step === 1 && (line === 'ql_crack' || line === 'ql_hot')) {
       const scaleOk = line !== 'ql_hot' || (p.inventory.smoldering_scale ?? 0) > 0;
       if (gateOk(p, line).ok && scaleOk) return '?';

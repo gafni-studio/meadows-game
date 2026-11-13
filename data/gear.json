@@ -593,6 +593,22 @@
       "weapon_damage_min": 13,
       "weapon_damage_max": 13,
       "desc": "A short iron blade, sturdier than a practice sword."
+    },
+    {
+      "item_id": "club",
+      "slot": "weapon",
+      "class_id": "any",
+      "required_stat": null,
+      "required_value": 0,
+      "stat_multiplier": 1.1,
+      "defense": 0,
+      "weapon_damage": 10,
+      "description": "A plain wooden club.",
+      "defense_min": 0,
+      "defense_max": 0,
+      "weapon_damage_min": 10,
+      "weapon_damage_max": 10,
+      "desc": "A plain wooden club."
     }
   ]
 }

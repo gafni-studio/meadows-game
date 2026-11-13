@@ -1392,6 +1392,19 @@
       "description": "A moth wing, cool to the touch.",
       "notes": "v0.2.4: unique extra on Frost Moth (2.2%). Sell-only junk. Design only in notes.",
       "desc": "A moth wing, cool to the touch."
+    },
+    {
+      "id": "club",
+      "name": "Club",
+      "item_type": "gear",
+      "subtype_id": "weapon",
+      "native_zone": "meadows",
+      "passively_gatherable": false,
+      "sellable_only": false,
+      "sell_price": 20,
+      "description": "A plain wooden club.",
+      "notes": "v0.2.7: the class-neutral starting weapon (same numbers as the Wooden Sword: 10 × 1.10). Not a drop. Stone Club is the later Dirt Banks piece.",
+      "desc": "A plain wooden club."
     }
   ]
 }

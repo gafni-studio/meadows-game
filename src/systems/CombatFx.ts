@@ -118,7 +118,7 @@ export function impactFlash(scene: SC, x: number, y: number, color = 0xffffff, r
  * frame), and through to a follow-through. Returns nothing; caller times damage
  * to FX.basicImpactMs.
  */
-export function slashArc(scene: SC, ox: number, oy: number, facing: number, opts?: { reach?: number; color?: number; duration?: number; thick?: number }): void {
+export function slashArc(scene: SC, ox: number, oy: number, facing: number, opts?: { reach?: number; color?: number; duration?: number; thick?: number; onImpact?: () => void }): void {
   const reach = opts?.reach ?? ASSUME.meleeReach;
   const color = opts?.color ?? 0xf4f1e4;
   const dur = opts?.duration ?? FX.basicMs;
@@ -130,10 +130,13 @@ export function slashArc(scene: SC, ox: number, oy: number, facing: number, opts
   const cx = ox;
   const cy = oy;
   const trail: number[] = [];
+  let impacted = false;
   scene.tweens.addCounter({
     from: 0, to: 1, duration: dur, ease: 'Cubic.easeIn',
     onUpdate: (tw) => {
       const t = tw.getValue() ?? 0;
+      // v0.2.7: damage is applied from inside the slash, when the blade crosses the hitting line.
+      if (!impacted && tw.elapsed >= FX.basicImpactMs) { impacted = true; opts?.onImpact?.(); }
       const ang = start + (end - start) * t;
       trail.push(ang);
       if (trail.length > 12) trail.shift();
