@@ -1,6 +1,6 @@
 {
   "tab": "gear",
-  "note": "NOTE: item_id is a foreign key to items.id (item_type = gear). v0.1.2-gear: defense and weapon_damage are the typical (mid) values; defense_min/max and weapon_damage_min/max are rolled per dropped or bought instance and stored on the item (gear does not stack). A magic roll (~1/12 of gear drops) adds a prefix and 1-2 extra bonuses — see assumptions.MAGIC. Category infusion is later (Pitch Book B-003). Balance: at level 1 with 0 points, a mid-roll Meadows drop set (Meadow Blade 14×1.15 + Hide armor def 10) is about +45% attack and ~55% less damage taken from a Crow vs basic (Wooden Sword, no armor). Cloth is a weaker shop stepping-stone (mid def 6). Skill training remains the main power-up. Steel is ultra-rare. v0.1.2-descs: `desc` is player-facing flavor (no rolled ranges — those are shown as stats).",
+  "note": "NOTE: item_id is a foreign key to items.id (item_type = gear). v0.1.2-gear: defense and weapon_damage are the typical (mid) values; defense_min/max and weapon_damage_min/max are rolled per dropped or bought instance and stored on the item (gear does not stack). A magic roll (~1/12 of gear drops) adds a prefix and 1-2 extra bonuses — see assumptions.MAGIC. Category infusion is later (Pitch Book B-003). Balance: at level 1 with 0 points, a mid-roll Meadows drop set (Meadow Blade 14×1.15 + Hide armor def 10) is about +45% attack and ~55% less damage taken from a Crow vs basic (Wooden Sword, no armor). Cloth is a weaker shop stepping-stone (mid def 6). Skill training remains the main power-up. Steel is ultra-rare. v0.1.2-descs: `desc` is player-facing flavor (no rolled ranges — those are shown as stats).  v0.2.6: shop gear is fixed (min = max): full cloth set is Defense 6, Short Sword weapon damage 13.",
   "columns": [
     "item_id",
     "slot",
@@ -77,7 +77,7 @@
       "weapon_damage": 0,
       "description": "A simple cloth cap.",
       "defense_min": 1,
-      "defense_max": 2,
+      "defense_max": 1,
       "weapon_damage_min": 0,
       "weapon_damage_max": 0,
       "desc": "A simple cloth cap."
@@ -93,7 +93,7 @@
       "weapon_damage": 0,
       "description": "A simple cloth tunic.",
       "defense_min": 2,
-      "defense_max": 3,
+      "defense_max": 2,
       "weapon_damage_min": 0,
       "weapon_damage_max": 0,
       "desc": "A simple cloth tunic."
@@ -109,7 +109,7 @@
       "weapon_damage": 0,
       "description": "A simple pair of cloth pants.",
       "defense_min": 1,
-      "defense_max": 2,
+      "defense_max": 1,
       "weapon_damage_min": 0,
       "weapon_damage_max": 0,
       "desc": "A simple pair of cloth pants."
@@ -125,7 +125,7 @@
       "weapon_damage": 0,
       "description": "A simple pair of cloth shoes.",
       "defense_min": 1,
-      "defense_max": 2,
+      "defense_max": 1,
       "weapon_damage_min": 0,
       "weapon_damage_max": 0,
       "desc": "A simple pair of cloth shoes."
@@ -590,8 +590,8 @@
       "description": "A short iron blade, sturdier than a practice sword.",
       "defense_min": 0,
       "defense_max": 0,
-      "weapon_damage_min": 12,
-      "weapon_damage_max": 14,
+      "weapon_damage_min": 13,
+      "weapon_damage_max": 13,
       "desc": "A short iron blade, sturdier than a practice sword."
     }
   ]

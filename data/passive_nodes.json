@@ -1,6 +1,6 @@
 {
   "tab": "passive_nodes",
-  "note": "DRAFT — Each tree has one production node that yields only that tree's essence (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none), plus an efficiency node (+% category material and category-essence drop rate while hunting). Hunter's Luck is a general looting node (+1% bonus drop-roll chance per rank, max 10). Item-source Mastery, slot, and discovery nodes — and the gathering_sources tab — are DEPRECATED and kept for reference only. Upgrade time: 10 × 1.6^(rank-1) minutes. May change as we lay this out.  v0.2.2: Nature and Elemental trees are live (production + efficiency). Spiritual and Hunter's Luck stay parked. `desc` is player-facing; `notes` is design-only. Offline production uses timestamps. Ila's 10:1 bench is open.",
+  "note": "DRAFT — Each tree has one production node that yields only that tree's essence (base 1.5/h at rank 1, ×1.6 per rank, ~103/h at rank 10; rank 0 = none), plus an efficiency node (+% category material and category-essence drop rate while hunting). Hunter's Luck is a general looting node (+1% bonus drop-roll chance per rank, max 10). Item-source Mastery, slot, and discovery nodes — and the gathering_sources tab — are DEPRECATED and kept for reference only. Upgrade time: 10 × 1.6^(rank-1) minutes. May change as we lay this out.  v0.2.2: Nature and Elemental trees are live (production + efficiency). Spiritual and Hunter's Luck stay parked. `desc` is player-facing; `notes` is design-only. Offline production uses timestamps. Ila's 10:1 bench is open.  v0.2.6: production is a whole-number table: 1,2,3,5,8,12,18,28,42,64 per hour for ranks 1-10 (Nature and Elemental).",
   "columns": [
     "id",
     "tree_id",
@@ -22,14 +22,14 @@
       "tree_id": "nature",
       "name": "Nature Essence",
       "effect_type": "production",
-      "effect_per_rank": "Produces Nature Essence; rate = 1.5 × 1.6^(rank-1) /h (rank 0 = none; r5 ≈ 9.8, r10 ≈ 103)",
+      "effect_per_rank": "Produces Nature Essence; whole essences per hour by rank: 1, 2, 3, 5, 8, 12, 18, 28, 42, 64 (rank 0 = none)",
       "max_rank": 10,
       "upgrade_time_per_rank": "10 × 1.6^(rank-1) min",
       "status": "live",
       "subtype_id": null,
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "The tree produces only this category essence. Rank 0 yields nothing. Steep curve: 1.5/h at rank 1, ~9.8/h at rank 5, ~103/h at rank 10. To be tuned.",
+      "notes": "v0.2.6: whole numbers only, starting at 1/h (was 1.5 x 1.6^(rank-1) /h). Rank 0 yields nothing.",
       "desc": "Slowly produces Nature Essence while you play or are away. Rank 0 yields nothing."
     },
     {
@@ -157,14 +157,14 @@
       "tree_id": "elemental",
       "name": "Elemental Essence",
       "effect_type": "production",
-      "effect_per_rank": "Produces Elemental Essence; rate = 1.5 × 1.6^(rank-1) /h (rank 0 = none; r5 ≈ 9.8, r10 ≈ 103)",
+      "effect_per_rank": "Produces Elemental Essence; whole essences per hour by rank: 1, 2, 3, 5, 8, 12, 18, 28, 42, 64 (rank 0 = none)",
       "max_rank": 10,
       "upgrade_time_per_rank": "10 × 1.6^(rank-1) min",
       "status": "live",
       "subtype_id": null,
       "source_id": null,
       "unlock_requirement_id": null,
-      "notes": "The tree produces only this category essence. Rank 0 yields nothing. Steep curve: 1.5/h at rank 1, ~9.8/h at rank 5, ~103/h at rank 10. To be tuned.",
+      "notes": "v0.2.6: whole numbers only, starting at 1/h (was 1.5 x 1.6^(rank-1) /h). Rank 0 yields nothing.",
       "desc": "Slowly produces Elemental Essence while you play or are away. Rank 0 yields nothing."
     },
     {

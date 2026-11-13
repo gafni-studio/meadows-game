@@ -1,6 +1,6 @@
 {
   "tab": "map_layout",
-  "note": "DRAFT — Meadows is a set of connected side-scrolling areas, not one long strip. monster_ids must already exist on the monsters tab; spawn_counts are v0 placeholders (on-map at once, not a daily cap). connections are walking paths / portals to adjacent areas. Town is a safe hub with the NPC shop. Names are plain and low-tier. Only Meadows is laid out in v0; later worlds get their own rows. All values are placeholders. v0.2.0: Dirt Banks is playable (portal from the east pasture). Meadow Shrine and further east remain closed.  v0.2.4: Dirt Banks also spawns Spark Bug (3) and Frost Moth (3). Meadow Shrine stays closed.",
+  "note": "DRAFT — Meadows is a set of connected side-scrolling areas, not one long strip. monster_ids must already exist on the monsters tab; spawn_counts are v0 placeholders (on-map at once, not a daily cap). connections are walking paths / portals to adjacent areas. Town is a safe hub with the NPC shop. Names are plain and low-tier. Only Meadows is laid out in v0; later worlds get their own rows. All values are placeholders. v0.2.0: Dirt Banks is playable (portal from the east pasture). Meadow Shrine and further east remain closed.  v0.2.4: Dirt Banks also spawns Spark Bug (3) and Frost Moth (3). Meadow Shrine stays closed.  v0.2.6: Frost Moth leaves the Dirt Banks (Banks 20 regulars: mole 6, sprite 5, beetle 5, spark bug 4).",
   "columns": [
     "id",
     "name",
@@ -54,16 +54,15 @@
       "zone_id": "meadows",
       "order": 3,
       "level_range": "3-6",
-      "monster_ids": "burrow_mole, earth_sprite, ember_beetle, spark_bug, frost_moth",
-      "spawn_counts": "burrow_mole 6, earth_sprite 4, ember_beetle 4, spark_bug 3, frost_moth 3",
+      "monster_ids": "burrow_mole, earth_sprite, ember_beetle, spark_bug",
+      "spawn_counts": "burrow_mole 6, earth_sprite 5, ember_beetle 5, spark_bug 4",
       "connections": "west: sunny_pasture; east: meadow_shrine",
-      "notes": "A dug-up stretch of bank and loose earth. Burrow Moles turn up stones, Earth Sprites drift in the cuts, and Ember Beetles keep a little warmth in the dirt. Mid-Meadows hunting once the pasture feels easy.  v0.2.4: Spark Bugs along the east banks (3) and Frost Moths on the west (3). Shared materials plus a unique extra each. Shrine remains closed; these two also stay listed on the Shrine row for later.",
+      "notes": "A dug-up stretch of bank and loose earth. Burrow Moles turn up stones, Earth Sprites drift in the cuts, and Ember Beetles keep a little warmth in the dirt. Mid-Meadows hunting once the pasture feels easy.  v0.2.4: Spark Bugs along the east banks (3) and Frost Moths on the west (3). Shared materials plus a unique extra each. Shrine remains closed; these two also stay listed on the Shrine row for later.  v0.2.6: Frost Moths no longer spawn here (their slots went to sprites, beetles and spark bugs).",
       "spawns": {
         "burrow_mole": 6,
-        "earth_sprite": 4,
-        "ember_beetle": 4,
-        "spark_bug": 3,
-        "frost_moth": 3
+        "earth_sprite": 5,
+        "ember_beetle": 5,
+        "spark_bug": 4
       },
       "links": {
         "west": "sunny_pasture",
