@@ -1,5 +1,5 @@
 import { f } from '../data/db';
-import { DAMAGE, HIT } from '../data/assumptions';
+import { DAMAGE, HIT, AFFINITY, School, WEAK_MUL } from '../data/assumptions';
 
 export type HitCfg = typeof HIT;
 
@@ -46,3 +46,14 @@ export function hitChance(acc: number, eva: number, attackerLevel: number, defen
 export function rollHit(acc: number, eva: number, attackerLevel: number, defenderLevel: number, cfg: HitCfg = HIT): boolean {
   return Math.random() * 100 < hitChance(acc, eva, attackerLevel, defenderLevel, cfg);
 }
+
+/** v0.2.6 affinity of a mob against an attack school. Basic (and contact) is never weak or immune. */
+export type Affinity = 'weak' | 'normal' | 'immune';
+export function affinityOf(monsterId: string, school: School | undefined): Affinity {
+  if (!school || school === 'basic') return 'normal';
+  const a = AFFINITY[monsterId];
+  if (a?.immune === school) return 'immune';
+  if (a?.weak === school) return 'weak';
+  return 'normal';
+}
+export const weakDamage = (dmg: number) => Math.floor(dmg * WEAK_MUL);

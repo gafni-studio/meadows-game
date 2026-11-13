@@ -6,7 +6,7 @@ import { resetAndReload } from '../systems/Save';
 import { runCommand } from '../systems/Cheats';
 import * as P from '../systems/Player';
 import { iconUrl, skillIconUrl } from '../art/sprites';
-import { displayName, formatAffix, instanceQuality, isGear, GearInstance } from '../systems/Gear';
+import { displayName, formatAffix, instanceQuality, isGear, makeGear, GearInstance } from '../systems/Gear';
 import * as Sk from '../systems/Skills';
 import * as Q from '../systems/Quests';
 import * as Pa from '../systems/Passives';
@@ -31,8 +31,8 @@ import { playSfx } from '../systems/Sfx';
  */
 const $ = <T extends HTMLElement = HTMLElement>(sel: string) => document.querySelector(sel) as T;
 const esc = (s: string) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
-type Panel = 'inventory' | 'stats' | 'shop' | 'storage' | 'skills' | 'journal' | 'passives' | 'exchange' | 'dialog' | 'pause' | 'confirm' | 'drop';
-const PANELS: Panel[] = ['inventory', 'stats', 'shop', 'storage', 'skills', 'journal', 'passives', 'exchange', 'dialog', 'pause', 'confirm', 'drop'];
+type Panel = 'inventory' | 'stats' | 'shop' | 'storage' | 'skills' | 'journal' | 'passives' | 'exchange' | 'dialog' | 'rewards' | 'pause' | 'confirm' | 'drop';
+const PANELS: Panel[] = ['inventory', 'stats', 'shop', 'storage', 'skills', 'journal', 'passives', 'exchange', 'dialog', 'rewards', 'pause', 'confirm', 'drop'];
 const TYPE_ORDER = ['consumable', 'gear', 'currency', 'material', 'misc'];
 const TYPE_LABEL: Record<string, string> = { consumable: 'Consumable', gear: 'Gear', currency: 'Currency', material: 'Material', misc: 'Junk' };
 
@@ -46,6 +46,8 @@ export class Hud {
   private dialogHtml = '';
   private dialogTalk: Q.TalkResult | null = null;
   private dialogPage = 0;
+  /** v0.2.6: the quest rewards screen, shown after a quest's last conversation page. */
+  private rewards: { name: string; flavor: string; rows: string[] } | null = null;
   private consoleHistory: string[] = [];
   private historyIdx = -1;
   /** Stack picked up for moving (keyboard M or mouse drag). */
@@ -79,7 +81,7 @@ export class Hud {
     Game.events.on('changed', () => this.renderPanels());
     Game.events.on('toast', (m: string, k: string, icon?: string) => this.toast(m, k, icon));
     Game.events.on('levelup', (lvl: number, pts: number) => this.levelBanner(lvl, pts));
-    Game.events.on('quest-complete', (name: string, rewards: string) => this.questBanner(name, rewards));
+    Game.events.on('quest-rewards', (r: { name: string; flavor: string; rows: string[] }) => { this.rewards = r; this.sel.rewards = undefined; this.open('rewards'); });
     Game.events.on('chest', () => { this.held = null; this.open('storage'); });
     Game.events.on('area', (n: string) => {
       this.areaName = n;
@@ -292,7 +294,7 @@ export class Hud {
       this.toast(msg, 'rare');
     }
     const prodBits = Pa.liveNodes().filter((n) => n.effect_type === 'production' && Pa.rankOf(p, n.id) >= 1)
-      .map((n) => `${n.name.replace(' Essence', '')} ${Pa.rateAt(Pa.rankOf(p, n.id)).toFixed(1)}/h`);
+      .map((n) => `${n.name.replace(' Essence', '')} ${Pa.rateAt(Pa.rankOf(p, n.id))}/h`);
     let prodHtml = prodBits.length ? `<div id="prod-track">${prodBits.join(' · ')}</div>` : '';
     if (p.passiveUpgrade) {
       prodHtml += `<div id="prod-track">Upgrading ${esc(Pa.node(p.passiveUpgrade.nodeId)?.name ?? '')} ${Pa.formatDur(Pa.remainingMs(p, wall))}</div>`;
@@ -328,6 +330,15 @@ export class Hud {
     if (hb.dataset.last !== html) { hb.innerHTML = html; hb.dataset.last = html; }
   }
 
+  /** Show the objectives tracker (what L toggles). Used by the journal's Objectives button. */
+  private showTracker() {
+    this.trackHidden = false;
+    try { localStorage.setItem('meadows.trackHidden', '0'); } catch { /* ignore */ }
+    this.renderHud();
+    const el = document.getElementById('quest-track');
+    if (el) { el.classList.remove('pulse'); void el.offsetWidth; el.classList.add('pulse'); }
+  }
+
   private toast(msg: string, kind: string, icon?: string) {
     const el = document.createElement('div');
     el.className = `toast ${kind}`;
@@ -349,18 +360,6 @@ export class Hud {
     el.classList.add('show');
     clearTimeout((this as unknown as { lvT?: number }).lvT);
     (this as unknown as { lvT?: number }).lvT = window.setTimeout(() => { el.hidden = true; el.classList.remove('show'); }, 2600);
-  }
-
-  private questBanner(name: string, rewards: string) {
-    const el = $('#questup');
-    if (!el) return;
-    el.innerHTML = `<div class="burst"></div><div class="lv-title quest">QUEST COMPLETE</div><div class="lv-sub">${esc(name)}${rewards ? ` · ${esc(rewards)}` : ''}</div>`;
-    el.hidden = false;
-    el.classList.remove('show');
-    void el.offsetWidth;
-    el.classList.add('show');
-    clearTimeout((this as unknown as { qT?: number }).qT);
-    (this as unknown as { qT?: number }).qT = window.setTimeout(() => { el.hidden = true; el.classList.remove('show'); }, 2800);
   }
 
   // ───────────────────────── bag / storage moves ─────────────────────────
@@ -451,7 +450,7 @@ export class Hud {
     this.stack.push(p);
     this.renderPanels();
   }
-  private close(p: Panel) { if (p === 'dialog') this.dialogTalk = null; this.stack = this.stack.filter((x) => x !== p); this.renderPanels(); }
+  private close(p: Panel) { if (p === 'dialog') this.dialogTalk = null; if (p === 'rewards') this.rewards = null; this.stack = this.stack.filter((x) => x !== p); this.renderPanels(); }
   private toggle(p: Panel) { if (this.stack.includes(p)) this.close(p); else this.open(p); }
 
   private npc(id: string, role: string, name: string) {
@@ -475,6 +474,7 @@ export class Hud {
     const lines: Record<string, string> = {};
     for (const n of Object.values(DB.npcs ?? {})) if (n.desc) lines[n.id] = n.desc;
     let extra = '';
+    let starterRewards: { name: string; flavor: string; rows: string[] } | null = null;
     const q = id === 'pell' ? quest('sq_welcome') : null;
     if (q && !Game.player.questFlags[q.id]) {
       // v0.1 stub of the starter chain: talking to Pell grants "A First Step" once.
@@ -483,17 +483,19 @@ export class Hud {
       if (lv) Game.scene?.levelUpFx(lv);
       Game.player.coins += q.reward_coins ?? 0;
       q.items.forEach((it) => P.addItem(Game.player, it.id, it.qty));
-      const got = [`${q.reward_xp} XP`, `${q.reward_coins} Copper`, ...q.items.map((it) => `${it.qty}× ${DB.items[it.id].name}`)].join(', ');
-      extra = `<p class="quest">Quest complete: <b>${esc(q.name)}</b> — ${esc(got)}</p>`;
-      this.toast(`Quest: ${q.name} — ${got}`, 'rare');
+      const rows = [`${q.reward_xp} XP`, `${q.reward_coins} Copper`, ...q.items.map((it) => `${it.qty}× ${DB.items[it.id].name}`)];
+      this.toast(`Quest: ${q.name} — ${rows.join(', ')}`, 'rare');
       Game.save();
+      // v0.2.6: even this starter stub ends on the rewards screen, after the talk.
+      starterRewards = { name: q.name, flavor: 'A good first step.', rows };
     }
     const greet = Q.greeting(id);
     if (greet) {
-      if (extra) greet.pages = [extra.replace(/<[^>]+>/g, ''), ...greet.pages];
+      if (starterRewards) { const r = starterRewards; greet.onFinish = () => Game.events.emit('quest-rewards', r); }
       this.openTalk(greet);
       return;
     }
+    if (starterRewards) Game.events.emit('quest-rewards', starterRewards);
     this.dialogHtml = `<h3>${esc(name)}</h3><p>${esc(lines[id] ?? '...')}</p>${extra}`;
     this.sel.dialog = undefined;
     this.open('dialog');
@@ -569,6 +571,14 @@ export class Hud {
     if (this.stack.includes('dialog')) {
       if (this.dialogTalk) $('#p-dialog').innerHTML = this.dialogHtml;
       else $('#p-dialog').innerHTML = `${this.dialogHtml}<div class="btns"><button data-nav data-key="ok" data-close="dialog">OK</button></div>${hint('Enter OK · Esc close')}`;
+    }
+    if (this.stack.includes('rewards') && this.rewards) {
+      const r = this.rewards;
+      $('#p-rewards').innerHTML = `<h3>${esc(r.name)} — Complete</h3>
+        <p class="rw-flavor">${esc(r.flavor)}</p>
+        <div class="rw-title">Rewards</div>
+        <ul class="rw-list">${r.rows.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
+        <div class="btns"><button data-nav data-key="ok" data-close="rewards">Continue</button></div>${hint('Enter or click: Continue')}`;
     }
     if (this.stack.includes('pause')) {
       const saved = p.savedAt ? new Date(p.savedAt).toLocaleTimeString() : 'never';
@@ -911,7 +921,7 @@ export class Hud {
       const afford = costs.length > 0 && costs.every((c) => (c.itemId === 'copper_coin' ? p.coins : (p.inventory[c.itemId] ?? 0)) >= c.qty);
       const dim = (!afford && r < (n.max_rank ?? 10) && !up) || !!p.passiveUpgrade && !up;
       const qty = n.effect_type === 'production'
-        ? (r >= 1 ? `${Pa.rateAt(r).toFixed(1)}/h` : 'r0')
+        ? (r >= 1 ? `${Pa.rateAt(r)}/h` : 'r0')
         : (r >= 1 ? `+${2 * r}%` : 'r0');
       return `<button class="tile${dim ? ' dim' : ''} t-${n.effect_type}${up ? ' t-upgrading' : ''}" data-nav data-key="pn:${n.id}" data-node="${n.id}" data-mode="passive"${!p.passiveUpgrade && afford && r < (n.max_rank ?? 10) ? ` data-upgrade="${n.id}"` : ''}>
         <img src="art/icons/passive_${n.id}.png" alt="">
@@ -920,7 +930,7 @@ export class Hud {
     const rateLine = Pa.nodesOf(tree).filter((n) => n.effect_type === 'production').map((n) => {
       const r = Pa.rankOf(p, n.id);
       const eta = Pa.etaNextEssence(p, n.id);
-      return r >= 1 ? `${n.name}: ${Pa.rateAt(r).toFixed(2)}/h${eta ? ` · next in ${eta}` : ''}` : `${n.name}: none at rank 0`;
+      return r >= 1 ? `${n.name}: ${Pa.rateAt(r)}/h${eta ? ` · next in ${eta}` : ''}` : `${n.name}: none at rank 0`;
     }).join(' · ');
     $('#p-passives').innerHTML = `<div class="frame-title">Passive tree <small>(T)</small><button class="x" data-close="passives">×</button></div>
       <div class="tabs">
@@ -999,7 +1009,7 @@ export class Hud {
         ${e.skill ? `<img src="${skillIconUrl(e.skill)}" alt="">` : '<span class="empty"></span>'}
         <span class="qty">${tag}</span><span class="price">${esc(e.name)}</span></button>`;
     }).join('') || '<p class="muted">No quests yet. Reach level 2 to begin The Weight of a Swing.</p>';
-    $('#p-journal').innerHTML = `<div class="frame-title">Journal <small>(J)</small><button class="x" data-close="journal">×</button></div>
+    $('#p-journal').innerHTML = `<div class="frame-title">Journal <small>(J)</small><button class="x" data-close="journal">×</button><button class="obj-btn" data-nav data-key="objectives" data-act="objectives">Objectives (L)</button></div>
       <p class="muted">Skill questlines. Calden finishes a step when you talk to him. Named foes appear only on their hunt step.</p>
       <div class="split"><div class="grid sk">${tiles}</div><div class="preview" id="journal-preview"></div></div>
       ${hint('↑↓ select · Esc close · J toggle')}`;
@@ -1010,7 +1020,7 @@ export class Hud {
     const e = Q.journal(Game.player).find((x) => x.line === line);
     if (!e) { box.innerHTML = '<p class="muted">Select a quest.</p>'; return; }
     const steps = e.steps.map((st) =>
-      `<li class="${st.done ? 'done' : st.current ? 'current' : 'soon'}"><b>${st.n}.</b> ${esc(st.objective)}</li>`
+      `<li class="${st.done ? 'done' : st.current ? 'current' : 'soon'}"><b>${st.n}.</b> ${esc(st.objective)}${st.progress ? ` <span class="j-prog">(${esc(st.progress)})</span>` : ''}</li>`
     ).join('');
     const status = e.status === 'active' ? 'In progress' : e.status === 'done' ? 'Complete' : 'Not started';
     box.innerHTML = `<div class="pv-name">${esc(e.name)}</div>
@@ -1023,8 +1033,32 @@ export class Hud {
   private renderStats() {
     const p = Game.player;
     const desc: Record<string, string> = { STR: `Raises attack and max HP`, INT: '+5 max MP', AGI: 'Faster attacks, higher crit, +acc/eva', SPI: 'Faster MP and HP regen' };
-    const rows = P.STATS.map((s) => `<button class="statrow" data-nav data-key="stat:${s}" data-stat="${s}" ${p.unspent ? '' : 'aria-disabled="true"'}>
-      <b>${s}</b><span class="v">${p.stats[s]}</span><span class="plus">${p.unspent ? '+' : ''}</span><small>${desc[s]}</small></button>`).join('');
+    // v0.2.6: the number is the TOTAL the player has (points + gear), with the gear part named next to it.
+    const rows = P.STATS.map((s) => {
+      const gearPts = P.affixBonus(p, s);
+      return `<button class="statrow" data-nav data-key="stat:${s}" data-stat="${s}" ${p.unspent ? '' : 'aria-disabled="true"'}>
+      <b>${s}</b><span class="v">${P.statOf(p, s)}${gearPts ? ` <em class="gear">(+${gearPts} from gear)</em>` : ''}</span><span class="plus">${p.unspent ? '+' : ''}</span><small>${desc[s]}</small></button>`;
+    }).join('');
+    const SLOT_NAME: Record<string, string> = { weapon: 'Weapon', head: 'Head', torso: 'Torso', legs: 'Legs', gloves: 'Gloves', boots: 'Boots' };
+    const worn = P.EQUIP_SLOTS.map((slot) => ({ slot, g: P.inst(p, p.equipment[slot]) })).filter((x): x is { slot: P.EquipSlot; g: GearInstance } => !!x.g);
+    const equipRows = worn.map(({ slot, g }) => {
+      const base = g.weaponDamage > 0 ? `Weapon damage ${g.weaponDamage} (×${g.statMultiplier.toFixed(2)})` : g.defense > 0 ? `Defense +${g.defense}` : '';
+      const aff = g.affixes.map((a) => formatAffix(a)).join(', ');
+      return `<tr><td>${SLOT_NAME[slot]}</td><td><b>${esc(displayName(g))}</b> — ${[base, aff].filter(Boolean).join(' · ')}</td></tr>`;
+    }).join('');
+    const gearDef = worn.reduce((a, x) => a + x.g.defense, 0);
+    const wpn = P.inst(p, p.equipment.weapon);
+    const gearBits: string[] = [];
+    if (gearDef) gearBits.push(`Defense +${gearDef}`);
+    if (wpn) gearBits.push(`Attack from weapon ${Math.floor(wpn.weaponDamage * wpn.statMultiplier)}`);
+    for (const s of P.STATS) if (P.affixBonus(p, s)) gearBits.push(`+${P.affixBonus(p, s)} ${s}`);
+    for (const a of ['hp', 'mp', 'acc', 'crit', 'hpRegen', 'mpRegen'] as const) {
+      const v = P.affixBonus(p, a);
+      if (v) gearBits.push(formatAffix({ stat: a, value: Math.round(v * 100) / 100 }));
+    }
+    const equipHtml = worn.length
+      ? `<div class="equip-title">Equipment</div><table class="derived equip">${equipRows}</table><div class="muted equip-total">From gear: ${esc(gearBits.join(' · ') || 'nothing')}</div>`
+      : '';
     const rage = Sk.rageNumbers(p);
     $('#p-stats').innerHTML = `<div class="frame-title">Character <small>(C)</small><button class="x" data-close="stats">×</button></div>
       <p>Level ${p.level} Warrior · Points to spend: <b>${p.unspent}</b></p>
@@ -1037,7 +1071,7 @@ export class Hud {
         <tr><td>Crit chance</td><td>${P.critChance(p).toFixed(1)}%</td></tr>
         <tr><td>Attack interval</td><td>${(P.attackIntervalMs(p) / 1000).toFixed(2)}s</td></tr>
         ${(Game.buffs.rage ?? 0) > Date.now() ? `<tr><td>Rage</td><td>+${rage.dealtPct}% dealt / +${rage.takenPct}% taken <em>(active)</em></td></tr>` : ''}
-      </table>${hint('↑↓ select · Enter +1 point · Esc close')}`;
+      </table>${equipHtml}${hint('↑↓ select · Enter +1 point · Esc close')}`;
   }
 
   private onClick(e: MouseEvent) {
@@ -1099,7 +1133,7 @@ export class Hud {
     else if (d.unequip) P.unequip(p, d.unequip as P.EquipSlot);
     else if (d.buy) {
       const price = shopPrice(d.buy);
-      if (price !== null && p.coins >= price) { p.coins -= price; P.addItem(p, d.buy, 1); this.toast(`Bought ${DB.items[d.buy].name}`, 'loot'); Game.save(); }
+      if (price !== null && p.coins >= price) { p.coins -= price; if (isGear(d.buy)) P.addGear(p, makeGear(d.buy, { mode: 'typical', magic: false })); else P.addItem(p, d.buy, 1); this.toast(`Bought ${DB.items[d.buy].name}`, 'loot'); Game.save(); }
       else this.toast('Not enough copper', 'warn');
     } else if (d.sell) {
       const price = vendorBuyPrice(d.sell);
@@ -1107,6 +1141,7 @@ export class Hud {
       const ok = price !== null && (uid ? !!P.removeGear(p, uid) : P.removeItem(p, d.sell));
       if (ok && price !== null) { p.coins += price; this.toast(`Sold ${DB.items[d.sell].name} for ${price}c`, 'loot'); Game.save(); }
     } else if (d.act === 'save') { Game.save(); this.toast('Saved', 'info'); }
+    else if (d.act === 'objectives') this.showTracker();
     else if (d.act === 'reset') { this.sel.confirm = 'yes'; this.open('confirm'); }
     else if (d.act === 'erase') { resetAndReload(); }
     Game.changed();

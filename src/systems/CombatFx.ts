@@ -11,12 +11,18 @@ export const FX = {
   basicMs: 130,
   basicImpactMs: 70,
   /** Power Strike: raise, then smash. Impact near the bottom of the smash. */
+  // v0.2.6: this overhead smash is now the NORMAL attack.
   smashWindupMs: 90,
   smashMs: 120,
   smashImpactMs: 170, // windup + most of the smash
+  /** v0.2.6 Power Strike: a forward axe cut from the rear hip. Impact when the blade is level in front. */
+  axeWindupMs: 45,
+  axeMs: 140,
+  axeImpactMs: 125, // after the wind-up: with Quad.easeIn the blade is level (impact) at ~0.89 of axeMs
+  /** v0.2.6 Flame Cleave: the fire front travels the full range in flameMs; damage lands as it reaches each target. */
   earthMs: 280,
   earthImpactMs: 110,
-  flameMs: 220,
+  flameMs: 260,
   flameImpactMs: 90,
   rootMs: 260,
   rootImpactMs: 100,
@@ -163,7 +169,7 @@ export function slashArc(scene: SC, ox: number, oy: number, facing: number, opts
  * Power Strike: the sword rises, hangs a beat, then slams down. A wide impact
  * flash lands at the bottom of the smash — that's the damage frame.
  */
-export function overheadSmash(scene: SC, ox: number, oy: number, facing: number, reach = ASSUME.meleeReach): void {
+export function overheadSmash(scene: SC, ox: number, oy: number, facing: number, reach = ASSUME.meleeReach, onImpact?: () => void): void {
   const gfx = g(scene, 13);
   const rise = FX.smashWindupMs;
   const smash = FX.smashMs;
@@ -178,6 +184,9 @@ export function overheadSmash(scene: SC, ox: number, oy: number, facing: number,
       scene.tweens.add({
         targets: sword, angle: facing > 0 ? 80 : -80, duration: smash, ease: 'Cubic.easeIn',
         onComplete: () => {
+          // The blow lands: this is the impact frame, so damage is applied here and the visual cannot disagree.
+          smashLand(scene, ox + facing * reach, scene.cameras.main.scrollY + scene.scale.height - 60, facing);
+          onImpact?.();
           scene.tweens.add({ targets: sword, alpha: 0, duration: 120, onComplete: () => sword.destroy() });
           gfx.destroy();
         },
@@ -394,5 +403,150 @@ export function digStamp(scene: SC, x: number, groundY: number): void {
     const c = scene.add.rectangle(x, groundY - 2, 3, 3, 0x8a6a40, 1).setDepth(13);
     const dir = (Math.random() - 0.5) * 50;
     scene.tweens.add({ targets: c, x: x + dir, y: groundY - 8 - Math.random() * 16, alpha: 0, duration: 260, onComplete: () => c.destroy() });
+  }
+}
+
+/** Dust and a small shock where a smash lands at the end of its range. */
+export function smashLand(scene: SC, x: number, groundY: number, facing: number): void {
+  const ring = scene.add.ellipse(x, groundY - 2, 8, 5, 0xe8d8a8, 0).setStrokeStyle(2, 0xf4ead0, 0.9).setDepth(13);
+  scene.tweens.add({ targets: ring, width: 44, height: 12, alpha: 0, duration: 200, ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
+  for (let i = 0; i < 7; i++) {
+    const p = scene.add.rectangle(x, groundY - 3, 2 + Math.random() * 3, 2 + Math.random() * 2, 0xcdb88a, 0.95).setDepth(13);
+    scene.tweens.add({ targets: p, x: x + facing * (4 + Math.random() * 26) + (Math.random() - 0.5) * 14, y: groundY - 8 - Math.random() * 18, alpha: 0, duration: 220 + Math.random() * 120, ease: 'Cubic.easeOut', onComplete: () => p.destroy() });
+  }
+}
+
+/**
+ * Power Strike (v0.2.6): an axe pulled back at the hip, then a committed forward cut that sweeps from low-behind
+ * to high-in-front and follows through past the target. The impact frame (FX.axeImpactMs) is when the blade is
+ * level at the end of `range`; a compact burst of dust and sparks lands there.
+ */
+export function axeSwing(scene: SC, ox: number, oy: number, facing: number, range: number, groundY: number, onImpact?: () => void): void {
+  const f = facing || 1;
+  const handleLen = range * 0.78;
+  const axe = scene.add.container(ox, oy + 8).setDepth(13);
+  const handle = scene.add.rectangle(0, 0, handleLen, 5, 0x9a6a3a, 1).setOrigin(0, 0.5);
+  const head = scene.add.rectangle(handleLen - 2, 0, 9, 24, 0xdfe4ea, 1).setOrigin(0.5, 0.5).setStrokeStyle(2, 0x5a6470, 1);
+  axe.add([handle, head]);
+  // angles in degrees, 0 = forward. Rear hip = 150° behind and below, finish = −40° up-forward.
+  const a0 = 150, a1 = -40;
+  const wrap = (a: number) => (f > 0 ? a : 180 - a);
+  axe.setAngle(wrap(a0));
+  const trail = g(scene, 12);
+  // One timeline for the whole motion (wind-up, then the cut), so the blade is level exactly at the impact timer.
+  const total = FX.axeWindupMs + FX.axeMs;
+  let impacted = false;
+  const aWind = a0 + 12;
+  const angleAt = (ms: number) => {
+    if (ms <= FX.axeWindupMs) return a0 + (aWind - a0) * Math.sin((Math.min(1, ms / FX.axeWindupMs) * Math.PI) / 2);
+    const x = Math.min(1, (ms - FX.axeWindupMs) / FX.axeMs);
+    return aWind + (a1 - aWind) * x * x; // Quad ease-in: level (0°) at ~0.89 of the cut
+  };
+  scene.tweens.addCounter({
+    from: 0, to: total, duration: total, ease: 'Linear',
+    onUpdate: (tw) => {
+      const ms = tw.getValue() ?? 0;
+      const a = angleAt(ms);
+      axe.setAngle(wrap(a));
+      trail.clear();
+      if (!impacted && ms >= FX.axeWindupMs + FX.axeImpactMs) {
+        impacted = true;
+        // The blade is level at the end of the range: dust, sparks, and the damage all land on this frame.
+        const x = ox + f * range;
+        smashLand(scene, x, groundY, f);
+        for (let k = 0; k < 8; k++) {
+          const ang = Phaser.Math.DegToRad(-90 + (Math.random() - 0.5) * 140);
+          const sp = scene.add.rectangle(x, oy + 8, 2.5, 2.5, 0xffe9a0, 1).setDepth(15);
+          scene.tweens.add({ targets: sp, x: x + Math.cos(ang) * 26 * f + f * Math.random() * 14, y: oy + 8 + Math.sin(ang) * 26, alpha: 0, duration: 190, ease: 'Cubic.easeOut', onComplete: () => sp.destroy() });
+        }
+        impactFlash(scene, x, oy + 8, 0xfff0b0, 18);
+        onImpact?.();
+      }
+      if (ms > FX.axeWindupMs) {
+        const rad = Phaser.Math.DegToRad(wrap(a));
+        const r0 = Phaser.Math.DegToRad(wrap(angleAt(Math.max(FX.axeWindupMs, ms - 55))));
+        const fade = Math.min(1, (ms - FX.axeWindupMs) / FX.axeMs);
+        trail.lineStyle(9, 0xfff2c0, 0.35 * fade);
+        trail.beginPath();
+        trail.arc(ox, oy + 8, range * 0.9, Math.min(r0, rad), Math.max(r0, rad), false);
+        trail.strokePath();
+        trail.lineStyle(3, 0xffffff, 0.9 * fade);
+        trail.beginPath();
+        trail.arc(ox, oy + 8, range * 0.9, rad - f * 0.18, rad, f < 0);
+        trail.strokePath();
+      }
+    },
+    onComplete: () => {
+      scene.tweens.add({ targets: [axe, trail], alpha: 0, duration: 110, onComplete: () => { axe.destroy(); trail.destroy(); } });
+    },
+  });
+}
+
+/** How long the Flame Cleave fire front takes to reach a target `dist` px away (range = the skill's full reach). */
+export function flameArrivalMs(dist: number, range: number): number {
+  return FX.flameMs * Phaser.Math.Clamp(dist / Math.max(1, range), 0.1, 1);
+}
+
+/**
+ * Flame Cleave (v0.2.6): a wide, bright fan of fire that spreads from the warrior to the far edge of `range`.
+ * Layered wedges (deep red edge, orange body, yellow-white core) keep it readable on grass and on dirt;
+ * embers trail behind the front, and a scorch lingers on the ground for a moment afterwards.
+ */
+export function flameFan(scene: SC, ox: number, oy: number, facing: number, range: number, groundY: number): void {
+  const f = facing || 1;
+  const gfx = g(scene, 13);
+  const spread = Phaser.Math.DegToRad(38);
+  const wedge = (r: number, k: number, color: number, alpha: number) => {
+    const aUp = -spread * k, aDn = spread * k * 0.7;
+    gfx.fillStyle(color, alpha);
+    gfx.beginPath();
+    gfx.moveTo(ox + f * 6, oy);
+    const steps = 9;
+    for (let i = 0; i <= steps; i++) {
+      const a = aUp + ((aDn - aUp) * i) / steps;
+      const wob = 1 + Math.sin(i * 1.7 + r * 0.11) * 0.06;
+      gfx.lineTo(ox + f * Math.cos(a) * r * wob, oy + Math.sin(a) * r * wob);
+    }
+    gfx.closePath();
+    gfx.fillPath();
+  };
+  scene.tweens.addCounter({
+    from: 0, to: 1, duration: FX.flameMs, ease: 'Sine.easeOut',
+    onUpdate: (tw) => {
+      const t = tw.getValue() ?? 0;
+      const r = Math.max(10, range * t);
+      gfx.clear();
+      wedge(r * 1.02, 1.0, 0x7a1608, 0.55);
+      wedge(r * 0.97, 0.9, 0xff5a14, 0.82);
+      wedge(r * 0.82, 0.62, 0xffa21f, 0.9);
+      wedge(r * 0.6, 0.34, 0xfff0a0, 0.95);
+    },
+    onComplete: () => scene.tweens.add({ targets: gfx, alpha: 0, duration: 160, onComplete: () => gfx.destroy() }),
+  });
+  // embers trail behind the front
+  for (let i = 0; i < 22; i++) {
+    const at = (i / 22) * FX.flameMs * 0.95;
+    const dist = range * (0.25 + Math.random() * 0.75);
+    scene.time.delayedCall(at, () => {
+      const e = scene.add.circle(ox + f * dist * 0.5, oy + (Math.random() - 0.5) * 30, 1.8 + Math.random() * 2.4, Math.random() < 0.4 ? 0xfff0a0 : 0xff6a20, 1).setDepth(14);
+      scene.tweens.add({ targets: e, x: ox + f * (dist + 14), y: e.y - 14 - Math.random() * 34, alpha: 0, duration: 340 + Math.random() * 220, ease: 'Cubic.easeOut', onComplete: () => e.destroy() });
+    });
+  }
+  // scorch lingers on the ground
+  const scorch = scene.add.ellipse(ox + f * range * 0.5, groundY - 1, range, 7, 0x2a1408, 0).setDepth(2);
+  scene.tweens.add({ targets: scorch, fillAlpha: 0.5, duration: FX.flameMs * 0.8, ease: 'Sine.easeOut',
+    onComplete: () => scene.tweens.add({ targets: scorch, fillAlpha: 0, duration: 900, delay: 350, onComplete: () => scorch.destroy() }) });
+}
+
+/** A bloom of fire that pops on a target at the moment the Flame Cleave damage lands. */
+export function fireBloom(scene: SC, x: number, y: number): void {
+  const core = scene.add.circle(x, y, 7, 0xfff0a0, 0.95).setDepth(16);
+  scene.tweens.add({ targets: core, radius: 24, alpha: 0, duration: 230, ease: 'Cubic.easeOut', onComplete: () => core.destroy() });
+  const ring = scene.add.circle(x, y, 10, 0xff6a20, 0).setStrokeStyle(4, 0xff7a24, 0.95).setDepth(15);
+  scene.tweens.add({ targets: ring, radius: 34, alpha: 0, duration: 280, ease: 'Cubic.easeOut', onUpdate: () => ring.setStrokeStyle(4 * ring.alpha + 1, 0xff7a24, ring.alpha), onComplete: () => ring.destroy() });
+  for (let i = 0; i < 10; i++) {
+    const a = (Math.PI * 2 * i) / 10 + Math.random() * 0.5;
+    const e = scene.add.circle(x, y, 2 + Math.random() * 2, Math.random() < 0.5 ? 0xffd060 : 0xff5a14, 1).setDepth(16);
+    scene.tweens.add({ targets: e, x: x + Math.cos(a) * (18 + Math.random() * 22), y: y + Math.sin(a) * (18 + Math.random() * 22) - 12, alpha: 0, duration: 300 + Math.random() * 160, ease: 'Cubic.easeOut', onComplete: () => e.destroy() });
   }
 }

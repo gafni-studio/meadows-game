@@ -2,7 +2,8 @@
  * Skill training (v0.2). Costs and unlocks come from the sheet (skill_costs,
  * skills, unlock_requirements, game_rules.skill_unlocks / skill_rank_scaling).
  *
- * Rank-1 quantities are listed. For rank r > 1: qty = round(rank_1_qty × 1.6^(r-1)).
+ * v0.2.6: Power Strike, Rage, Earthbreaker, Root Lash, Flame Cleave and Dig In list an exact recipe
+ * at every rank. Parked skills still use rank-1 quantities: for rank r > 1, qty = round(rank_1_qty × 1.6^(r-1)).
  * Rare drops are extra milestone costs at ranks 5 and 10 only.
  * v0.2.1: a skill is known once it is at rank 1 (quest grant, or trained). Category
  * skills still scale from rank 2; basic skills scale from rank 1 as before.
@@ -83,9 +84,16 @@ export function unlockStatus(p: P.PlayerData, s: SkillDef): { ok: boolean; reaso
 }
 
 /** Cost to go from current rank to current+1. Empty at max rank. */
+/** v0.2.6: a skill whose every rank 1-10 lists its own recipe (a Copper row at each rank). No 1.6× scaling. */
+const EXPLICIT = new Set(
+  [...new Set(COSTS.map((r) => r.skill_id))].filter((id) =>
+    Array.from({ length: 10 }, (_, i) => i + 1).every((rk) => COSTS.some((r) => r.skill_id === id && r.rank === rk && r.material_id === 'copper_coin'))),
+);
+
 export function nextCost(id: string, nextRank: number): Cost[] {
   const s = skill(id);
   if (!s || nextRank < 1 || nextRank > (s.max_rank ?? 10)) return [];
+  if (EXPLICIT.has(id)) return COSTS.filter((r) => r.skill_id === id && r.rank === nextRank).map((r) => ({ itemId: r.material_id, qty: r.quantity }));
   const scale = Math.pow(1.6, nextRank - 1);
   const at1 = COSTS.filter((r) => r.skill_id === id && r.rank === 1);
   const atRank = COSTS.filter((r) => r.skill_id === id && r.rank === nextRank);

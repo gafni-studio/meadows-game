@@ -26,7 +26,7 @@ const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'previe
 await new Promise((res) => { server.stdout.on('data', (d) => String(d).includes(String(PORT)) && res()); setTimeout(res, 8000); });
 
 const errors = [];
-const fail = (msg) => { throw new Error(msg); };
+const fail = (msg) => { throw new Error(msg + (errors.length ? ' | page errors: ' + errors.slice(-3).join(' // ') : '')); };
 {
   const skills = JSON.parse(readFileSync('data/skills.json', 'utf8')).rows;
   const mp = Object.fromEntries(skills.map((r) => [r.id, r.mp_cost]));
@@ -37,25 +37,33 @@ const fail = (msg) => { throw new Error(msg); };
   const wantCu = { crow: 80, burrow_mole: 80, earth_sprite: 80, ember_beetle: 82, spark_bug: 80, frost_moth: 80, field_mouse: 70 };
   for (const [id, n] of Object.entries(wantCu)) if (copper[id] !== n) fail(`sheet copper ${id} is ${copper[id]}, expected ${n}`);
   const wantDrop = {
-    'field_mouse:strawberry': [10, 1, 1],
-    'wool_sheep:blueberry': [12, 1, 1],
-    'burrow_mole:blueberry': [12, 1, 1],
-    'earth_sprite:stone_chunk': [8, 1, 3],
-    'crow:monster_essence': [40, 1, 3],
-    'burrow_mole:monster_essence': [46, 1, 3],
-    'earth_sprite:monster_essence': [46, 1, 3],
-    'ember_beetle:monster_essence': [46, 1, 4],
-    'wool_sheep:nature_essence': [24, 1, 2],
-    'crow:nature_essence': [30, 1, 3],
-    'burrow_mole:nature_essence': [30, 1, 3],
-    'crow:training_scroll': [20, 1, 3],
-    'burrow_mole:training_scroll': [16, 1, 3],
-    'burrow_mole:tough_root': [8, 1, 2],
-    'earth_sprite:tough_root': [6, 1, 2],
-    'crow:branch': [4, 1, 1],
-    'meadow_boar:branch': [8, 1, 2],
-    'old_stump:branch': [10, 1, 2],
-    'burrow_mole:earth_shard': [8, 1, 2],
+    'field_mouse:strawberry': [10, 1, 2],
+    'wool_sheep:blueberry': [12, 1, 2],
+    'burrow_mole:blueberry': [12, 1, 2],
+    'earth_sprite:stone_chunk': [10, 2, 4],
+    'crow:monster_essence': [40, 2, 5],
+    'burrow_mole:monster_essence': [46, 2, 5],
+    'earth_sprite:monster_essence': [46, 2, 5],
+    'ember_beetle:monster_essence': [46, 2, 6],
+    'wool_sheep:nature_essence': [24, 2, 4],
+    'crow:nature_essence': [30, 2, 5],
+    'burrow_mole:nature_essence': [30, 2, 5],
+    'crow:training_scroll': [20, 2, 4],
+    'burrow_mole:training_scroll': [16, 2, 4],
+    'burrow_mole:tough_root': [12, 2, 3],
+    'earth_sprite:tough_root': [6, 2, 3],
+    'crow:branch': [4, 1, 2],
+    'meadow_boar:branch': [8, 2, 3],
+    'old_stump:branch': [10, 2, 3],
+    'burrow_mole:earth_shard': [12, 1, 3],
+    // v0.2.6 named bumps
+    'ember_beetle:smoldering_scale': [20, 1, 1],
+    'spark_bug:smoldering_scale': [12, 1, 1],
+    'ember_beetle:warm_grain': [20, 1, 2],
+    'earth_sprite:warm_grain': [12, 1, 2],
+    'ember_beetle:fire_shard': [10, 1, 3],
+    'spark_bug:lightning_shard': [10, 1, 3],
+    'spark_bug:ice_shard': [6, 1, 2],
   };
   const dropKey = Object.fromEntries(drops.map((r) => [`${r.monster_id}:${r.item_id}`, [r.drop_rate, r.min_qty, r.max_qty]]));
   for (const [k, v] of Object.entries(wantDrop)) {
@@ -68,6 +76,56 @@ const fail = (msg) => { throw new Error(msg); };
   if (eb1.includes('bark') || eb1.includes('branch')) fail(`earthbreaker r1 still has bark/branch: ${eb1}`);
   const dig = skills.find((r) => r.id === 'dig_in');
   if (!dig || dig.duration_s !== 60) fail(`dig_in duration_s is ${dig?.duration_s}, expected 60`);
+  // ── v0.2.6 data ──
+  const cf = Object.fromEntries(JSON.parse(readFileSync('data/combat_formulas.json', 'utf8')).rows.map((r) => [r.key, r.num]));
+  if (cf.hp_base_warrior !== 100 || cf.hp_per_level_warrior !== 7 || cf.hp_per_str !== 2) fail('warrior HP is not 100 + 7/level + 2/STR');
+  if (cf.hp_base_mage !== 70 || cf.hp_per_level_mage !== 4 || cf.hp_base_rogue !== 85 || cf.hp_per_level_rogue !== 6) fail('mage/rogue HP not updated');
+  for (const [L, n] of [[4, 880], [5, 1194], [6, 1536], [7, 1902], [8, 2290], [9, 2700], [10, 3130]]) {
+    if (cf[`xp_to_next_${L}`] !== n) fail(`xp_to_next_${L} is ${cf[`xp_to_next_${L}`]}, expected ${n}`);
+  }
+  if (cf.xp_to_next_1 !== 70 || cf.xp_to_next_2 !== 173 || cf.xp_to_next_3 !== 298) fail('levels 1-3 XP changed');
+  const gearRows = Object.fromEntries(JSON.parse(readFileSync('data/gear.json', 'utf8')).rows.map((r) => [r.item_id, r]));
+  const cloth = { cloth_cap: 1, cloth_tunic: 2, cloth_pants: 1, cloth_shoes: 1, cloth_gloves: 1 };
+  let clothSum = 0;
+  for (const [id, d] of Object.entries(cloth)) {
+    const g = gearRows[id];
+    if (g.defense_min !== d || g.defense_max !== d || g.defense !== d) fail(`${id} is not a fixed Defense ${d}`);
+    clothSum += d;
+  }
+  if (clothSum !== 6) fail('cloth set is not Defense 6');
+  const ss = gearRows.short_sword;
+  if (ss.weapon_damage_min !== 13 || ss.weapon_damage_max !== 13 || ss.stat_multiplier !== 1.1) fail('Short Sword is not exactly 13 x 1.10');
+  if (gearRows.hide_vest.defense !== 3 || gearRows.stone_club.weapon_damage !== 16) fail('quest gift typical values changed');
+  const JUNK = ['broken_twig', 'torn_cloth', 'lost_button', 'pasture_bell', 'cracked_shell'];
+  const junkRows = drops.filter((r) => JUNK.includes(r.item_id));
+  if (junkRows.length) fail(`junk still drops: ${junkRows.map((r) => `${r.monster_id}:${r.item_id}`)}`);
+  for (const [m, i] of [['crow', 'bright_bead'], ['burrow_mole', 'old_bone'], ['burrow_mole', 'fence_peg'], ['ember_beetle', 'warm_grain']]) {
+    if (!drops.some((r) => r.monster_id === m && r.item_id === i)) fail(`kept junk ${m}:${i} missing`);
+  }
+  const banks = JSON.parse(readFileSync('data/map_layout.json', 'utf8')).rows.find((r) => r.id === 'dirt_banks');
+  if (JSON.stringify(banks.spawns) !== JSON.stringify({ burrow_mole: 6, earth_sprite: 5, ember_beetle: 5, spark_bug: 4 })) fail(`Banks spawns: ${JSON.stringify(banks.spawns)}`);
+  // explicit recipes, ranks 1-10, no scaling, nothing over 40, no Heartwood / Log
+  const allCosts = JSON.parse(readFileSync('data/skill_costs.json', 'utf8')).rows;
+  const passCosts = JSON.parse(readFileSync('data/passive_costs.json', 'utf8')).rows;
+  const checkRecipes = (rows, idKey, ids) => {
+    for (const id of ids) {
+      for (let rk = 1; rk <= 10; rk++) {
+        const r = rows.filter((x) => x[idKey] === id && x.rank === rk);
+        if (!r.some((x) => x.material_id === 'copper_coin')) fail(`${id} rank ${rk} has no recipe`);
+        for (const x of r) {
+          if (x.quantity > 40) fail(`${id} r${rk} ${x.material_id} is ${x.quantity} (>40)`);
+          if (['heartwood', 'log'].includes(x.material_id)) fail(`${id} r${rk} needs ${x.material_id}`);
+        }
+      }
+    }
+  };
+  checkRecipes(allCosts, 'skill_id', ['power_strike', 'rage', 'earthbreaker', 'root_lash', 'flame_cleave', 'dig_in']);
+  checkRecipes(passCosts, 'node_id', ['nature_prod', 'nature_eff_drops', 'elemental_prod', 'elemental_eff_drops']);
+  const eb = (rk) => allCosts.filter((x) => x.skill_id === 'earthbreaker' && x.rank === rk);
+  if (eb(1).some((x) => x.material_id === 'twig') || eb(4).some((x) => x.material_id === 'twig')) fail('Earthbreaker r1/r4 still need Twig');
+  const nat = (rk) => Object.fromEntries(passCosts.filter((x) => x.node_id === 'nature_prod' && x.rank === rk).map((x) => [x.material_id, x.quantity]));
+  if (JSON.stringify(nat(1)) !== JSON.stringify({ nature_essence: 20, pebble: 16, bark: 12, copper_coin: 18 })) fail(`Nature rank 1: ${JSON.stringify(nat(1))}`);
+  if (nat(3).nature_essence !== 40 || nat(3).pebble) fail(`Nature rank 3: ${JSON.stringify(nat(3))}`);
   console.log('sheet mp/copper/drops/recipe ok');
 }
 
@@ -87,11 +145,17 @@ try {
   const shot = async (name) => { if (SHOTS) await page.screenshot({ path: `${SHOTS}/${name}.png` }); };
   const dismissDialog = async () => {
     for (let i = 0; i < 12; i++) {
-      if (!(await visible()).includes('dialog')) return;
+      if (!(await visible()).includes('dialog')) break;
       await key('Enter', 180);
     }
     if ((await visible()).includes('dialog')) fail('dialog did not close after Enter');
+    // v0.2.6: a quest that completes shows its rewards screen after the last page; Enter continues.
+    for (let i = 0; i < 3 && (await visible()).includes('rewards'); i++) {
+      lastRewards = await page.evaluate(() => document.querySelector('#p-rewards')?.innerText ?? '');
+      await key('Enter', 180);
+    }
   };
+  let lastRewards = '';
   console.log('boot:', await s());
 
   // ── Test console ──
@@ -310,14 +374,23 @@ try {
   if (done.rank !== 1) fail(`Power Strike was not granted at rank 1: ${JSON.stringify(done)}`);
   if (!done.bar.includes('power_strike')) fail(`Power Strike was not auto-bound: ${JSON.stringify(done)}`);
   if (done.me !== 8) fail(`Weight reward ME x8 missing: ${JSON.stringify(done)}`);
-  await shot('quest-complete');
+  // v0.2.6: a rewards screen, not just a toast; Enter closes it.
+  if (!(await visible()).includes('rewards')) fail('no rewards screen after The Weight of a Swing');
+  const rw = await page.evaluate(() => document.querySelector('#p-rewards')?.innerText ?? '');
+  for (const re of [/The Weight of a Swing/, /Complete/, /40 XP/, /10 Copper/, /8× Monster Essence/, /Power Strike rank 1/, /Continue/]) {
+    if (!re.test(rw)) fail(`rewards screen missing ${re}: ${rw}`);
+  }
+  await shot('quest-rewards');
+  await key('Enter');
+  if ((await visible()).includes('rewards')) fail('Enter did not close the rewards screen');
   console.log('weight quest ok:', done);
 
   // ── Skill training (K): Enter trains Power Strike rank 2, pays the scaled cost ──
-  // r2 = round(r1 × 1.6): ME 32 (v0.2.3 r1 is 20), scrolls 8, 32c. Reward left 8 ME, so give 24 more.
+  // v0.2.6 explicit rank 2: Monster Essence 24, Training Scroll 10, Copper 25, Clay 16. Reward left 8 ME.
   await key('`');
   await page.keyboard.type('item monster_essence 24'); await key('Enter');
-  await page.keyboard.type('item training_scroll 8'); await key('Enter');
+  await page.keyboard.type('item training_scroll 10'); await key('Enter');
+  await page.keyboard.type('item clay 16'); await key('Enter');
   await key('Escape');
   await page.evaluate(() => window.__game?.events?.emit('close-all'));
   await page.waitForTimeout(100);
@@ -328,12 +401,12 @@ try {
   const skillText = await page.evaluate(() => document.querySelector('#p-skills')?.innerText ?? '');
   if (/Intentionally modest|Rebalanced down|Available from level 1|Clearly stronger than|Most expensive|opens mid|opens early|opens late|Capstone/i.test(skillText)) fail(`skill UI shows design notes: ${skillText.slice(0, 400)}`);
   if (!/A heavy blow that hits harder/i.test(skillText)) fail(`skill UI missing player desc: ${skillText.slice(0, 400)}`);
-  const beforeTrain = await page.evaluate(() => ({ coins: window.__state.player.coins, me: window.__state.player.inventory.monster_essence ?? 0, sc: window.__state.player.inventory.training_scroll ?? 0 }));
+  const beforeTrain = await page.evaluate(() => ({ coins: window.__state.player.coins, me: window.__state.player.inventory.monster_essence ?? 0, sc: window.__state.player.inventory.training_scroll ?? 0, clay: window.__state.player.inventory.clay ?? 0 }));
   await key('Enter', 400);
-  const ranks = await page.evaluate(() => ({ ...window.__state.player.skillRanks, coins: window.__state.player.coins, me: window.__state.player.inventory.monster_essence ?? 0, sc: window.__state.player.inventory.training_scroll ?? 0, bar: [...window.__state.player.skillBar] }));
+  const ranks = await page.evaluate(() => ({ ...window.__state.player.skillRanks, coins: window.__state.player.coins, me: window.__state.player.inventory.monster_essence ?? 0, sc: window.__state.player.inventory.training_scroll ?? 0, clay: window.__state.player.inventory.clay ?? 0, bar: [...window.__state.player.skillBar] }));
   if (ranks.power_strike !== 2) fail(`train did not raise Power Strike to r2: ${JSON.stringify(ranks)}`);
-  if (ranks.me !== beforeTrain.me - 32 || ranks.sc !== beforeTrain.sc - 8 || ranks.coins !== beforeTrain.coins - 32) {
-    fail(`train r2 did not pay scaled cost: ${JSON.stringify({ ranks, beforeTrain })}`);
+  if (ranks.me !== beforeTrain.me - 24 || ranks.sc !== beforeTrain.sc - 10 || ranks.coins !== beforeTrain.coins - 25 || ranks.clay !== beforeTrain.clay - 16) {
+    fail(`train r2 did not pay the explicit recipe: ${JSON.stringify({ ranks, beforeTrain })}`);
   }
   await shot('skills-train');
   await key('Escape');
@@ -421,10 +494,11 @@ try {
     const alive = sc.monsters.filter((m) => m.alive);
     return { ids: [...new Set(alive.map((m) => m.def.id))].sort(), n: alive.length };
   });
-  for (const id of ['burrow_mole', 'earth_sprite', 'ember_beetle', 'spark_bug', 'frost_moth']) {
+  for (const id of ['burrow_mole', 'earth_sprite', 'ember_beetle', 'spark_bug']) {
     if (!banksMobs.ids.includes(id)) fail(`Dirt Banks missing ${id}: ${JSON.stringify(banksMobs)}`);
   }
-  if (banksMobs.n < 16) fail(`Dirt Banks spawn count low: ${JSON.stringify(banksMobs)}`);
+  if (banksMobs.ids.includes('frost_moth')) fail(`Frost Moth must not spawn in the Dirt Banks: ${JSON.stringify(banksMobs)}`);
+  if (banksMobs.n < 20) fail(`Dirt Banks spawn count low (want 20 regulars): ${JSON.stringify(banksMobs)}`);
   await shot('dirt-banks');
   await page.evaluate(() => {
     const sc = window.__state.scene;
@@ -490,7 +564,7 @@ try {
   });
   await key('`');
   for (const line of [
-    'item dry_root 30', 'item tough_root 2', 'item earth_grit 10',
+    'item dry_root 30', 'item tough_root 8', 'item earth_grit 12',
     'item nature_essence 36', 'copper 50',
   ]) { await page.keyboard.type(line); await key('Enter'); }
   await key('Escape', 150);
@@ -558,10 +632,10 @@ try {
   }));
   if (r1.rank !== 1 || r1.up) fail(`finish did not complete Nature prod r1: ${JSON.stringify(r1)}`);
 
-  // 80 minutes at 1.5/h = exactly 2 Nature Essence
+  // v0.2.6: whole numbers. Rank 1 is 1 per hour, so 2 hours = exactly 2 Nature Essence
   const neBefore = await page.evaluate(() => window.__state.player.inventory.nature_essence ?? 0);
   await key('`');
-  await page.keyboard.type(`passive wait ${80 / 60}`); await key('Enter'); // 80 min at 1.5/h = 2
+  await page.keyboard.type('passive wait 2'); await key('Enter'); // rank 1 = 1/h
   await key('Escape', 150);
   const neAfter = await page.evaluate(() => ({
     ne: window.__state.player.inventory.nature_essence ?? 0,
@@ -569,7 +643,7 @@ try {
     report: window.__state.player.passiveReport,
   }));
   const gained = neAfter.ne - neBefore;
-  if (gained !== 2) fail(`expected 2 essence in 80min at 1.5/h, got ${gained}: ${JSON.stringify({ neBefore, neAfter })}`);
+  if (gained !== 2) fail(`expected 2 essence in 2h at 1/h, got ${gained}: ${JSON.stringify({ neBefore, neAfter })}`);
   await shot('passive-yield');
   console.log('passives ok:', r1, 'gained', gained);
 
@@ -609,8 +683,8 @@ try {
     pebble: window.__state.player.inventory.pebble ?? 0,
   }));
   if (!qw2.q || qw2.q.step !== 3) fail(`Ila kit turn-in did not advance: ${JSON.stringify(qw2)}`);
-  // kit is 50 NE, 40 bark (they spent 4), 50 pebble, 5 shard, 30c — they may already have had some NE from passives
-  if (qw2.pebble < 50) fail(`Ila kit missing pebble: ${JSON.stringify(qw2)}`);
+  // v0.2.6 kit is Nature Essence 20, Pebble 16, Bark 12, 18 Copper (= the new Nature rank 1 recipe)
+  if (qw2.pebble < 16) fail(`Ila kit missing pebble: ${JSON.stringify(qw2)}`);
   await page.evaluate(() => { window.__state.scene.player.x = 27 * 32; });
   await key('e', 400);
   if (!(await visible()).includes('dialog')) fail('Ila did not open the Quiet Work finish');
@@ -654,7 +728,8 @@ try {
     return {
       done: !!p.questLog?.ql_warm_coat?.done,
       vest: vest.length,
-      def: vest[0]?.defense,
+      def: vest[vest.length - 1]?.defense, // the quest gift is the newest one
+      magic: !!vest[vest.length - 1]?.magic,
       berries: p.inventory.blueberry ?? 0,
       wool: p.inventory.wool ?? 0,
     };
@@ -663,6 +738,10 @@ try {
   if (wc2.vest < 1) fail(`Warm Coat did not grant Hide Vest: ${JSON.stringify(wc2)}`);
   if (wc2.wool !== 0) fail(`Wool was not consumed: ${JSON.stringify(wc2)}`);
   if (wc2.berries < 4) fail(`Warm Coat blueberries missing: ${JSON.stringify(wc2)}`);
+  if (wc2.def !== 3 || wc2.magic) fail(`Warm Coat Hide Vest must be exactly Defense 3, never magic: ${JSON.stringify(wc2)}`);
+  for (const re of [/A Warm Coat/, /90 XP/, /20 Copper/, /Hide Vest — Defense 3/, /4× Blueberry/]) {
+    if (!re.test(lastRewards)) fail(`Warm Coat rewards screen missing ${re}: ${lastRewards}`);
+  }
   console.log('warm coat ok:', wc2);
 
   // Ila 10:1 — Dry Root and Twig
@@ -803,7 +882,8 @@ try {
     return {
       done: !!p.questLog?.ql_dirt_keeps?.done,
       club: club.length,
-      wd: club[0]?.weaponDamage,
+      wd: club[club.length - 1]?.weaponDamage,
+      magic: !!club[club.length - 1]?.magic,
       ne: p.inventory.nature_essence ?? 0,
       grit: p.inventory.earth_grit ?? 0,
     };
@@ -811,6 +891,10 @@ try {
   if (!dk2.done) fail(`What the Dirt Keeps not complete: ${JSON.stringify(dk2)}`);
   if (dk2.club < 1) fail(`Dirt Keeps did not grant Stone Club: ${JSON.stringify(dk2)}`);
   if (dk2.grit !== 0) fail(`Earth Grit was not consumed: ${JSON.stringify(dk2)}`);
+  if (dk2.wd !== 16 || dk2.magic) fail(`Stone Club must be exactly weapon damage 16, never magic: ${JSON.stringify(dk2)}`);
+  for (const re of [/What the Dirt Keeps/, /140 XP/, /30 Copper/, /Stone Club — Weapon damage 16/, /6× Nature Essence/]) {
+    if (!re.test(lastRewards)) fail(`Dirt Keeps rewards screen missing ${re}: ${lastRewards}`);
+  }
   console.log('dirt keeps ok:', dk2);
 
 
@@ -1083,14 +1167,19 @@ try {
   const afterCrack = await page.evaluate(() => ({
     done: !!window.__state.player.questLog?.ql_crack?.done,
     rank: window.__state.player.skillRanks.earthbreaker ?? 0,
-    banner: document.querySelector('#questup')?.innerText ?? '',
-    bannerHidden: !!document.querySelector('#questup')?.hidden,
+    rewards: document.querySelector('#p-rewards')?.innerText ?? '',
+    rewardsHidden: !!document.querySelector('#p-rewards')?.hidden,
   }));
   if (!afterCrack.done) fail(`quest complete ql_crack did not finish the line: ${JSON.stringify(afterCrack)}`);
   if (afterCrack.rank !== 0) fail(`Crack granted Earthbreaker rank 1 (should only unlock training): ${JSON.stringify(afterCrack)}`);
-  if (afterCrack.bannerHidden || !/QUEST COMPLETE|Crack|Earthbreaker/i.test(afterCrack.banner)) {
-    fail(`quest-complete banner missing: ${JSON.stringify(afterCrack)}`);
+  // v0.2.6: the rewards screen says training is open (not rank 1) and lists XP, Copper and items.
+  if (afterCrack.rewardsHidden) fail(`no rewards screen after A Crack in the Dirt: ${JSON.stringify(afterCrack)}`);
+  for (const re of [/Earthbreaker training is now open/, /100 XP/, /20 Copper/, /12× Nature Essence/]) {
+    if (!re.test(afterCrack.rewards)) fail(`Crack rewards screen missing ${re}: ${afterCrack.rewards}`);
   }
+  if (/rank 1/i.test(afterCrack.rewards)) fail(`Crack rewards screen implies a free rank 1: ${afterCrack.rewards}`);
+  await key('Enter');
+  if ((await visible()).includes('rewards')) fail('Enter did not close the Crack rewards screen');
   console.log('crack unlock-only:', afterCrack);
 
   // Berries exist as items; Wild Apple retired from drops (not asserted via rolls). Icons load.
@@ -1150,13 +1239,30 @@ try {
   }
   const mpTwiceEarly = await page.evaluate(() => window.__state.player.mp);
   if (mpOnce - mpTwiceEarly > 2) fail(`second press during CD spent MP immediately: ${mpOnce} → ${mpTwiceEarly}`);
-  // Further presses silently dropped — still only one queued (MP drops by one more, not two, after CD)
+  // v0.2.6: nothing is queued. More presses are ignored, and the skill does not auto-fire when the cooldown ends.
   await key('1', 40);
   await key('1', 40);
   await page.waitForTimeout(1200);
   const mpAfter = await page.evaluate(() => window.__state.player.mp);
-  if (Math.abs((mpOnce - 5) - mpAfter) > 2) fail(`queued Power Strike did not fire exactly once after CD (mp ${mpReady} → ${mpOnce} → ${mpAfter}), expected one extra 5 MP`);
-  console.log('cooldown queue ok:', { mpReady, mpOnce, mpAfter });
+  if (mpAfter < mpOnce - 1) fail(`Power Strike was queued and fired again (mp ${mpReady} → ${mpOnce} → ${mpAfter}); v0.2.6 has no queue`);
+  const toastsEnd = await page.evaluate(() => [...document.querySelectorAll('#toasts *')].map((e) => e.textContent).join('\n'));
+  if (/on cooldown/i.test(toastsEnd)) fail(`short cooldown showed a banner: ${toastsEnd.slice(0, 300)}`);
+  // Rage (60 s): exactly one banner for a mash, and it does not fire when the cooldown ends.
+  await page.evaluate(() => {
+    const p = window.__state.player;
+    p.skillRanks.rage = Math.max(1, p.skillRanks.rage ?? 0);
+    p.skillBar[1] = 'rage';
+    p.mp = Math.max(p.mp, 40);
+    window.__state.cooldowns.rage = Date.now() + 60000;
+    document.querySelector('#toasts').innerHTML = '';
+  });
+  for (let i = 0; i < 4; i++) await key('2', 60);
+  const rageToasts = await page.evaluate(() => [...document.querySelectorAll('#toasts .toast')].filter((e) => /Rage is on cooldown/i.test(e.textContent)).length);
+  if (rageToasts !== 1) fail(`Rage mash should show exactly one cooldown banner, got ${rageToasts}`);
+  await page.evaluate(() => { window.__state.cooldowns.rage = Date.now() + 200; });
+  await page.waitForTimeout(500);
+  if (await page.evaluate(() => (window.__state.buffs.rage ?? 0) > Date.now())) fail('Rage fired by itself when its cooldown ended (no queue in v0.2.6)');
+  console.log('no skill queue ok:', { mpReady, mpOnce, mpAfter });
 
   // 22/23 data: MP and copper chances from the served JSON (vite copies /data)
   const dataCheck = await page.evaluate(async () => {
@@ -1239,6 +1345,284 @@ try {
   fresh = await freshOf();
   if (!isFresh(fresh)) fail(`menu reset (Y) did not start fresh: ${JSON.stringify(fresh)}`);
   console.log('menu reset ok:', fresh);
+
+  // ══════════════ v0.2.6 behaviour ══════════════
+  const con = async (...lines) => {
+    await key('`');
+    for (const l of lines) { await page.keyboard.type(l); await key('Enter'); }
+    await key('Escape', 150);
+    await page.evaluate(() => window.__game?.events?.emit('close-all'));
+  };
+  const sc = (fn, arg) => page.evaluate(fn, arg);
+  const marker = (id) => page.evaluate((nid) => {
+    const n = window.__state.scene.npcs.find((x) => x.id === nid);
+    return n?.marker?.visible ? n.marker.text : null;
+  }, id);
+  const settle = (ms = 400) => page.waitForTimeout(ms);
+  const toTown = async () => {
+    if ((await s()).area !== 'meadow_town') await con('tp meadow_town');
+    await page.waitForFunction(() => window.__state.player.area === 'meadow_town' && window.__game?.scene.isActive('World'), null, { timeout: 10000 });
+    await settle(300);
+  };
+
+  // ── HP (section 5) on the fresh character ──
+  let hpNow = await page.evaluate(() => window.__state.player.hp);
+  if (hpNow !== 100) fail(`fresh Warrior should have 100 max HP, got ${hpNow}`);
+  await con('level 5', 'heal');
+  const hp5 = await page.evaluate(() => window.__state.player.hp);
+  if (hp5 !== 128) fail(`level 5, 0 STR should be 128 HP, got ${hp5}`);
+  await con('level 10', 'heal');
+  const hp10 = await page.evaluate(() => window.__state.player.hp);
+  if (hp10 !== 163) fail(`level 10, 0 STR should be 163 HP, got ${hp10}`);
+  await con('level 1', 'heal');
+  await page.evaluate(() => { window.__state.player.stats.STR = 3; });
+  await con('heal');
+  if ((await page.evaluate(() => window.__state.player.hp)) !== 106) fail('level 1 with 3 STR should be 106 HP');
+  await page.evaluate(() => { window.__state.player.stats.STR = 0; });
+  console.log('hp ok: 100 / 128 / 163 / 106');
+
+  // ── XP curve (section 15a): 4 → 5 takes 880 ──
+  await con('level 4');
+  await page.evaluate(() => { window.__state.player.xp = 0; });
+  await con('xp 440');
+  const half = await s();
+  if (half.level !== 4) fail(`440 XP should leave a level-4 character at level 4, got ${half.level}`);
+  await con('xp 440');
+  if ((await s()).level !== 5) fail('880 XP total should reach level 5');
+  await con('level 1', 'heal');
+  console.log('xp curve ok');
+
+  // ── Markers (section 3) + objectives progress (section 10) + Objectives button (section 4) ──
+  await toTown();
+  await page.evaluate(() => { window.__state.player.questLog = {}; window.__state.player.questFlags = {}; }); // levelling to 10 above started other lines
+  await con('level 2');
+  await settle(300);
+  if (await marker('calden')) fail(`Calden should have no marker before the Weight step 2: ${await marker('calden')}`);
+  await sc(() => { window.__state.player.questLog.ql_weight = { step: 2, done: false }; });
+  await con('item twig 3');
+  await settle(350);
+  if (await marker('calden')) fail('Calden shows a marker with only 3/4 Twig');
+  // L tracker + journal Objectives button show the 3/4 counts
+  await key('j', 300);
+  await page.evaluate(() => document.querySelector('#p-journal [data-act="objectives"]')?.click());
+  await settle(200);
+  const trackTxt = await page.evaluate(() => ({ hidden: document.querySelector('#quest-track')?.hidden, text: document.querySelector('#quest-track')?.innerText ?? '' }));
+  if (trackTxt.hidden || !/Twig 3\/4/.test(trackTxt.text)) fail(`Objectives (L) button / tracker count: ${JSON.stringify(trackTxt)}`);
+  const jTxt = await page.evaluate(() => { document.querySelector('#p-journal .tile[data-line="ql_weight"]')?.click(); return document.querySelector('#p-journal')?.innerText ?? ''; });
+  if (!/Objectives \(L\)/.test(jTxt) || !/Twig 3\/4/.test(jTxt)) fail(`journal missing the button or the 3/4 count: ${jTxt.slice(0, 500)}`);
+  await key('Escape');
+  await con('item twig 1');
+  await settle(350);
+  if ((await marker('calden')) !== '?') fail(`Calden should show ? with 4/4 Twig, got ${await marker('calden')}`);
+  const full = await page.evaluate(() => document.querySelector('#quest-track')?.innerText ?? '');
+  if (!/Twig 4\/4/.test(full)) fail(`tracker should show Twig 4/4: ${full}`);
+  // L still toggles the tracker
+  await key('l', 150);
+  if (!(await page.evaluate(() => document.querySelector('#quest-track')?.hidden))) fail('L did not hide the tracker');
+  await key('l', 150);
+  await shot('calden-question-mark');
+  // finishing Weight → Ila gets a ! for The Quiet Work, which goes away after the talk
+  await con('quest complete ql_weight');
+  await settle(250);
+  for (let i = 0; i < 3 && (await visible()).includes('rewards'); i++) await key('Enter', 200); // dismiss the rewards screen
+  await settle(350);
+  if ((await marker('ila')) !== '!') fail(`Ila should show ! for The Quiet Work, got ${await marker('ila')} ${JSON.stringify(await page.evaluate(() => ({ log: window.__state.player.questLog, menu: window.__state.menuOpen, panels: [...document.querySelectorAll('.panel')].filter((x) => !x.hidden).map((x) => x.id), area: window.__state.player.area, npcs: window.__state.scene.npcs.map((n) => n.id) })))}`);
+  await sc(() => { window.__state.scene.player.x = window.__state.scene.npcs.find((n) => n.id === 'ila').x; });
+  await settle(200);
+  await key('e', 400);
+  await dismissDialog();
+  await settle(350);
+  if (await marker('ila')) fail(`Ila's ! should be gone after the talk, got ${await marker('ila')}`);
+  await con('item twig 8', 'item bark 4');
+  await settle(350);
+  if ((await marker('ila')) !== '?') fail('Ila should show ? with 8 Twig and 4 Bark');
+  console.log('markers/objectives ok');
+
+  // ── Character screen (section 6): equipment and gear bonuses ──
+  await page.evaluate(() => {
+    const p = window.__state.player;
+    p.gearItems.t_cap = { uid: 't_cap', itemId: 'hide_cap', defense: 2, weaponDamage: 0, statMultiplier: 1, magic: true, prefix: 'Sturdy', affixes: [{ stat: 'STR', value: 2 }, { stat: 'hp', value: 12 }], container: 'bag' };
+    p.equipment.head = 't_cap';
+    window.__game.events.emit('changed');
+  });
+  await key('c', 300);
+  const cTxt = await page.evaluate(() => document.querySelector('#p-stats')?.innerText ?? '');
+  for (const re of [/Equipment/i, /Wooden Sword/, /Weapon damage/, /Sturdy Hide Cap/, /Defense \+2/, /\+2 STR/, /\+12 Max HP/, /\(\+2 from gear\)/]) {
+    if (!re.test(cTxt)) fail(`character screen missing ${re}: ${cTxt}`);
+  }
+  if (/Rage/.test(cTxt)) fail('Rage row shown without the buff');
+  await shot('character-equipment');
+  await key('Escape');
+  await page.evaluate(() => { delete window.__state.player.equipment.head; delete window.__state.player.gearItems.t_cap; });
+
+  // ── Contact damage (section 11), affinity (16), give-up and jump (9) — in a safe test arena (town) ──
+  await con('item meadow_dew 1');
+  const arena = (id, dx = 0) => page.evaluate(([mid, off]) => {
+    const w = window.__state.scene;
+    const m = w.spawnMonster(mid, w.player.x + off);
+    m.setData('test', true);
+    return m.def.id;
+  }, [id, dx]);
+  const clearMobs = () => page.evaluate(() => { const w = window.__state.scene; w.monsters.forEach((m) => m.destroy()); w.monsters = []; });
+  await page.evaluate(() => { const p = window.__state.player; p.cheats.god = false; p.hp = 100; window.__state.invulnUntil = 0; window.__state.scene.player.x = 700; });
+  await settle(300);
+  // a peaceful sheep you have not hit does nothing
+  await arena('wool_sheep');
+  const hpA = await page.evaluate(() => window.__state.player.hp);
+  await settle(1500);
+  if ((await page.evaluate(() => window.__state.player.hp)) < hpA) fail('an unaggroed Wool Sheep dealt contact damage');
+  // hit it (0 dmg engages it), then the touch hurts — about 40% of a normal hit
+  await page.evaluate(() => { const w = window.__state.scene; const m = w.monsters[0]; m.x = w.player.x; m.hurt(1, w.player.x - 5, 0, 0); });
+  await settle(500);
+  const hpB = await page.evaluate(() => window.__state.player.hp);
+  if (hpB >= hpA) fail(`an aggroed Wool Sheep touching the player should bump for damage (hp ${hpA} → ${hpB})`);
+  if (hpA - hpB > 14) fail(`contact should be ~40% of a swing, took ${hpA - hpB}`);
+  const bumps = await page.evaluate(() => window.__state.player.hp);
+  await settle(300);
+  console.log('contact ok:', hpA, '→', hpB, '(then', bumps, ')');
+  await clearMobs();
+
+  // affinity: Flame Cleave on a Field Mouse = Weak, on an Earth Sprite = Immune
+  const cast = async (mob) => {
+    await clearMobs();
+    await page.evaluate((id) => {
+      const w = window.__state.scene; const p = window.__state.player;
+      p.skillRanks.flame_cleave = 1; p.mp = 999; p.hp = 9999; p.cheats.god = true; window.__state.cooldowns = {};
+      w.__ft = []; if (!w.__ftHooked) { const o = w.floatText.bind(w); w.floatText = (x, y, t, c, z) => { w.__ft.push(String(t)); return o(x, y, t, c, z); }; w.__ftHooked = true; }
+      w.facing = 1; w.player.x = 900; w.swingReadyAt = 0;
+      const m = w.spawnMonster(id, 950); m.body.setVelocityX(0); w.__mob = m;
+    }, mob);
+    const hp0 = await page.evaluate(() => window.__state.scene.__mob.hp);
+    for (let i = 0; i < 8; i++) {
+      await page.evaluate(() => { window.__state.cooldowns = {}; window.__state.scene.swingReadyAt = 0; window.__state.scene.useSkill('flame_cleave'); });
+      await settle(520);
+      const r = await page.evaluate(() => ({ hp: window.__state.scene.__mob.hp, ft: window.__state.scene.__ft.slice() }));
+      if (r.hp < hp0 || r.ft.includes('Immune')) return { hp0, ...r };
+    }
+    return { hp0, ...(await page.evaluate(() => ({ hp: window.__state.scene.__mob.hp, ft: window.__state.scene.__ft.slice() }))) };
+  };
+  const weak = await cast('field_mouse');
+  if (!weak.ft.includes('Weak!') || weak.hp >= weak.hp0) fail(`Flame Cleave on a Field Mouse should be Weak: ${JSON.stringify(weak)}`);
+  const imm = await cast('earth_sprite');
+  if (!imm.ft.includes('Immune') || imm.hp !== imm.hp0) fail(`Flame Cleave on an Earth Sprite should be Immune and deal nothing: ${JSON.stringify(imm)}`);
+  console.log('affinity ok:', { weak: weak.ft, imm: imm.ft });
+  await clearMobs();
+
+  // give up (section 9): the player stands on a ledge too high for a Burrow Mole
+  await con('tp dirt_banks');
+  await page.waitForFunction(() => window.__state.player.area === 'dirt_banks' && window.__game?.scene.isActive('World'), null, { timeout: 10000 });
+  await settle(400);
+  await page.evaluate(() => { window.__state.scene.monsters.forEach((m) => m.destroy()); window.__state.scene.monsters = []; });
+  const high = await page.evaluate(() => {
+    const w = window.__state.scene;
+    const ledge = w.geo.platforms.find((p) => p.y === 4);
+    const top = w.groundY - ledge.y * 32;
+    w.player.setPosition((ledge.x + 2) * 32, top - 4);
+    window.__state.player.cheats.god = true;
+    const m = w.spawnMonster('burrow_mole', (ledge.x + 2) * 32);
+    m.hurt(1, m.x + 1, 0, 0);
+    w.__mole = m;
+    return { top };
+  });
+  await settle(900);
+  const engagedNow = await page.evaluate(() => window.__state.scene.__mole.engaged);
+  if (!engagedNow) fail('the Mole should be hunting at first');
+  await settle(3300);
+  const gaveUp = await page.evaluate(() => window.__state.scene.__mole.state);
+  if (gaveUp !== 'idle') fail(`the Mole should give up within ~3 s of failing to reach a high ledge, state is ${gaveUp}`);
+  // drop down: it can re-aggro
+  await page.evaluate(() => { const w = window.__state.scene; w.player.setPosition(w.__mole.x + 90, w.groundY - 2); });
+  await settle(900);
+  if (!(await page.evaluate(() => window.__state.scene.__mole.engaged))) fail('the Mole should re-aggro when the player is back on reachable ground');
+  console.log('give-up ok');
+  // a low ledge it can jump to
+  await page.evaluate(() => { window.__state.scene.monsters.forEach((m) => m.destroy()); window.__state.scene.monsters = []; });
+  await page.evaluate(() => {
+    const w = window.__state.scene;
+    const ledge = w.geo.platforms.find((p) => p.y === 2);
+    const top = w.groundY - ledge.y * 32;
+    w.player.setPosition((ledge.x + 3) * 32, top - 4);
+    const m = w.spawnMonster('burrow_mole', (ledge.x + 1) * 32);
+    m.hurt(1, m.x - 1, 0, 0);
+    w.__mole2 = m; w.__ledgeTop = top;
+  });
+  await settle(3000);
+  const up = await page.evaluate(() => ({ y: window.__state.scene.__mole2.y, top: window.__state.scene.__ledgeTop, state: window.__state.scene.__mole2.state }));
+  if (up.y > up.top + 14) fail(`the Mole should jump up onto a low ledge instead of giving up: ${JSON.stringify(up)}`);
+  console.log('ledge jump ok:', up);
+  await page.evaluate(() => { window.__state.scene.monsters.forEach((m) => m.destroy()); window.__state.scene.monsters = []; window.__state.player.cheats.god = false; });
+
+  // ── Hot Edge (section 17) ──
+  await toTown();
+  // Calden's other lines (Blood Up, A Crack in the Dirt) are finished, so only Hot Edge can mark him.
+  await page.evaluate(() => { window.__state.player.questLog = { ql_weight: { step: 3, done: true }, ql_blood: { step: 3, done: true }, ql_crack: { step: 4, done: true } }; });
+  await con('level 6', 'heal');
+  await settle(350);
+  if ((await marker('calden')) !== '!') fail(`Calden should show ! at level 6 for Hot Edge, got ${await marker('calden')}`);
+  await page.evaluate(() => { window.__state.scene.player.x = window.__state.scene.npcs.find((n) => n.id === 'calden').x; });
+  await settle(200);
+  await key('e', 400);
+  if (!(await visible()).includes('dialog')) fail('Calden did not open the Hot Edge dialog');
+  const heDlg = await page.evaluate(() => document.querySelector('#p-dialog')?.innerText ?? '');
+  if (!/Level six|Smoldering Scale/i.test(heDlg)) fail(`Hot Edge opening dialog unexpected: ${heDlg}`);
+  await dismissDialog();
+  const he1 = await page.evaluate(() => window.__state.player.questLog?.ql_hot);
+  if (!he1 || he1.step !== 1) fail(`talking to Calden at level 6 should start Hot Edge: ${JSON.stringify(he1)}`);
+  if (await marker('calden')) fail(`no marker while waiting for the scale, got ${await marker('calden')}`);
+  // with a scale but under 10 STR: "not ready", scale kept, no ?
+  await con('item smoldering_scale 1');
+  await page.evaluate(() => { window.__state.player.stats.STR = 4; });
+  await settle(350);
+  if (await marker('calden')) fail('Calden must not show ? while STR is under 10');
+  await page.evaluate(() => { window.__state.scene.player.x = window.__state.scene.npcs.find((n) => n.id === 'calden').x; });
+  await key('e', 400);
+  await dismissDialog();
+  if (!((await page.evaluate(() => window.__state.player.inventory.smoldering_scale ?? 0)) >= 1)) fail('Calden took the scale before the player was ready');
+  if ((await page.evaluate(() => window.__state.player.questLog.ql_hot.step)) !== 1) fail('Hot Edge advanced before the gate');
+  await page.evaluate(() => { window.__state.player.stats.STR = 10; });
+  await settle(350);
+  if ((await marker('calden')) !== '?') fail(`Calden should show ? at level 6, 10 STR with the scale, got ${await marker('calden')}`);
+  await page.evaluate(() => { window.__state.scene.player.x = window.__state.scene.npcs.find((n) => n.id === 'calden').x; });
+  await key('e', 400);
+  await dismissDialog();
+  const he2 = await page.evaluate(() => ({ step: window.__state.player.questLog.ql_hot.step, scale: window.__state.player.inventory.smoldering_scale ?? 0 }));
+  if (he2.step !== 2 || he2.scale !== 0) fail(`scale turn-in should advance Hot Edge and consume the scale: ${JSON.stringify(he2)}`);
+  // Cinderback is out in the Banks from the grain step
+  await con('tp dirt_banks');
+  await page.waitForFunction(() => window.__state.player.area === 'dirt_banks' && window.__game?.scene.isActive('World'), null, { timeout: 10000 });
+  await settle(700);
+  const cb = await page.evaluate(() => window.__state.scene.monsters.filter((m) => m.alive && m.def.id === 'cinderback').length);
+  if (cb !== 1) fail(`Cinderback should be in the Dirt Banks during the grain step, found ${cb}`);
+  // the first Ember Beetle killed at level 6+ always drops a scale (once per character)
+  const guaranteed = await page.evaluate(() => {
+    const w = window.__state.scene; const p = window.__state.player;
+    p.questFlags.scale_seen = false; p.inventory.smoldering_scale = 0;
+    const seen = [];
+    const o = w.spawnDrop.bind(w); w.spawnDrop = (x, y, id, q, r, i) => { seen.push(id); return o(x, y, id, q, r, i); };
+    w.onKill({ def: { id: 'ember_beetle', xp: 0, level: 4 }, x: w.player.x, y: w.player.y, displayHeight: 20 });
+    return { seen, flag: p.questFlags.scale_seen };
+  });
+  if (!guaranteed.seen.includes('smoldering_scale') || !guaranteed.flag) fail(`first Ember Beetle at level 6+ must drop a Smoldering Scale: ${JSON.stringify(guaranteed)}`);
+  console.log('hot edge ok');
+
+  // ── Passive production is whole numbers (section 7) ──
+  await con('passive rank nature_prod 5');
+  const ne0 = await page.evaluate(() => window.__state.player.inventory.nature_essence ?? 0);
+  await con('passive wait 1');
+  const ne1 = await page.evaluate(() => window.__state.player.inventory.nature_essence ?? 0);
+  if (ne1 - ne0 !== 8) fail(`rank 5 should make 8 Nature Essence in an hour, got ${ne1 - ne0}`);
+  await con('passive rank nature_prod 10');
+  const ne2 = await page.evaluate(() => window.__state.player.inventory.nature_essence ?? 0);
+  await con('passive wait 1');
+  if ((await page.evaluate(() => window.__state.player.inventory.nature_essence ?? 0)) - ne2 !== 64) fail('rank 10 should make 64 an hour');
+  console.log('passive rates ok');
+
+  // static numbers that live in code
+  const asm = readFileSync('src/data/assumptions.ts', 'utf8');
+  for (const re of [/field_mouse: 42, wool_sheep: 30, crow: 55, burrow_mole: 32, earth_sprite: 40, ember_beetle: 32/, /meadow_boar: \{[^}]*range: 44/, /field_mouse: \{[^}]*range: 16/, /GIVE_UP_MS = 2750/, /fraction: 0\.4/]) {
+    if (!re.test(asm)) fail(`assumptions.ts is missing ${re}`);
+  }
+  console.log('v0.2.6 behaviour ok');
 } finally {
   await browser.close();
   server.kill();

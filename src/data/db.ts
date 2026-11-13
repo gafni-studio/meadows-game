@@ -60,8 +60,12 @@ export function f(key: string): number {
   return v;
 }
 
+/** v0.2.6: named foes without their own table roll their base mob's table. */
+const DROP_BASE: Record<string, string> = { wool_shoulder: 'wool_sheep', bank_cracker: 'burrow_mole', cinderback: 'ember_beetle' };
+
 export function dropsFor(monsterId: string): DropRow[] {
-  return DB.drops.filter((d) => d.monster_id === monsterId);
+  const id = DROP_BASE[monsterId] ?? monsterId;
+  return DB.drops.filter((d) => d.monster_id === id);
 }
 
 export function consumableEffect(itemId: string): ConsumableEffect {
@@ -111,7 +115,8 @@ export function vendorBuyPrice(itemId: string): number | null {
 export function xpToNext(level: number): number {
   const row = DB.formulas[`xp_to_next_${level}`];
   if (row?.num) return row.num;
-  return Math.round(40 * Math.pow(level, 1.5) + 30 * level); // combat_formulas.xp_formula
+  // combat_formulas.xp_formula (v0.2.6): levels 1-3 as before; from level 4 twice as many kills.
+  return level <= 3 ? Math.round(40 * Math.pow(level, 1.5) + 30 * level) : Math.round(80 * Math.pow(level, 1.5) + 60 * level);
 }
 
 export interface QuestRow { id: string; name: string; giver: string; reward_xp: number | null; reward_coins: number | null; reward_items: string | null; objective: string; desc?: string; notes?: string }

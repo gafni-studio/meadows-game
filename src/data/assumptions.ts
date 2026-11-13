@@ -24,10 +24,9 @@ export const ASSUME = {
   potionCooldownMs: 400,
   // Not in sheet: hurt invulnerability after taking a hit, monster swing interval and speeds.
   hurtInvulnMs: 700,
-  // v0.2.3: movement speed restored to v0.1.2 (only the animation was too fast).
-  // Pasture: mouse 28, sheep 20, crow 38, default 24. Dirt Banks designed after the
-  // v0.1.3 slowdown are scaled ×1.4 (28/20) so they match that original pace.
-  monsterSpeed: { field_mouse: 28, wool_sheep: 20, crow: 38, burrow_mole: 21, earth_sprite: 27, ember_beetle: 22, wool_shoulder: 18, bank_cracker: 20, cinderback: 21, spark_bug: 25, frost_moth: 23, default: 24 } as Record<string, number>,
+  // v0.2.6: travel speed up ~45-50% (animation frame rates are unchanged; they scale off this number).
+  // Chase is still 1.6× walk speed; the player stays at 148.
+  monsterSpeed: { field_mouse: 42, wool_sheep: 30, crow: 55, burrow_mole: 32, earth_sprite: 40, ember_beetle: 32, wool_shoulder: 28, bank_cracker: 30, cinderback: 32, spark_bug: 36, frost_moth: 34, meadow_boar: 36, default: 36 } as Record<string, number>,
   // Player movement (px/s, px/s², px/s). v0.1.3: 148 (was 190, ≈−22%).
   playerSpeed: 148,
   gravity: 1300,
@@ -64,21 +63,21 @@ export const PLAYER_EVA = { base: 8, perAgi: 0.8, perLevel: 0.5 };
  */
 export interface MonsterFeel { acc: number; eva: number; kbRes: number; range: number; windupMs: [number, number] }
 export const MONSTER_FEEL: Record<string, MonsterFeel> = {
-  // range = melee contact reach (edge to edge, px). v0.1.2: contact only (was 14-18).
+  // range = melee reach (edge to edge, px). v0.2.6: longer reaches so mobs connect from a step away (was 4-28; Boar 44 is the longest).
   // windupMs = random telegraph per swing (v0.1.2: was fixed 380-450).
-  field_mouse: { acc: 8, eva: 7, kbRes: 0.0, range: 4, windupMs: [225, 495] },
-  wool_sheep: { acc: 9, eva: 6, kbRes: 0.6, range: 4, windupMs: [288, 540] },
-  crow: { acc: 10, eva: 10, kbRes: 0.2, range: 4, windupMs: [360, 540] },
-  burrow_mole: { acc: 10, eva: 6, kbRes: 0.5, range: 4, windupMs: [315, 585] },
-  earth_sprite: { acc: 11, eva: 11, kbRes: 0.15, range: 24, windupMs: [252, 495] },
-  ember_beetle: { acc: 10, eva: 8, kbRes: 0.35, range: 22, windupMs: [270, 522] },
-  spark_bug: { acc: 12, eva: 11, kbRes: 0.2, range: 18, windupMs: [234, 468] },
-  frost_moth: { acc: 11, eva: 13, kbRes: 0.1, range: 4, windupMs: [288, 540] },
-  wool_shoulder: { acc: 11, eva: 7, kbRes: 0.7, range: 4, windupMs: [288, 558] },
-  bank_cracker: { acc: 12, eva: 7, kbRes: 0.65, range: 20, windupMs: [324, 612] },
-  cinderback: { acc: 12, eva: 9, kbRes: 0.55, range: 4, windupMs: [288, 540] },
-  meadow_boar: { acc: 11, eva: 7, kbRes: 0.55, range: 28, windupMs: [288, 540] },
-  default: { acc: 9, eva: 8, kbRes: 0.3, range: 4, windupMs: [270, 540] },
+  field_mouse: { acc: 8, eva: 7, kbRes: 0.0, range: 16, windupMs: [225, 495] },
+  wool_sheep: { acc: 9, eva: 6, kbRes: 0.6, range: 18, windupMs: [288, 540] },
+  crow: { acc: 10, eva: 10, kbRes: 0.2, range: 14, windupMs: [360, 540] },
+  burrow_mole: { acc: 10, eva: 6, kbRes: 0.5, range: 22, windupMs: [315, 585] },
+  earth_sprite: { acc: 11, eva: 11, kbRes: 0.15, range: 38, windupMs: [252, 495] },
+  ember_beetle: { acc: 10, eva: 8, kbRes: 0.35, range: 36, windupMs: [270, 522] },
+  spark_bug: { acc: 12, eva: 11, kbRes: 0.2, range: 32, windupMs: [234, 468] },
+  frost_moth: { acc: 11, eva: 13, kbRes: 0.1, range: 28, windupMs: [288, 540] },
+  wool_shoulder: { acc: 11, eva: 7, kbRes: 0.7, range: 24, windupMs: [288, 558] },
+  bank_cracker: { acc: 12, eva: 7, kbRes: 0.65, range: 36, windupMs: [324, 612] },
+  cinderback: { acc: 12, eva: 9, kbRes: 0.55, range: 34, windupMs: [288, 540] },
+  meadow_boar: { acc: 11, eva: 7, kbRes: 0.55, range: 44, windupMs: [288, 540] },
+  default: { acc: 9, eva: 8, kbRes: 0.3, range: 20, windupMs: [270, 540] },
 };
 
 
@@ -191,3 +190,29 @@ export const MAGIC = {
     mpRegen: [0.05, 0.15],
   } as Record<string, [number, number]>,
 };
+
+/** v0.2.6: contact damage — a bump from a mob that is in combat is this fraction of a normal swing. */
+export const CONTACT = { fraction: 0.4, kbScale: 0.45 };
+
+/** v0.2.6: how long (ms) an aggroed mob that cannot reach the player tries before giving up. */
+export const GIVE_UP_MS = 2750;
+/** v0.2.6: highest ledge (px above a mob's feet) a mob can jump onto, and the jump it makes. */
+export const MOB_JUMP = { maxRisePx: 80, velocity: 470 };
+
+/**
+ * v0.2.6 affinity. Skills have a school; mobs are weak to / immune to a school.
+ * Nature and beast mobs are weak to Elemental; elemental mobs are weak to Nature and immune to Elemental.
+ * Basic is never weak or immune. Contact damage is Basic.
+ */
+export type School = 'basic' | 'nature' | 'elemental';
+export const SKILL_SCHOOL: Record<string, School> = { earthbreaker: 'nature', root_lash: 'nature', flame_cleave: 'elemental' };
+export const AFFINITY: Record<string, { weak?: School; immune?: School }> = {
+  field_mouse: { weak: 'elemental' }, wool_sheep: { weak: 'elemental' }, crow: { weak: 'elemental' },
+  burrow_mole: { weak: 'elemental' }, meadow_boar: { weak: 'elemental' }, old_stump: { weak: 'elemental' },
+  wool_shoulder: { weak: 'elemental' }, bank_cracker: { weak: 'elemental' },
+  earth_sprite: { weak: 'nature', immune: 'elemental' }, ember_beetle: { weak: 'nature', immune: 'elemental' },
+  spark_bug: { weak: 'nature', immune: 'elemental' }, cinderback: { weak: 'nature', immune: 'elemental' },
+  frost_moth: { weak: 'nature', immune: 'elemental' },
+  shrine_wisp: { weak: 'nature' }, dusk_wisp: { weak: 'nature' }, night_stump: { weak: 'nature' },
+};
+export const WEAK_MUL = 1.5;

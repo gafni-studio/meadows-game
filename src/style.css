@@ -44,7 +44,7 @@ img { image-rendering: pixelated; }
 .frame-title { font-weight: bold; font-size: 15px; color: #ffe8b0; margin: -2px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #c9a46a55; text-shadow: 0 1px 0 #000; }
 .panel h3 { margin: 0 0 8px; color: #ffe8b0; } .panel p { margin: 6px 0; }
 #p-inventory { right: 10px; width: 580px; } #p-stats { left: 280px; width: 400px; } #p-shop { left: 50%; transform: translateX(-50%); width: 560px; }
-#p-dialog, #p-pause, #p-confirm { left: 50%; transform: translateX(-50%); width: 440px; top: 28%; }
+#p-dialog, #p-rewards, #p-pause, #p-confirm { left: 50%; transform: translateX(-50%); width: 440px; top: 28%; }
 .panel button { background: #4b6b3a; color: #fff; border: 2px solid #2d4422; border-radius: 6px; padding: 4px 12px; cursor: pointer; font-size: 13px; font-family: inherit; }
 .panel button.x { float: right; background: #6b3a3a; border-color: #3d1f1f; padding: 0 8px; font-size: 14px; }
 .panel button.danger { background: #8a3b32; border-color: #4a1d18; }
@@ -84,7 +84,7 @@ img { image-rendering: pixelated; }
 
 /* Stats list */
 .statlist { display: flex; flex-direction: column; gap: 4px; margin: 6px 0 10px; }
-.statrow { display: grid !important; grid-template-columns: 40px 30px 20px 1fr; align-items: center; text-align: left; background: #3a3022 !important; border-color: #5b4630 !important; }
+.statrow { display: grid !important; grid-template-columns: 40px max-content 20px 1fr; column-gap: 8px; align-items: center; text-align: left; background: #3a3022 !important; border-color: #5b4630 !important; }
 .statrow .plus { color: #7dff9b; font-weight: bold; } .statrow small { color: #c9b48a; }
 .derived { width: 100%; } .derived td { padding: 2px 4px; border-bottom: 1px solid #ffffff14; } .derived td:last-child { text-align: right; }
 
@@ -157,7 +157,7 @@ img { image-rendering: pixelated; }
 .magic-tag { color: #8ec8ff; font-weight: bold; }
 .range { color: #c9b48a; font-size: 11px; }
 
-#quest-track { position: absolute; top: 10px; left: 290px; max-width: 340px; min-width: 200px; background: linear-gradient(#2c2418f0, #1a1510f0); padding: 8px 12px 10px; border-radius: 8px; border: 2px solid #c9a46a99; color: #fff6dc; font-size: 12px; line-height: 1.4; box-shadow: 0 2px 14px #0008, inset 0 1px 0 #ffe8b022; }
+#quest-track { position: absolute; top: 172px; left: 10px; max-width: 260px; min-width: 200px; background: linear-gradient(#2c2418f0, #1a1510f0); padding: 8px 12px 10px; border-radius: 8px; border: 2px solid #c9a46a99; color: #fff6dc; font-size: 12px; line-height: 1.4; box-shadow: 0 2px 14px #0008, inset 0 1px 0 #ffe8b022; }
 #quest-track .qt-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
 #quest-track .qt-title { font-size: 9px; letter-spacing: 1.4px; text-transform: uppercase; color: #c9b48a; }
 #quest-track .qt-key { font-size: 9px; color: #a89c8666; }
@@ -192,3 +192,22 @@ img { image-rendering: pixelated; }
 #p-dialog .dlg-line { font-size: 15px; line-height: 1.45; min-height: 3.2em; margin: 8px 0 12px; }
 #p-dialog .dlg-pager { color: #b8a878; font-size: 11px; letter-spacing: 0.04em; margin-bottom: 6px; }
 #p-dialog .btns { margin-top: 4px; }
+
+/* v0.2.6: quest rewards screen */
+#p-rewards { width: 420px; top: 22%; text-align: left; }
+#p-rewards h3 { font-size: 18px; margin-bottom: 4px; }
+#p-rewards .rw-flavor { color: #d8c8a0; font-style: italic; margin: 4px 0 10px; }
+#p-rewards .rw-title { color: #c9b48a; font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; margin-bottom: 4px; }
+#p-rewards .rw-list { list-style: none; margin: 0 0 12px; padding: 0; }
+#p-rewards .rw-list li { padding: 4px 8px; margin-bottom: 3px; background: #ffffff10; border-left: 3px solid #ffe066; font-size: 14px; color: #fff6dc; }
+/* v0.2.6: Objectives (L) button in the journal; the tracker stays above windows */
+#p-journal .obj-btn { float: right; margin-right: 8px; padding: 0 8px; font-size: 12px; background: #3a4a6b; border-color: #1f2a3d; }
+#quest-track { z-index: 6; }
+#quest-track.pulse { animation: qtpulse 0.9s ease-out; }
+@keyframes qtpulse { 0% { box-shadow: 0 0 0 0 #ffe066cc; } 100% { box-shadow: 0 0 0 14px #ffe06600; } }
+.j-prog { color: #ffe8b0; }
+.statrow .v { white-space: nowrap; }
+.statrow .v em.gear { color: #9be7ff; font-style: normal; font-size: 11px; white-space: nowrap; }
+.equip-title { color: #c9b48a; font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; margin: 8px 0 2px; }
+table.equip td:first-child { color: #c9b48a; white-space: nowrap; padding-right: 8px; }
+.equip-total { font-size: 12px; margin-top: 2px; }

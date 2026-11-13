@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { MonsterDef } from '../data/db';
-import { ANIM, ASSUME, TILE, MONSTER_FEEL, AI, RANGED } from '../data/assumptions';
+import { ANIM, ASSUME, TILE, MONSTER_FEEL, AI, RANGED, GIVE_UP_MS, MOB_JUMP } from '../data/assumptions';
 import { monsterSlot, SPRITES } from '../art/sprites';
 import { fitSlot, applyBody } from '../art/SpriteFactory';
 
@@ -9,6 +9,8 @@ import { fitSlot, applyBody } from '../art/SpriteFactory';
  *  idle → (aggro or hit) → approach → windup (telegraph) → strike → recover
  *       → reposition (back off | hop over to the other side | short pause) → approach …
  *  hitstun interrupts anything; return = leash home (HP reset).
+ * v0.2.6: idle mobs patrol their whole spawn stretch; an aggroed mob that cannot reach the player for
+ *   GIVE_UP_MS drops aggro and patrols again; mobs jump onto low ledges the player stands on.
  * Melee (monsters.attack_type = melee): walks to body contact; a swing only lands if still touching.
  *   Random wind-up length, random recover, occasional feints (telegraph → back off without striking).
  * Ranged (attack_type = ranged): keeps RANGED.keepPx distance, telegraphs, then throws a slow projectile.
@@ -26,6 +28,13 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
   hp: number;
   spawnX: number;
   state: State = 'idle';
+  /** Where this mob was when it last went into combat; the leash is measured from here. */
+  private home: number;
+  private spawnY: number;
+  private patrol: [number, number] | null;
+  private stuckMs = 0;
+  private lastTickAt = 0;
+  private nextJumpAt = 0;
   private until = 0; // state timer
   private dir = 1; // reposition direction
   private wanderTarget: number;
@@ -43,7 +52,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
   private feint = false;
   private namedTint: number | null = null;
 
-  constructor(scene: Phaser.Scene, def: MonsterDef, x: number, groundY: number) {
+  constructor(scene: Phaser.Scene, def: MonsterDef, x: number, groundY: number, patrol?: [number, number]) {
     const slot = monsterSlot(def.id);
     super(scene, x, groundY, slot);
     this.slot = slot;
@@ -51,6 +60,9 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     this.feel = MONSTER_FEEL[def.id] ?? MONSTER_FEEL.default;
     this.hp = def.hp;
     this.spawnX = x;
+    this.home = x;
+    this.spawnY = groundY;
+    this.patrol = patrol ?? null;
     this.wanderTarget = x;
     this.speed = ASSUME.monsterSpeed[def.id] ?? ASSUME.monsterSpeed.default;
     this.ranged = def.attack_type === 'ranged';
@@ -88,7 +100,9 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
   get engaged() { return !['idle', 'return', 'dead'].includes(this.state); }
 
   private set(state: State, ms = 0) {
+    const wasEngaged = this.engaged;
     this.state = state;
+    if (!wasEngaged && this.engaged) { this.home = this.x; this.stuckMs = 0; }
     this.until = this.scene.time.now + ms;
     this.alert.setVisible(state === 'windup');
     if (state !== 'windup') { this.restoreTint(); this.setScale(this.baseSX, this.baseSY); }
@@ -110,6 +124,11 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
       this.set('approach'); // passive monsters fight back once hit
     }
     return false;
+  }
+
+  /** Hit by something that did no damage (an immune hit): wake a passive mob up without pushing it. */
+  provoke() {
+    if (this.alive && this.state === 'idle') this.set('approach');
   }
 
   private die() {
@@ -134,6 +153,8 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
     this.hp = this.def.hp;
     this.set('idle');
     this.x = this.spawnX;
+    this.y = this.spawnY; // a mob that died on a ledge comes back on the ground
+    this.home = this.spawnX;
     this.setAlpha(1).setVisible(true);
     this.body2.enable = true;
     this.label.setVisible(true);
@@ -153,26 +174,47 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
   tick(now: number, t: Target): Attack {
     if (!this.alive) return null;
     const body = this.body2;
+    const dtMs = this.lastTickAt ? Math.min(100, now - this.lastTickAt) : 16;
+    this.lastTickAt = now;
     const dx = t.x - this.x;
     const dy = Math.abs(t.y - this.y);
+    // v0.2.6 reachability: how far above this mob's feet the player stands.
+    const rise = this.y - t.y;
+    const sameLevel = Math.abs(rise) <= 40;
+    const jumpable = rise > 40 && rise <= MOB_JUMP.maxRisePx;
+    const reachable = rise <= MOB_JUMP.maxRisePx;
     const gap = Math.abs(dx) - t.halfW - this.halfW; // edge-to-edge distance
     const toward = Math.sign(dx) || 1;
     const aggroPx = ASSUME.aggroTiles * TILE;
     const leashPx = ASSUME.leashTiles * TILE;
     let swing: Attack = null;
 
-    if (this.state === 'idle' && this.def.aggression === 'aggressive' && t.targetable && Math.abs(dx) < aggroPx && dy < 140) this.set('approach');
-    if (this.engaged && (!t.targetable || Math.abs(this.x - this.spawnX) > leashPx)) this.set('return');
+    if (this.state === 'idle' && this.def.aggression === 'aggressive' && t.targetable && Math.abs(dx) < aggroPx && dy < 140 && reachable) this.set('approach');
+    if (this.engaged && (!t.targetable || Math.abs(this.x - this.home) > leashPx)) this.set('return');
+
+    // Give up when stuck: the player is on a ledge this mob cannot reach (or it keeps failing to get up).
+    if (this.engaged && this.state !== 'hitstun') {
+      if (sameLevel || rise < -40) this.stuckMs = 0;
+      else if (!reachable || jumpable) this.stuckMs += dtMs;
+      if (this.stuckMs >= GIVE_UP_MS) {
+        this.stuckMs = 0;
+        body.setVelocityX(0);
+        this.set('idle');
+        this.nextWanderAt = now + 1200;
+        const [lo, hi] = this.patrolRange();
+        this.wanderTarget = Phaser.Math.Clamp(this.x + (dx > 0 ? -1 : 1) * (6 + Math.random() * 10) * TILE, lo, hi);
+        return null;
+      }
+    }
 
     switch (this.state) {
       case 'idle': {
-        if (now >= this.nextWanderAt) {
-          this.nextWanderAt = now + 1500 + Math.random() * 2500;
-          // v0.2.3: wander up to 16 tiles from spawn (was 4) so patrols cover real ground.
-          // Stay-in-place chance 15% (was 35%). Clamp to the world so they don't walk off the map.
-          const bounds = this.scene.physics.world.bounds;
-          const raw = Math.random() < 0.15 ? this.x : this.spawnX + (Math.random() * 2 - 1) * 16 * TILE;
-          this.wanderTarget = Phaser.Math.Clamp(raw, bounds.x + 24, bounds.x + bounds.width - 24);
+        // v0.2.6: walk to a random spot along the whole spawn stretch, pause, pick another.
+        const w0 = this.wanderTarget - this.x;
+        if (now >= this.nextWanderAt && (Math.abs(w0) <= 6 || now >= this.nextWanderAt + 12000)) {
+          this.nextWanderAt = now + 600 + Math.random() * 2400;
+          const [lo, hi] = this.patrolRange();
+          this.wanderTarget = Math.random() < 0.12 ? this.x : lo + Math.random() * (hi - lo);
         }
         const w = this.wanderTarget - this.x;
         body.setVelocityX(Math.abs(w) > 6 ? Math.sign(w) * this.speed * 0.6 : 0);
@@ -191,6 +233,12 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
           this.startWindup(rand(this.feel.windupMs));
         } else {
           body.setVelocityX(gap < AI.minGapPx ? -toward * this.speed : toward * this.speed * AI.chaseSpeedMul);
+          // The player is on a low ledge: jump up to it (a ledge above the jump is left to the give-up timer).
+          if (jumpable && body.blocked.down && now >= this.nextJumpAt && Math.abs(dx) < 90) {
+            this.nextJumpAt = now + 750;
+            body.setVelocityY(-MOB_JUMP.velocity);
+            body.setVelocityX(toward * this.speed * AI.chaseSpeedMul);
+          }
         }
         break;
       case 'windup':
@@ -208,6 +256,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
           } else {
             // Strike: small lunge; damage only if still touching the player.
             swing = gap <= this.feel.range + 6 && dy < 50 ? 'swing' : null;
+            if (swing) this.stuckMs = 0;
             body.setVelocityX(toward * 90);
             this.set('recover', rand(AI.recoverMs));
           }
@@ -245,7 +294,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
         if (now >= this.until) this.set(Math.random() < 0.5 ? 'pause' : 'approach', rand(AI.idlePauseMs) * 0.5);
         break;
       case 'return': {
-        const back = this.spawnX - this.x;
+        const back = this.home - this.x;
         body.setVelocityX(Math.sign(back) * this.speed * 2.2);
         if (Math.abs(back) < 8) { this.set('idle'); this.hp = this.def.hp; body.setVelocityX(0); } // leash reset
         break;
@@ -273,6 +322,14 @@ export class Monster extends Phaser.Physics.Arcade.Sprite {
 
     this.drawUi();
     return swing;
+  }
+
+  /** The stretch of ground this mob patrols: its spawn stretch, else a wide span around its spawn point. */
+  private patrolRange(): [number, number] {
+    const bounds = this.scene.physics.world.bounds;
+    const lo = this.patrol ? this.patrol[0] : this.spawnX - 16 * TILE;
+    const hi = this.patrol ? this.patrol[1] : this.spawnX + 16 * TILE;
+    return [Math.max(bounds.x + 24, lo), Math.min(bounds.x + bounds.width - 24, hi)];
   }
 
   private drawUi() {

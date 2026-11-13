@@ -177,12 +177,19 @@ function complete(p: P.PlayerData, line: string): void {
   }
   if (coins) p.coins += coins;
   const items = parseItems(last?.reward_items);
+  const itemRows: string[] = [];
   for (const it of items) {
     if (isGear(it.id)) {
-      // Quest gifts are a fixed mid roll, not a random drop (keeps the 150–200 band honest).
-      for (let n = 0; n < it.qty; n++) P.addGear(p, makeGear(it.id, { mode: 'mid', magic: false }));
+      // Quest gifts are the exact typical piece (Hide Vest Defense 3, Stone Club damage 16), never magic.
+      for (let n = 0; n < it.qty; n++) {
+        const g = makeGear(it.id, { mode: 'typical', magic: false });
+        P.addGear(p, g);
+        const stat = g.weaponDamage > 0 ? `Weapon damage ${g.weaponDamage}` : `Defense ${g.defense}`;
+        itemRows.push(`1× ${DB.items[it.id].name} — ${stat}`);
+      }
     } else {
       P.addItem(p, it.id, it.qty);
+      itemRows.push(`${it.qty}× ${DB.items[it.id].name}`);
     }
   }
   const got = [
@@ -194,6 +201,18 @@ function complete(p: P.PlayerData, line: string): void {
   Game.toast(`Quest complete: ${lineName(line)} — ${got}`, 'rare');
   Game.events.emit('quest', line);
   Game.events.emit('quest-complete', lineName(line), got);
+  // v0.2.6: a dedicated rewards screen (XP, Copper, each item with gear stats, skill rank / training).
+  const doneLines = TALK[`${line}:${last?.step}:done`];
+  const skillName = last?.unlock_skill ? (DB.skills[last.unlock_skill]?.name ?? last.unlock_skill) : '';
+  const rows = [
+    skillName ? (GRANT_RANK.has(line) ? `${skillName} rank 1` : `${skillName} training is now open`) : '',
+    xp ? `${xp} XP` : '',
+    coins ? `${coins} Copper` : '',
+    ...itemRows,
+  ].filter(Boolean);
+  // Order: XP, Copper, items, then the skill line (spec order), so move the skill row to the end.
+  if (skillName) rows.push(rows.shift()!);
+  Game.events.emit('quest-rewards', { name: lineName(line), flavor: doneLines?.length ? doneLines[doneLines.length - 1] : lastWords(line), rows });
   playSfx('quest');
   offerFollowups(p, false);
   Game.changed();
@@ -251,6 +270,7 @@ export function onPassive(p: P.PlayerData): void {
 
 /** Pickup or inspect of a quest-start item. */
 export function onItem(p: P.PlayerData, itemId: string, silent = false): void {
+  if (itemId === 'smoldering_scale') { p.questFlags ??= {}; p.questFlags.scale_seen = true; } // the level-6 guarantee is once per character
   for (const line of LINES) {
     const t = rowsOf(line)[0]?.trigger ?? '';
     if (t === `item:${itemId}`) start(p, line, silent);
@@ -277,7 +297,8 @@ export function shouldSpawn(p: P.PlayerData, monsterId: string): boolean {
   if (!isActive(p, k.line) || s.killed) return false;
   // Bank-Cracker is present from the moment you enter the Banks on A Crack in the Dirt
   // (step 2 Reach, step 3 collect, step 4 the formal hunt) so the named foe is actually visible.
-  if (monsterId === 'bank_cracker') return s.step >= 2 && s.step <= k.step;
+  // Cinderback (v0.2.6) is the same: out in the Banks from the moment Hot Edge reaches the grain step.
+  if (monsterId === 'bank_cracker' || monsterId === 'cinderback') return s.step >= 2 && s.step <= k.step;
   return s.step === k.step;
 }
 
@@ -285,7 +306,7 @@ export function onKill(p: P.PlayerData, monsterId: string): void {
   const k = KILL_LINE[monsterId];
   if (k) {
     const s = state(p, k.line);
-    if (isActive(p, k.line) && (s.step === k.step || (monsterId === 'bank_cracker' && s.step >= 2 && s.step <= k.step))) {
+    if (isActive(p, k.line) && (s.step === k.step || ((monsterId === 'bank_cracker' || monsterId === 'cinderback') && s.step >= 2 && s.step <= k.step))) {
       setState(p, k.line, { ...s, killed: true });
       if (monsterId === 'cinderback') {
         P.addItem(p, 'live_ember', 1);
@@ -426,6 +447,15 @@ const TALK: Record<string, string[]> = {
     'The ground answered.',
     'Earthbreaker training is open. Come back with Nature Essence, Earth Shard, and Clay when you want to learn it.',
   ],
+  'ql_hot:0:start': [
+    'Level six. You are stirring the dirt now.',
+    'Fire wants a spark first. Bring me a Smoldering Scale from the Ember Beetles in the Dirt Banks.',
+    'And ten STR in your arm, or it will burn you worse than the beetle.',
+  ],
+  'ql_hot:1:need': [
+    'No scale yet. The Ember Beetles in the Dirt Banks carry them.',
+    'Bring me one, and bring a strong arm to hold it.',
+  ],
   'ql_hot:1:ok': [
     'Still warm. Good.',
     'Bring me Warm Grain from the Ember Beetles in the Dirt Banks. Then we will talk fire.',
@@ -483,7 +513,7 @@ const TALK: Record<string, string[]> = {
   'ql_quiet_work:2:wait': [],
   'ql_quiet_work:2:ok': [
     'These will do.',
-    'Here. Essence, bark, pebble, a few shards, and a little copper — enough to set a first rank going.',
+    'Here. Nature Essence, pebble, bark, and a little copper — enough to set a first rank going.',
     'Press T. Look at Nature Essence. Start the upgrade. It takes a little time. That’s the point.',
     'Come back to me when you’ve set it.',
   ],
@@ -509,10 +539,11 @@ const TALK: Record<string, string[]> = {
   ],
 };
 
+/** v0.2.6: exactly the new Nature production rank-1 recipe (Nature Essence 20, Pebble 16, Bark 12, Copper 18). */
 const ILA_KIT: [string, number][] = [
-  ['pebble', 50], ['bark', 40], ['earth_shard', 5], ['nature_essence', 50],
+  ['nature_essence', 20], ['pebble', 16], ['bark', 12],
 ];
-const ILA_KIT_COPPER = 30;
+const ILA_KIT_COPPER = 18;
 
 function waitPages(line: string, step: number, fallback: string): string[] {
   return TALK[`${line}:${step}:wait`]?.length ? TALK[`${line}:${step}:wait`] : [fallback];
@@ -520,6 +551,18 @@ function waitPages(line: string, step: number, fallback: string): string[] {
 
 /** Calden (or another giver) talk. Multi-line; the step advances when the last page is closed. */
 export function talk(p: P.PlayerData, npc: string): TalkResult | null {
+  // v0.2.6: Calden starts Hot Edge at level 6 even if the player has never seen a scale.
+  if (npc === 'calden' && hotStartable(p) && markerFor(p, npc) !== '?') {
+    const hasScale = (p.inventory.smoldering_scale ?? 0) > 0;
+    const ready = hasScale && gateOk(p, 'ql_hot').ok;
+    const pages = [...TALK['ql_hot:0:start']];
+    if (ready) pages.push(...TALK['ql_hot:1:ok']);
+    else if (hasScale) pages.push(...TALK['ql_hot:1:gate']); // not ready: he looks at it and keeps nothing
+    return say(npc, pages, () => {
+      start(p, 'ql_hot');
+      if (ready) { P.removeItem(p, 'smoldering_scale', 1); advance(p, 'ql_hot'); }
+    });
+  }
   for (const line of LINES) {
     if (!isActive(p, line)) continue;
     const s = state(p, line);
@@ -552,6 +595,11 @@ export function talk(p: P.PlayerData, npc: string): TalkResult | null {
 
     if (r.trigger?.startsWith('item:') || (s.step === 1 && (line === 'ql_crack' || line === 'ql_hot'))) {
       const g = gateOk(p, line);
+      if (line === 'ql_hot') {
+        if ((p.inventory.smoldering_scale ?? 0) < 1) return say(npc, TALK['ql_hot:1:need']);
+        if (!g.ok) return say(npc, TALK['ql_hot:1:gate']);
+        return say(npc, TALK['ql_hot:1:ok'], () => { P.removeItem(p, 'smoldering_scale', 1); advance(p, line); });
+      }
       if (!g.ok) return say(npc, TALK[`${line}:1:gate`] ?? [`I can see what you've brought. ${g.reason}. Come back when you're ready — keep it safe.`]);
       return say(npc, TALK[`${line}:1:ok`] ?? [r.objective], () => advance(p, line));
     }
@@ -631,6 +679,7 @@ function lastWords(line: string): string {
 
 /** True if talking to this NPC should open a quest dialog (instead of, or before, their usual window). */
 export function wantsTalk(p: P.PlayerData, npc: string): boolean {
+  if (npc === 'calden' && hotStartable(p)) return true;
   return LINES.some((line) => {
     if (!isActive(p, line)) return false;
     const s = state(p, line);
@@ -647,6 +696,60 @@ export function wantsTalk(p: P.PlayerData, npc: string): boolean {
   });
 }
 
+/** Hot Edge can be started by talking to Calden at level 6, scale or not. */
+export function hotStartable(p: P.PlayerData): boolean {
+  return p.level >= 6 && !isDone(p, 'ql_hot') && state(p, 'ql_hot').step === 0 && !!rowsOf('ql_hot').length;
+}
+
+/** Lines whose first step is "talk to the giver" (the opening conversation). */
+const TALK_OPENERS = new Set(['ql_dirt_path', 'ql_blood', 'ql_quiet_work', 'ql_warm_coat', 'ql_dirt_keeps']);
+
+/**
+ * v0.2.6 marker above a quest NPC: `!` a quest is available (or its opening talk is waiting),
+ * `?` a turn-in is ready. `?` wins. Nothing while a step is still in progress or a gate is unmet.
+ */
+export function markerFor(p: P.PlayerData, npc: string): '!' | '?' | null {
+  let avail = false;
+  for (const line of LINES) {
+    if (!isActive(p, line)) continue;
+    const s = state(p, line);
+    const r = row(line, s.step);
+    if (!r || (r.giver && r.giver !== npc)) continue;
+    const key = `${line}:${s.step}`;
+    const last = rowsOf(line).slice(-1)[0]!.step;
+    if (TALK_OPENERS.has(line) && s.step === 1) { avail = true; continue; }
+    if (s.step === 1 && (line === 'ql_crack' || line === 'ql_hot')) {
+      const scaleOk = line !== 'ql_hot' || (p.inventory.smoldering_scale ?? 0) > 0;
+      if (gateOk(p, line).ok && scaleOk) return '?';
+      continue;
+    }
+    const hunt = HUNT[key];
+    if (hunt) { if (huntDone(hunt, s.kills) && s.step === last) return '?'; continue; }
+    const need = COLLECT[key];
+    if (need) { if ((!KILL[key] || s.killed) && hasCollect(p, need)) return '?'; continue; }
+    if (KILL[key]) { if (s.killed) return '?'; continue; }
+    if (line === 'ql_quiet_work' && s.step === 3 && hasDirtPathPrereq(p)) return '?';
+  }
+  if (npc === 'calden' && hotStartable(p)) avail = true;
+  return avail ? '!' : null;
+}
+
+/** `Twig 3/8 · Bark 0/4` for a collect step (capped at the requirement); '' if the step has no items. */
+export function collectLabel(p: P.PlayerData, need: Record<string, number>): string {
+  return Object.entries(need).map(([id, n]) => `${DB.items[id]?.name ?? id} ${Math.min(p.inventory[id] ?? 0, n)}/${n}`).join(' · ');
+}
+
+/** Live progress for the current step of a line: hunt kills, or items in the bag. */
+export function progressOf(p: P.PlayerData, line: string, step: number): string {
+  const s = state(p, line);
+  const key = `${line}:${step}`;
+  const hunt = HUNT[key];
+  if (hunt) return huntLabel(hunt, s.kills);
+  const need = COLLECT[key];
+  if (need) return collectLabel(p, need);
+  return '';
+}
+
 export function currentObjective(p: P.PlayerData): string | null {
   const all = currentObjectives(p);
   return all[0] ? `${all[0].name}: ${all[0].objective}` : null;
@@ -659,8 +762,8 @@ export function currentObjectives(p: P.PlayerData): { line: string; name: string
     const r = currentRow(p, line);
     if (r) {
       const s = state(p, line);
-      const hunt = HUNT[`${line}:${s.step}`];
-      const obj = hunt ? `${r.objective} (${huntLabel(hunt, s.kills)})` : r.objective;
+      const prog = progressOf(p, line, s.step);
+      const obj = prog ? `${r.objective} (${prog})` : r.objective;
       out.push({ line, name: r.name, objective: obj });
     }
   }
@@ -669,7 +772,7 @@ export function currentObjectives(p: P.PlayerData): { line: string; name: string
 
 export interface JournalEntry {
   line: string; name: string; desc: string; status: 'active' | 'done' | 'soon';
-  step: number; steps: { n: number; objective: string; current: boolean; done: boolean }[];
+  step: number; steps: { n: number; objective: string; current: boolean; done: boolean; progress?: string }[];
   rewards?: string; skill?: string;
 }
 export function journal(p: P.PlayerData): JournalEntry[] {
@@ -704,6 +807,7 @@ export function journal(p: P.PlayerData): JournalEntry[] {
         n: r.step, objective: r.objective,
         current: !s.done && r.step === s.step,
         done: s.done || r.step < s.step,
+        progress: !s.done && r.step === s.step ? progressOf(p, line, r.step) || undefined : undefined,
       })),
       rewards, skill: last?.unlock_skill ?? undefined,
     });

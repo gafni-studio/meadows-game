@@ -1,7 +1,7 @@
 /**
  * Nature + Elemental passive trees (v0.2.2).
  * Each tree has one production node (category essence only) and one efficiency node
- * (+% category material / essence finds). Rate = 1.5 × 1.6^(rank−1) /h at rank ≥ 1;
+ * (+% category material / essence finds). Rate is a whole-number table (v0.2.6: 1,2,3,5,8,12,18,28,42,64 /h);
  * rank 0 yields nothing. Production accrues online and offline from timestamps.
  * Upgrade time is 10 × 1.6^(targetRank−1) minutes; cost is paid up front. One upgrade at a time.
  * Spiritual and Hunter's Luck stay parked.
@@ -56,10 +56,13 @@ export function isLive(id: string): boolean {
 
 export function rankOf(p: P.PlayerData, id: string): number { return p.passiveRanks?.[id] ?? 0; }
 
-/** Essence / hour at this rank (0 at rank 0). */
+/** v0.2.6: whole essences per hour by rank (index = rank). Rank 0 yields nothing. */
+export const RATE_TABLE = [0, 1, 2, 3, 5, 8, 12, 18, 28, 42, 64];
+
+/** Essence / hour at this rank (0 at rank 0). Always a whole number. */
 export function rateAt(rank: number): number {
   if (rank < 1) return 0;
-  return 1.5 * Math.pow(1.6, rank - 1);
+  return RATE_TABLE[Math.min(rank, RATE_TABLE.length - 1)];
 }
 export function rateOf(p: P.PlayerData, id: string): number {
   const n = node(id);
@@ -75,9 +78,16 @@ export function upgradeMinutes(targetRank: number): number {
   return 10 * Math.pow(1.6, targetRank - 1);
 }
 
+/** v0.2.6: a node whose every rank 1-10 lists its own recipe (a Copper row at each rank). No 1.6× scaling. */
+const EXPLICIT = new Set(
+  [...new Set(COSTS.map((r) => r.node_id))].filter((id) =>
+    Array.from({ length: 10 }, (_, i) => i + 1).every((rk) => COSTS.some((r) => r.node_id === id && r.rank === rk && r.material_id === 'copper_coin'))),
+);
+
 export function nextCost(id: string, nextRank: number): Cost[] {
   const n = node(id);
   if (!n || nextRank < 1 || nextRank > (n.max_rank ?? 10)) return [];
+  if (EXPLICIT.has(id)) return COSTS.filter((r) => r.node_id === id && r.rank === nextRank).map((r) => ({ itemId: r.material_id, qty: r.quantity }));
   const scale = Math.pow(1.6, nextRank - 1);
   const at1 = COSTS.filter((r) => r.node_id === id && r.rank === 1);
   const atRank = COSTS.filter((r) => r.node_id === id && r.rank === nextRank);
@@ -226,7 +236,7 @@ export function setRank(p: P.PlayerData, id: string, rank: number): string {
   settle(p, Date.now(), true);
   Game.changed();
   Game.save();
-  return `${node(id)?.name ?? id} rank ${p.passiveRanks[id]} (${rateAt(p.passiveRanks[id]).toFixed(2)}/h)`;
+  return `${node(id)?.name ?? id} rank ${p.passiveRanks[id]} (${rateAt(p.passiveRanks[id])}/h)`;
 }
 
 /** Category of an item for efficiency bonuses, or null. */
@@ -256,8 +266,8 @@ export function preview(p: P.PlayerData, id: string): string {
   const r = rankOf(p, id);
   if (n.effect_type === 'production') {
     const a = rateAt(r), b = rateAt(r + 1);
-    if (r === 0) return `Learn: ${b.toFixed(1)} essence/hour (none at rank 0)`;
-    return `${a.toFixed(2)}/h → ${b.toFixed(2)}/h`;
+    if (r === 0) return `Learn: ${b} essence per hour (none at rank 0)`;
+    return `${a}/h → ${b}/h`;
   }
   if (n.effect_type === 'efficiency') {
     const pct = (rk: number) => 2 * rk;

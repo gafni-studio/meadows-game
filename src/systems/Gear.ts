@@ -51,7 +51,8 @@ function mid(lo: number, hi: number): number { return Math.round((lo + hi) / 2);
 
 function uid(): string { return `g_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`; }
 
-export type RollMode = 'random' | 'mid' | 'min' | 'max';
+/** `typical` = the sheet's exact defense / weapon_damage columns (shop gear and quest gifts, v0.2.6). */
+export type RollMode = 'random' | 'mid' | 'min' | 'max' | 'typical';
 
 /** Apply a magic prefix and 1-2 affixes (used by rollInstance). */
 export function enchant(inst: GearInstance): void {
@@ -78,7 +79,8 @@ export function makeGear(itemId: string, opts: { mode?: RollMode; magic?: boolea
   const g = DB.gear[itemId];
   if (!g) throw new Error(`Not gear: ${itemId}`);
   const d = rangeOf(g, 'defense'), w = rangeOf(g, 'weapon');
-  const pick = (r: { min: number; max: number }) => {
+  const pick = (r: { min: number; max: number }, typical: number) => {
+    if (opts.mode === 'typical') return typical;
     if (opts.mode === 'mid') return mid(r.min, r.max);
     if (opts.mode === 'min') return r.min;
     if (opts.mode === 'max') return r.max;
@@ -86,7 +88,7 @@ export function makeGear(itemId: string, opts: { mode?: RollMode; magic?: boolea
   };
   const inst: GearInstance = {
     uid: uid(), itemId,
-    defense: pick(d), weaponDamage: pick(w),
+    defense: pick(d, g.defense ?? 0), weaponDamage: pick(w, g.weapon_damage ?? 0),
     statMultiplier: g.stat_multiplier ?? 1,
     magic: false, affixes: [],
     container: opts.container ?? 'bag',

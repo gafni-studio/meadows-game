@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { DB, f, consumableEffect } from '../data/db';
-import { ANIM, ASSUME, TILE, ATTACK_FEEL, PLAYER_HIT_KB, REGEN, HIT_MONSTER, RANGED } from '../data/assumptions';
+import { ANIM, ASSUME, TILE, ATTACK_FEEL, PLAYER_HIT_KB, REGEN, HIT_MONSTER, RANGED, CONTACT, SKILL_SCHOOL } from '../data/assumptions';
 import { AREAS, AreaGeometry } from '../world/areas';
 import { SPRITES, iconKey, DROP_SIZE } from '../art/sprites';
 import { fitSlot, applyBody } from '../art/SpriteFactory';
@@ -8,7 +8,7 @@ import { Monster } from '../entities/Monster';
 import { Controls } from '../systems/Controls';
 import { Game } from '../systems/GameState';
 import * as P from '../systems/Player';
-import { computeHit, incomingDamage, rollHit, rollMonsterAttack } from '../systems/Combat';
+import { computeHit, incomingDamage, rollHit, rollMonsterAttack, affinityOf, weakDamage } from '../systems/Combat';
 import * as Sk from '../systems/Skills';
 import { playSfx } from '../systems/Sfx';
 import { rollDrops } from '../systems/Loot';
@@ -32,7 +32,8 @@ export class WorldScene extends Phaser.Scene {
   private drops!: Phaser.Physics.Arcade.Group;
   private facing = 1;
   private swingReadyAt = 0;
-  private npcs: { x: number; id: string; role: string; name: string }[] = [];
+  private npcs: { x: number; id: string; role: string; name: string; marker?: Phaser.GameObjects.Text }[] = [];
+  private lastMarkerAt = 0;
   private portals: { x: number; dir: string; arriveX: number; target?: string }[] = [];
   private prompt!: Phaser.GameObjects.Text;
   private sword!: Phaser.GameObjects.Image;
@@ -49,7 +50,9 @@ export class WorldScene extends Phaser.Scene {
   private postX: number | null = null;
   private lastQuestAt = 0;
   private pendingAttack = false;
-  private pendingSkill: string | null = null;
+  /** v0.2.6: the readyAt of the cooldown we already showed a banner for (so a mash stays quiet). */
+  private cdBanner: Record<string, number> = {};
+  private platformGroup!: Phaser.Physics.Arcade.StaticGroup;
 
   constructor() { super('World'); }
 
@@ -115,6 +118,8 @@ export class WorldScene extends Phaser.Scene {
       platforms.add(plat);
     }
 
+    this.platformGroup = platforms;
+
     // Storage chest (town).
     if (this.geo.chest !== undefined) {
       this.chestX = this.geo.chest * TILE;
@@ -147,7 +152,11 @@ export class WorldScene extends Phaser.Scene {
       if (n.x * TILE > W / 2) img.setFlipX(true);
       this.add.text(n.x * TILE, groundY - img.displayHeight - 4, n.name, { fontFamily: 'monospace', fontSize: '11px', color: '#fff6c2', stroke: '#000', strokeThickness: 3 })
         .setOrigin(0.5, 1).setDepth(4);
-      this.npcs.push({ x: n.x * TILE, id: n.id, role: n.role, name: n.name });
+      // v0.2.6: a gold ! (quest available) or ? (turn-in ready) bobs above the name.
+      const marker = this.add.text(n.x * TILE, groundY - img.displayHeight - 24, '!', { fontFamily: 'monospace', fontSize: '26px', color: '#ffd23a', stroke: '#3a2400', strokeThickness: 5, fontStyle: 'bold' })
+        .setOrigin(0.5, 1).setDepth(6).setVisible(false);
+      this.tweens.add({ targets: marker, y: marker.y - 6, duration: 520, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      this.npcs.push({ x: n.x * TILE, id: n.id, role: n.role, name: n.name, marker });
     }
 
     // Player.
@@ -173,7 +182,7 @@ export class WorldScene extends Phaser.Scene {
         const zone = this.geo.spawnZones[mid];
         if (!zone) continue;
         for (let i = 0; i < count; i++) {
-          this.spawnMonster(mid, (zone[0] + ((zone[1] - zone[0]) * (i + 0.5)) / count + (Math.random() - 0.5) * 2) * TILE);
+          this.spawnMonster(mid, (zone[0] + ((zone[1] - zone[0]) * (i + 0.5)) / count + (Math.random() - 0.5) * 2) * TILE, [zone[0] * TILE, zone[1] * TILE]);
         }
       }
       this.ensureNamed();
@@ -209,12 +218,18 @@ export class WorldScene extends Phaser.Scene {
     Game.save();
   }
 
-  spawnMonster(id: string, x: number): Monster | null {
+  spawnMonster(id: string, x: number, patrol?: [number, number]): Monster | null {
     const def = DB.monsters[id];
     if (!def) return null;
-    const m = new Monster(this, def, Phaser.Math.Clamp(x, 40, this.geo.widthTiles * TILE - 40), this.groundY + 4);
+    const m = new Monster(this, def, Phaser.Math.Clamp(x, 40, this.geo.widthTiles * TILE - 40), this.groundY + 4, patrol);
     m.setDepth(8);
     this.physics.add.collider(m, this.ground);
+    // v0.2.6: mobs can stand on (and jump up to) the same one-way ledges as the player.
+    this.physics.add.collider(m, this.platformGroup, undefined, (mob, plat) => {
+      const b = (mob as Phaser.Physics.Arcade.Sprite).body as Phaser.Physics.Arcade.Body;
+      const pb = (plat as Phaser.GameObjects.TileSprite).body as Phaser.Physics.Arcade.StaticBody;
+      return b.velocity.y >= 0 && b.bottom <= pb.top + 10;
+    });
     this.monsters.push(m);
     return m;
   }
@@ -257,12 +272,6 @@ export class WorldScene extends Phaser.Scene {
       if (this.controls.pressed('skill4')) this.useHotbar(3);
       if (this.controls.pressed('skill5')) this.useHotbar(4);
       if (this.controls.pressed('skill6')) this.useHotbar(5);
-      // v0.2.3: a skill pressed during its cooldown fires once when that cooldown ends.
-      if (this.pendingSkill && (Game.cooldowns[this.pendingSkill] ?? 0) <= Date.now()) {
-        const id = this.pendingSkill;
-        this.pendingSkill = null;
-        this.useSkill(id, true);
-      }
       if (this.controls.pressed('interact')) this.interact();
       // Walk wobble: ~35% slower than v0.1.2 (period 95 vs 70) and tied to actual move speed.
       const spd = Math.abs(body.velocity.x);
@@ -287,6 +296,8 @@ export class WorldScene extends Phaser.Scene {
       const a = m.tick(time, target);
       if (a === 'swing') this.monsterSwings(m);
       else if (a === 'shoot') this.fireShot(m);
+      // v0.2.6: a mob that is in combat bumps for 40% of a swing when its body touches the player.
+      else if (!Game.dead && m.alive && m.engaged && this.touching(m)) this.monsterSwings(m, m.x, true);
     }
     this.updateShots(time, delta);
     this.tickBurns(time);
@@ -297,6 +308,7 @@ export class WorldScene extends Phaser.Scene {
       Q.checkPlace(p, this.areaId, this.player.x / TILE, this.nearPost());
       this.ensureNamed();
     }
+    this.updateMarkers(time);
     this.updatePrompt();
     if (this.chestImg) this.chestImg.setTexture(Game.storageOpen ? 'deco.chest_open' : 'deco.chest');
     p.x = this.player.x;
@@ -348,10 +360,9 @@ export class WorldScene extends Phaser.Scene {
     this.swingReadyAt = now + P.attackIntervalMs(p) / atkSpeed;
     this.lastCombatAt = now;
     const facing = this.facing;
-    this.swingFx(kind);
-    // Damage lands on the slash's impact frame, when the trail reaches the hit range.
-    const impactMs = kind === 'power_strike' ? Fx.FX.smashImpactMs : Fx.FX.basicImpactMs;
-    this.time.delayedCall(impactMs, () => this.resolveSwing(mult, kind, facing));
+    // Damage lands on the impact frame, called from inside the animation: the basic smash coming down,
+    // or the axe cut going level, so the visual and the hit cannot disagree.
+    this.swingFx(kind, () => this.resolveSwing(mult, kind, facing));
     return true;
   }
 
@@ -389,12 +400,14 @@ export class WorldScene extends Phaser.Scene {
       Fx.hitStop(this, crit ? Fx.FX.hitstopSmash + 20 : Fx.FX.hitstopSmash);
       Fx.shake(this, crit ? 110 : 90, crit ? 0.007 : 0.005);
     } else {
+      // The normal attack is the overhead smash: it flashes where it lands.
+      Fx.impactFlash(this, hitX, hitY, 0xffe066, crit ? 28 : 22);
       Fx.hitStop(this, crit ? Fx.FX.hitstopCrit : Fx.FX.hitstopBasic);
-      if (crit) { Fx.impactFlash(this, hitX, hitY, 0xffe066, 24); Fx.shake(this, 70, 0.0045); }
+      if (crit) Fx.shake(this, 70, 0.0045);
     }
   }
 
-  private swingFx(kind: string) {
+  private swingFx(kind: string, onImpact?: () => void) {
     const s = this.sword;
     this.tweens.killTweensOf(s);
     this.tweens.killTweensOf(this.player);
@@ -403,13 +416,17 @@ export class WorldScene extends Phaser.Scene {
     const oy = this.player.y - 26;
     const reach = ASSUME.meleeReach;
     if (kind === 'power_strike') {
+      // v0.2.6: a forward axe cut from the rear hip; the body steps into the blow.
       s.setVisible(false);
-      Fx.overheadSmash(this, ox, oy, this.facing, reach);
+      Fx.axeSwing(this, ox, oy, this.facing, reach, this.groundY + 4, onImpact);
+      const pb = this.player.body as Phaser.Physics.Arcade.Body;
+      this.knockUntil = Game.now + 110;
+      pb.setVelocityX(this.facing * 150);
       this.tweens.add({
         targets: this.player,
-        scaleX: this.playerBaseScale.x * 1.08,
-        scaleY: this.playerBaseScale.y * 0.94,
-        duration: Fx.FX.smashWindupMs,
+        scaleX: this.playerBaseScale.x * 1.1,
+        scaleY: this.playerBaseScale.y * 0.95,
+        duration: Fx.FX.axeWindupMs + Fx.FX.axeImpactMs * 0.6,
         yoyo: true,
         ease: 'Cubic.easeIn',
         onComplete: () => this.player.setScale(this.playerBaseScale.x, this.playerBaseScale.y),
@@ -417,22 +434,16 @@ export class WorldScene extends Phaser.Scene {
       return;
     }
     if (kind === 'basic') {
-      s.setVisible(true).setFlipX(this.facing < 0).setTint(0xffffff);
-      s.setPosition(this.player.x + this.facing * 14, this.player.y - 18);
-      s.setAngle(-80 * this.facing);
-      // Sword and trail share the same duration; impact is midway, when the blade is near horizontal.
-      this.tweens.add({
-        targets: s, angle: 70 * this.facing, duration: Fx.FX.basicMs, ease: 'Cubic.easeIn',
-        onComplete: () => s.setVisible(false),
-      });
-      Fx.slashArc(this, ox, oy, this.facing, { reach, duration: Fx.FX.basicMs });
+      // v0.2.6: the normal attack is the old Power Strike smash, reaching the end of the basic range (70).
+      s.setVisible(false);
+      Fx.overheadSmash(this, ox, oy, this.facing, reach, onImpact);
       this.tweens.add({
         targets: this.player,
-        scaleX: this.playerBaseScale.x * 1.06,
-        scaleY: this.playerBaseScale.y * 0.97,
-        duration: Math.floor(Fx.FX.basicMs * 0.45),
+        scaleX: this.playerBaseScale.x * 1.08,
+        scaleY: this.playerBaseScale.y * 0.94,
+        duration: Fx.FX.smashWindupMs,
         yoyo: true,
-        ease: 'Sine.easeInOut',
+        ease: 'Cubic.easeIn',
         onComplete: () => this.player.setScale(this.playerBaseScale.x, this.playerBaseScale.y),
       });
       return;
@@ -458,25 +469,23 @@ export class WorldScene extends Phaser.Scene {
     else Game.toast('Empty slot', 'info');
   }
 
-  useSkill(id: string, fromQueue = false) {
+  useSkill(id: string) {
     const s = Sk.skill(id);
     const p = Game.player;
     const now = Date.now();
     if (!s || !Sk.known(p, id)) { Game.toast('Skill not learned yet — visit Calden', 'warn'); return; }
     const readyAt = Game.cooldowns[id] ?? 0;
     if (readyAt > now) {
-      // v0.2.3: queue one activation; further presses of the same skill are dropped silently.
-      // Banner only when the remaining cooldown is longer than 5 seconds, and only on the first press.
-      const remain = readyAt - now;
-      if (this.pendingSkill !== id) {
-        this.pendingSkill = id;
-        if (remain > 5000) Game.toast(`${s.name} is on cooldown`, 'warn');
+      // v0.2.6: no queue. A press on cooldown is ignored and silent, except one banner per cooldown
+      // when more than 5 seconds remain (Rage's 60 s, Soul Guard's 30 s).
+      if (readyAt - now > 5000 && this.cdBanner[id] !== readyAt) {
+        this.cdBanner[id] = readyAt;
+        Game.toast(`${s.name} is on cooldown`, 'warn');
       }
       return;
     }
     if (p.mp < s.mp_cost) {
       Game.toast('Not enough MP', 'warn');
-      if (this.pendingSkill === id) this.pendingSkill = null;
       return;
     }
 
@@ -515,13 +524,8 @@ export class WorldScene extends Phaser.Scene {
     } else {
       ok = this.trySwing(mul, s.mp_cost, kind === 'power_strike' ? 'power_strike' : 'basic');
     }
-    if (ok) {
-      Game.cooldowns[id] = now + Sk.cooldownOf(id);
-      if (this.pendingSkill === id) this.pendingSkill = null;
-    } else if (fromQueue || this.pendingSkill === id) {
-      // Swing still recovering: keep the queued activation and retry next frame.
-      this.pendingSkill = id;
-    }
+    // A press while a swing is still recovering is "not ready": ignored, never queued.
+    if (ok) Game.cooldowns[id] = now + Sk.cooldownOf(id);
     Game.changed();
   }
 
@@ -537,32 +541,56 @@ export class WorldScene extends Phaser.Scene {
     const facing = this.facing;
     this.swingFx(kind);
     if (kind === 'earthbreaker') Fx.earthShock(this, this.player.x, this.groundY, facing, opt.aoe ?? 90);
-    if (kind === 'flame_cleave') Fx.flameArc(this, this.player.x, this.player.y - 24, facing, opt.wide ?? 110);
+    if (kind === 'flame_cleave') Fx.flameFan(this, this.player.x, this.player.y - 24, facing, opt.wide ?? 110, this.groundY + 4);
     if (kind === 'root_lash') Fx.rootWhip(this, this.player.x, this.groundY, facing, opt.wide ?? 110);
-    const impactMs = kind === 'earthbreaker' ? Fx.FX.earthImpactMs : kind === 'flame_cleave' ? Fx.FX.flameImpactMs : Fx.FX.rootImpactMs;
+    if (kind === 'flame_cleave') {
+      // v0.2.6: damage is timed to the fire front reaching each target, not to the key press.
+      const range = opt.wide ?? 110;
+      const ox = this.player.x;
+      for (const m of this.monsters) {
+        if (!m.alive) continue;
+        const dx = m.x - ox;
+        const dy = Math.abs(m.y - this.player.y);
+        if (!(dx * facing > -20 && Math.abs(dx) <= range + m.halfW && dy < 70)) continue;
+        this.time.delayedCall(Fx.flameArrivalMs(Math.abs(dx), range + m.halfW), () => this.resolveStrike(mul, kind, facing, opt, { targets: [m], post: false }));
+      }
+      this.time.delayedCall(Fx.FX.flameMs, () => this.resolveStrike(mul, kind, facing, opt, { targets: [], post: true }));
+      return true;
+    }
+    const impactMs = kind === 'earthbreaker' ? Fx.FX.earthImpactMs : Fx.FX.rootImpactMs;
     this.time.delayedCall(impactMs, () => this.resolveStrike(mul, kind, facing, opt));
     return true; // spent MP even if nobody was in range
   }
 
-  private resolveStrike(mul: number, kind: keyof typeof ATTACK_FEEL, facing: number, opt: { aoe?: number; wide?: number; burnS?: number; stun?: boolean; tint?: number; kbIf?: (m: Monster) => boolean }): void {
+  private resolveStrike(mul: number, kind: keyof typeof ATTACK_FEEL, facing: number, opt: { aoe?: number; wide?: number; burnS?: number; stun?: boolean; tint?: number; kbIf?: (m: Monster) => boolean }, only?: { targets: Monster[]; post: boolean }): void {
     if (Game.dead || !this.player) return;
     const p = Game.player;
     const feel = ATTACK_FEEL[kind] ?? ATTACK_FEEL.basic;
     const rage = this.buffActive('rage') ? Sk.rageNumbers(p).dealtPct : 0;
     let any = false;
     let anyCrit = false;
-    for (const m of this.monsters) {
+    for (const m of only ? only.targets : this.monsters) {
       if (!m.alive) continue;
       const dx = m.x - this.player.x;
       const dy = Math.abs(m.y - this.player.y);
       const inAoe = opt.aoe != null && Math.hypot(dx, dy) <= opt.aoe + m.halfW;
       const inWide = opt.wide != null && dx * facing > -20 && Math.abs(dx) <= opt.wide + m.halfW && dy < 70;
-      if (!inAoe && !inWide) continue;
+      if (!only && !inAoe && !inWide) continue;
       const topY = m.y - m.displayHeight - 12;
       const hitX = m.x, hitY = m.y - m.displayHeight * 0.45;
       if (!rollHit(P.accuracy(p), m.feel.eva, p.level, m.def.level)) { this.floatText(m.x, topY, 'MISS', '#c8c8c8', 15); continue; }
-      const { dmg, crit } = computeHit(P.attack(p), mul, m.def.defense, P.critChance(p), rage);
-      this.floatText(m.x, topY, `${dmg}`, crit ? '#ffcf33' : '#ffb070', crit ? 20 : 16);
+      // v0.2.6 affinity: Weak = ×1.5, Immune = nothing lost.
+      const aff = affinityOf(m.def.id, SKILL_SCHOOL[kind]);
+      if (aff === 'immune') {
+        this.floatText(m.x, topY, 'Immune', '#9fd8ff', 15);
+        m.provoke();
+        if (kind === 'flame_cleave') Fx.impactFlash(this, hitX, hitY, 0x9fd8ff, 14);
+        continue;
+      }
+      let { dmg, crit } = computeHit(P.attack(p), mul, m.def.defense, P.critChance(p), rage);
+      if (aff === 'weak') { dmg = weakDamage(dmg); this.floatText(m.x, topY - 16, 'Weak!', '#ff9a3a', 11); }
+      this.floatText(m.x, topY, `${dmg}`, crit ? '#ffcf33' : aff === 'weak' ? '#ff9a3a' : '#ffb070', crit ? 20 : aff === 'weak' ? 18 : 16);
+      if (kind === 'flame_cleave') Fx.fireBloom(this, hitX, hitY);
       const stun = feel.hitstunMs;
       const kb = opt.kbIf && !opt.kbIf(m) ? 0 : feel.kb;
       if (m.hurt(dmg, this.player.x, kb, stun)) this.onKill(m);
@@ -573,7 +601,7 @@ export class WorldScene extends Phaser.Scene {
       if (crit) anyCrit = true;
     }
     if (any) Fx.hitStop(this, anyCrit ? Fx.FX.hitstopSkill + 20 : Fx.FX.hitstopSkill);
-    if (this.postInStrike(opt)) this.hitPost(mul, kind === 'basic' || kind === 'power_strike' ? kind : 'basic');
+    if ((!only || only.post) && this.postInStrike(opt)) this.hitPost(mul, kind === 'basic' || kind === 'power_strike' ? kind : 'basic');
   }
 
   private applyBurn(m: Monster, total: number, seconds: number) {
@@ -584,7 +612,7 @@ export class WorldScene extends Phaser.Scene {
   }
   private tickBurns(now: number) {
     this.burns = this.burns.filter((b) => {
-      if (!b.m.alive || now > b.until) { if (b.m.alive && !this.buffActive('rage')) b.m.restoreTint(); return false; }
+      if (!b.m.active || !b.m.alive || now > b.until) { if (b.m.active && b.m.alive && !this.buffActive('rage')) b.m.restoreTint(); return false; }
       if (now >= b.next) {
         b.next = now + 500;
         if (b.m.hurt(b.perTick, b.m.x, 0, 0)) this.onKill(b.m);
@@ -620,17 +648,25 @@ export class WorldScene extends Phaser.Scene {
     });
   }
 
-  private monsterSwings(m: Monster, fromX = m.x) {
+  /** Body-on-body overlap between a mob and the player. */
+  private touching(m: Monster): boolean {
+    const a = m.body2;
+    const b = this.player.body as Phaser.Physics.Arcade.Body;
+    return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+  }
+
+  /** A swing, a pebble, or (contact) a bump. A bump is CONTACT.fraction of a swing, physical, with a small nudge and no miss roll. */
+  private monsterSwings(m: Monster, fromX = m.x, contact = false) {
     const p = Game.player;
     if (Game.dead || Game.now < Game.invulnUntil) return;
-    if (!rollHit(m.feel.acc, P.evasion(p), m.def.level, p.level, HIT_MONSTER)) {
+    if (!contact && !rollHit(m.feel.acc, P.evasion(p), m.def.level, p.level, HIT_MONSTER)) {
       this.floatText(this.player.x, this.player.y - 60, 'MISS', '#c8c8c8', 14);
       return;
     }
     this.lastCombatAt = Game.now;
     const taken = this.buffActive('rage') ? Sk.rageNumbers(p).takenPct : 0;
     const digging = this.buffActive('dig_in');
-    const matk = rollMonsterAttack(m.def.attack, m.def.attack_min, m.def.attack_max);
+    const matk = rollMonsterAttack(m.def.attack, m.def.attack_min, m.def.attack_max) * (contact ? CONTACT.fraction : 1);
     let dmg = p.cheats.god ? 0 : incomingDamage(matk, P.defense(p) * (digging ? 1.5 : 1), taken);
     if (Game.shield > 0 && (Game.buffs.soul_guard ?? 0) > Date.now()) {
       const absorbed = Math.min(Game.shield, dmg);
@@ -643,7 +679,8 @@ export class WorldScene extends Phaser.Scene {
     Game.invulnUntil = Game.now + ASSUME.hurtInvulnMs;
     this.knockUntil = Game.now + 200;
     const body = this.player.body as Phaser.Physics.Arcade.Body;
-    body.setVelocity(Math.sign(this.player.x - fromX || 1) * PLAYER_HIT_KB.vx, PLAYER_HIT_KB.vy);
+    const nudge = contact ? CONTACT.kbScale : 1;
+    body.setVelocity(Math.sign(this.player.x - fromX || 1) * PLAYER_HIT_KB.vx * nudge, PLAYER_HIT_KB.vy * nudge);
     this.floatText(this.player.x, this.player.y - 60, p.cheats.god ? 'GOD' : `-${dmg}`, digging ? '#c4a06a' : '#ff6b6b', 16);
     if (p.hp <= 0) this.die();
   }
@@ -661,7 +698,15 @@ export class WorldScene extends Phaser.Scene {
       p.coins += n;
       Game.toast(`${n} Copper`, 'loot', 'copper_coin');
     }
-    for (const d of rollDrops(m.def.id, p.cheats.dropMul, p)) this.spawnDrop(m.x, m.y - 20, d.itemId, d.qty, d.rare, d.inst);
+    const rolled = rollDrops(m.def.id, p.cheats.dropMul, p);
+    // v0.2.6: the first Ember Beetle killed at level 6+ always drops a Smoldering Scale (once per character),
+    // so a ready player can never be locked out of Hot Edge.
+    if (['ember_beetle', 'cinderback'].includes(m.def.id) && p.level >= 6 && !p.questFlags.scale_seen && !(p.inventory.smoldering_scale ?? 0)
+      && !rolled.some((d) => d.itemId === 'smoldering_scale')) {
+      rolled.push({ itemId: 'smoldering_scale', qty: 1, rare: true });
+    }
+    if (p.level >= 6 && rolled.some((d) => d.itemId === 'smoldering_scale')) p.questFlags.scale_seen = true; // dropped for a ready player: counts
+    for (const d of rolled) this.spawnDrop(m.x, m.y - 20, d.itemId, d.qty, d.rare, d.inst);
     Game.changed();
   }
 
@@ -849,7 +894,7 @@ export class WorldScene extends Phaser.Scene {
       if (Q.shouldSpawn(Game.player, n.id)) {
         this.spawnMonster(n.id, n.x * TILE);
         if (n.id === 'bank_cracker') Game.toast('Bank-Cracker claws out of the bank.', 'rare');
-        if (n.id === 'cinderback') Game.toast('Cinderback stirs in the warm dirt.', 'rare');
+        if (n.id === 'cinderback') Game.toast('Cinderback claws out of the bank.', 'rare');
         if (n.id === 'wool_shoulder') Game.toast('Wool-Shoulder shoulders out of the flock.', 'rare');
       }
     }
@@ -879,6 +924,18 @@ export class WorldScene extends Phaser.Scene {
   travel(area: string, x?: number) {
     Game.events.emit('close-all');
     this.scene.restart({ area, x: x ?? AREAS[area]?.spawnX });
+  }
+
+  /** Quest markers above NPCs; hidden while any window (including the conversation) is open. */
+  private updateMarkers(time: number) {
+    if (!this.npcs.length || time - this.lastMarkerAt < 120) return;
+    this.lastMarkerAt = time;
+    for (const n of this.npcs) {
+      if (!n.marker) continue;
+      const m = Game.menuOpen ? null : Q.markerFor(Game.player, n.id);
+      if (!m) { n.marker.setVisible(false); continue; }
+      n.marker.setText(m).setColor(m === '!' ? '#ffd23a' : '#fff4b8').setVisible(true);
+    }
   }
 
   private updatePrompt() {
