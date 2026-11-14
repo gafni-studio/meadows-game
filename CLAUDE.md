@@ -51,7 +51,8 @@ Do not run long manual playthroughs, write one-off browser scripts, or re-read w
 | `src/scenes/world/projectiles.ts` | mob projectiles |
 | `src/entities/Monster.ts` | mob AI: patrol, aggro, give-up, ledge jump, leash, windup/strike |
 | `src/systems/CombatFx.ts` | every attack/skill visual. Damage fires from inside the animation via `onImpact` |
-| `src/ui/Hud.ts` (1300 lines) | DOM HUD and all windows (`render<Panel>()`), keys, dialogue, rewards screen |
+| `src/ui/Hud.ts` (1270 lines) | DOM HUD and all windows (`render<Panel>()`), keys, dialogue, rewards screen |
+| `src/ui/panels/npc.ts` | E on an NPC: quest talk, else their window, else a greeting |
 | `src/world/areas.ts` | area geometry: platforms, NPC positions, portals, spawn zones |
 | `tests/` | `data.test.ts` (invariants), `rules.test.ts`, `quests.test.ts` (flows simulated in Node) |
 

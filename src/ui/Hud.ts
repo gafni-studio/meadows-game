@@ -13,6 +13,7 @@ import * as Q from '../systems/Quests';
 import * as Pa from '../systems/Passives';
 import * as Ex from '../systems/Exchange';
 import { playSfx } from '../systems/Sfx';
+import { routeNpc } from './panels/npc';
 
 /**
  * DOM overlay UI: HUD, hotbar, toasts, windows and the test console.
@@ -31,7 +32,7 @@ import { playSfx } from '../systems/Sfx';
  * keyboard share one code path.
  */
 const $ = <T extends HTMLElement = HTMLElement>(sel: string) => document.querySelector(sel) as T;
-const esc = (s: string) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+export const esc = (s: string) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 /** The rewards screen: a quest's name, one flavor line and the rows. `final` = the quest is complete (banner first). */
 interface RewardPayload { name: string; flavor: string; rows: string[]; title?: string; final?: boolean }
 type Panel = 'inventory' | 'stats' | 'shop' | 'storage' | 'skills' | 'journal' | 'passives' | 'exchange' | 'dialog' | 'rewards' | 'pause' | 'confirm' | 'drop';
@@ -41,13 +42,13 @@ const TYPE_LABEL: Record<string, string> = { consumable: 'Consumable', gear: 'Ge
 
 export class Hud {
   private stack: Panel[] = [];
-  private sel: Partial<Record<Panel, string>> = {}; // selected data-key per panel
-  private shopTab: 'buy' | 'sell' = 'buy';
+  sel: Partial<Record<Panel, string>> = {}; // selected data-key per panel
+  shopTab: 'buy' | 'sell' = 'buy';
   private treeTab: 'nature' | 'elemental' = 'nature';
-  private pathTab = 'warrior';
+  pathTab = 'warrior';
   private lastSettleAt = 0;
   private areaName = '';
-  private dialogHtml = '';
+  dialogHtml = '';
   private dialogTalk: Q.TalkResult | null = null;
   private dialogPage = 0;
   /** v0.2.6: the quest rewards screen, shown after a quest's last conversation page. */
@@ -103,7 +104,7 @@ export class Hud {
     });
     Game.events.on('close-all', () => { this.stack = []; this.renderPanels(); });
     Game.events.on('dead', (d: boolean) => ($('#dead').hidden = !d));
-    Game.events.on('npc', (id: string, role: string, name: string) => this.npc(id, role, name));
+    Game.events.on('npc', (id: string, role: string, name: string) => routeNpc(this, id, role, name));
     document.addEventListener('click', (e) => this.onClick(e));
     document.addEventListener('mouseover', (e) => {
       const el = (e.target as HTMLElement).closest('[data-nav]') as HTMLElement | null;
@@ -494,7 +495,7 @@ export class Hud {
   }
 
   // ───────────────────────── windows ─────────────────────────
-  private open(p: Panel) {
+  open(p: Panel) {
     if (!this.stack.includes(p) && (p === 'inventory' || p === 'storage' || p === 'shop')) this.sel[p] = undefined; // reopen at the first item
     this.stack = this.stack.filter((x) => x !== p);
     this.stack.push(p);
@@ -503,42 +504,8 @@ export class Hud {
   private close(p: Panel) { if (p === 'dialog') this.dialogTalk = null; if (p === 'rewards') this.rewards = null; this.stack = this.stack.filter((x) => x !== p); this.renderPanels(); }
   private toggle(p: Panel) { if (this.stack.includes(p)) this.close(p); else this.open(p); }
 
-  private npc(id: string, role: string, name: string) {
-    if (role === 'shop') {
-      if (Q.wantsTalk(Game.player, id)) { this.openTalk(Q.talk(Game.player, id)); return; }
-      this.shopTab = 'buy'; this.open('shop'); return;
-    }
-    if (role === 'exchange') {
-      if (Q.wantsTalk(Game.player, id)) { this.openTalk(Q.talk(Game.player, id)); return; }
-      this.open('exchange'); return;
-    }
-    if (role === 'path') {
-      // v0.2.8 Tamsin: her tutorial first; once it is done, E opens the Paths window on the Magician tab.
-      if (Q.wantsTalk(Game.player, id)) { this.openTalk(Q.talk(Game.player, id)); return; }
-      if (Q.pathRevealed(Game.player, 'magician')) { this.pathTab = 'magician'; this.open('skills'); return; }
-      this.openTalk(Q.greeting(id));
-      return;
-    }
-    if (role === 'trainer') {
-      if (Q.wantsTalk(Game.player, id)) { this.openTalk(Q.talk(Game.player, id)); return; }
-      this.open('skills');
-      return;
-    }
-    if (id === 'pell' && Q.wantsTalk(Game.player, 'pell')) {
-      this.openTalk(Q.talk(Game.player, 'pell'));
-      return;
-    }
-    const lines: Record<string, string> = {};
-    for (const n of Object.values(DB.npcs ?? {})) if (n.desc) lines[n.id] = n.desc;
-    const greet = Q.greeting(id);
-    if (greet) { this.openTalk(greet); return; }
-    this.dialogHtml = `<h3>${esc(name)}</h3><p>${esc(lines[id] ?? '...')}</p>`;
-    this.sel.dialog = undefined;
-    this.open('dialog');
-  }
-
   /** Open a multi-page talk. Enter or click advances; the last page runs onFinish. Esc closes without finishing. */
-  private openTalk(talk: Q.TalkResult | null): void {
+  openTalk(talk: Q.TalkResult | null): void {
     if (!talk || !talk.pages.length) return;
     this.dialogTalk = talk;
     this.dialogPage = 0;
