@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { DB, f, consumableEffect } from '../data/db';
-import { ANIM, ASSUME, TILE, ATTACK_FEEL, PLAYER_HIT_KB, REGEN, HIT_MONSTER, RANGED, CONTACT, SKILL_SCHOOL, BOLT } from '../data/assumptions';
+import { ASSUME, TILE, ATTACK_FEEL, PLAYER_HIT_KB, HIT_MONSTER, CONTACT, SKILL_SCHOOL, BOLT } from '../data/assumptions';
 import { AREAS, AreaGeometry } from '../world/areas';
 import { SPRITES, iconKey, DROP_SIZE } from '../art/sprites';
 import { fitSlot, applyBody } from '../art/SpriteFactory';
@@ -15,8 +15,11 @@ import { rollDrops } from '../systems/Loot';
 import { GearInstance, displayName } from '../systems/Gear';
 import * as Q from '../systems/Quests';
 import * as Fx from '../systems/CombatFx';
+import { buildTerrain, GROUND_H } from './world/terrain';
+import { playerInput, regen, die } from './world/player';
+import { fireShot, updateShots } from './world/projectiles';
+import { buildNpcs, updateMarkers, ensureNamed } from './world/npcs';
 
-const GROUND_H = 64;
 
 interface Drop extends Phaser.Physics.Arcade.Image { itemId: string; qty: number; expireAt: number; rare: boolean; inst?: GearInstance; picking?: boolean }
 interface Shot { img: Phaser.GameObjects.Image; vx: number; vy: number; dieAt: number; m: Monster }
@@ -24,39 +27,39 @@ interface Shot { img: Phaser.GameObjects.Image; vx: number; vy: number; dieAt: n
 interface Bolt { kind: Fx.BoltKind; head: Phaser.GameObjects.Container; vx: number; vy: number; dir: number; mul: number; travelled: number }
 
 export class WorldScene extends Phaser.Scene {
-  private areaId = 'meadow_town';
-  private geo!: AreaGeometry;
-  private groundY = 0;
-  private ground!: Phaser.GameObjects.Rectangle;
+  areaId = 'meadow_town';
+  geo!: AreaGeometry;
+  groundY = 0;
+  ground!: Phaser.GameObjects.Rectangle;
   player!: Phaser.Physics.Arcade.Sprite;
-  private controls!: Controls;
+  controls!: Controls;
   monsters: Monster[] = [];
-  private drops!: Phaser.Physics.Arcade.Group;
-  private facing = 1;
-  private swingReadyAt = 0;
-  private npcs: { x: number; id: string; role: string; name: string; marker?: Phaser.GameObjects.Text }[] = [];
-  private lastMarkerAt = 0;
-  private wasMenu = false;
-  private portals: { x: number; dir: string; arriveX: number; target?: string }[] = [];
-  private prompt!: Phaser.GameObjects.Text;
-  private sword!: Phaser.GameObjects.Image;
-  private glow!: Phaser.GameObjects.Graphics;
-  private lastSave = 0;
-  private lastCombatAt = 0;
-  private knockUntil = 0;
-  private walkT = 0;
-  private playerBaseScale = { x: 1, y: 1 };
-  private burns: { m: Monster; perTick: number; next: number; until: number }[] = [];
-  private shots: Shot[] = [];
-  private bolts: Bolt[] = [];
-  private chestX: number | null = null;
-  private chestImg?: Phaser.GameObjects.Image;
-  private postX: number | null = null;
-  private lastQuestAt = 0;
-  private pendingAttack = false;
+  drops!: Phaser.Physics.Arcade.Group;
+  facing = 1;
+  swingReadyAt = 0;
+  npcs: { x: number; id: string; role: string; name: string; marker?: Phaser.GameObjects.Text }[] = [];
+  lastMarkerAt = 0;
+  wasMenu = false;
+  portals: { x: number; dir: string; arriveX: number; target?: string }[] = [];
+  prompt!: Phaser.GameObjects.Text;
+  sword!: Phaser.GameObjects.Image;
+  glow!: Phaser.GameObjects.Graphics;
+  lastSave = 0;
+  lastCombatAt = 0;
+  knockUntil = 0;
+  walkT = 0;
+  playerBaseScale = { x: 1, y: 1 };
+  burns: { m: Monster; perTick: number; next: number; until: number }[] = [];
+  shots: Shot[] = [];
+  bolts: Bolt[] = [];
+  chestX: number | null = null;
+  chestImg?: Phaser.GameObjects.Image;
+  postX: number | null = null;
+  lastQuestAt = 0;
+  pendingAttack = false;
   /** v0.2.6: the readyAt of the cooldown we already showed a banner for (so a mash stays quiet). */
-  private cdBanner: Record<string, number> = {};
-  private platformGroup!: Phaser.Physics.Arcade.StaticGroup;
+  cdBanner: Record<string, number> = {};
+  platformGroup!: Phaser.Physics.Arcade.StaticGroup;
 
   constructor() { super('World'); }
 
@@ -86,83 +89,10 @@ export class WorldScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, W, H);
     this.cameras.main.roundPixels = true;
 
-    // Parallax hills + clouds.
-    const far = this.add.graphics().setScrollFactor(0.2);
-    far.fillStyle(0xffffff, 0.8);
-    for (let i = 0; i < W / 400 + 3; i++) { const cx = i * 400 + 80, cy = 70 + (i % 3) * 30; far.fillRoundedRect(cx, cy, 90, 22, 11); far.fillRoundedRect(cx + 20, cy - 12, 50, 22, 11); }
-    const hillFar = this.geo.hills?.[0] ?? 0x8fcf74;
-    const hillNear = this.geo.hills?.[1] ?? 0x6fb85a;
-    const hills = this.add.graphics().setScrollFactor(0.35);
-    hills.fillStyle(hillFar, 1);
-    for (let i = 0; i < W / 300 + 4; i++) hills.fillCircle(i * 300, this.groundY + 50, 170 + (i % 3) * 30);
-    const hills2 = this.add.graphics().setScrollFactor(0.6);
-    hills2.fillStyle(hillNear, 1);
-    for (let i = 0; i < W / 220 + 4; i++) hills2.fillCircle(i * 220 + 90, this.groundY + 70, 110 + (i % 2) * 25);
-
-    // Ground: a top row (grass or dirt) + dirt fill + one static body.
-    const topKey = this.geo.ground === 'dirt' ? 'tile.dirt_top' : 'tile.grass_top';
-    const gs = SPRITES[topKey];
-    const top = this.add.tileSprite(0, this.groundY, W, gs.h, topKey).setOrigin(0, 0).setDepth(1);
-    top.setTileScale(gs.w / this.textures.getFrame(topKey).width);
-    const dirt = this.add.tileSprite(0, this.groundY + gs.h, W, GROUND_H, 'tile.dirt').setOrigin(0, 0).setDepth(1);
-    dirt.setTileScale(SPRITES['tile.dirt'].w / this.textures.getFrame('tile.dirt').width);
-    this.ground = this.add.rectangle(W / 2, this.groundY + GROUND_H / 2 + 4, W, GROUND_H, 0, 0);
-    this.physics.add.existing(this.ground, true);
-    const groundY = this.groundY + 4; // feet stand slightly into the grass row
-
-    for (const d of this.geo.decor) fitSlot(this, this.add.image(d.x * TILE, groundY, d.slot).setOrigin(0.5, 1).setDepth(0), d.slot);
-
-    // One-way platforms (jump up through them, land on top).
-    const platforms = this.physics.add.staticGroup();
-    const ps = SPRITES['tile.platform'];
-    for (const p of this.geo.platforms) {
-      const y = this.groundY - p.y * TILE;
-      const plat = this.add.tileSprite(p.x * TILE, y, p.w * TILE, ps.h, 'tile.platform').setOrigin(0, 0).setDepth(2);
-      const fr = this.textures.getFrame('tile.platform');
-      plat.setTileScale(ps.h / fr.height);
-      platforms.add(plat);
-    }
-
-    this.platformGroup = platforms;
-
-    // Storage chest (town).
-    if (this.geo.chest !== undefined) {
-      this.chestX = this.geo.chest * TILE;
-      this.chestImg = fitSlot(this, this.add.image(this.chestX, groundY, 'deco.chest').setOrigin(0.5, 1).setDepth(3), 'deco.chest');
-      this.add.text(this.chestX, groundY - 44, 'Storage', { fontFamily: 'monospace', fontSize: '11px', color: '#fff6c2', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5, 1).setDepth(4);
-    }
-    if (this.geo.practicePost != null) {
-      this.postX = this.geo.practicePost * TILE;
-      fitSlot(this, this.add.image(this.postX, groundY, 'deco.practice_post').setOrigin(0.5, 1).setDepth(3), 'deco.practice_post');
-      this.add.text(this.postX, groundY - 50, 'Practice Post', { fontFamily: 'monospace', fontSize: '11px', color: '#fff6c2', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5, 1).setDepth(4);
-    }
-
-    // Portals.
     const area = DB.areas[this.areaId];
-    for (const p of this.geo.portals) {
-      const target = area?.links?.[p.dir];
-      const implemented = target && AREAS[target];
-      const img = fitSlot(this, this.add.image(p.x * TILE, groundY, 'portal').setOrigin(0.5, 1).setDepth(2), 'portal').setAlpha(implemented ? 1 : 0.45);
-      if (implemented) this.tweens.add({ targets: img, alpha: 0.75, yoyo: true, repeat: -1, duration: 900 });
-      const tname = target ? DB.areas[target]?.name ?? target : '—';
-      this.add.text(p.x * TILE, groundY - 100, implemented ? `→ ${tname}` : `${tname}\n(later)`, {
-        fontFamily: 'monospace', fontSize: '12px', color: '#fff', stroke: '#000', strokeThickness: 3, align: 'center',
-      }).setOrigin(0.5, 0).setDepth(3);
-      this.portals.push({ x: p.x * TILE, dir: p.dir, arriveX: p.arriveX * TILE, target: implemented ? target : undefined });
-    }
+    const { platforms, groundY } = buildTerrain(this, W, area);
 
-    // NPCs.
-    for (const n of this.geo.npcs) {
-      const img = fitSlot(this, this.add.image(n.x * TILE, groundY, `npc.${n.id}`).setOrigin(0.5, 1).setDepth(4), `npc.${n.id}`);
-      if (n.x * TILE > W / 2) img.setFlipX(true);
-      this.add.text(n.x * TILE, groundY - img.displayHeight - 4, n.name, { fontFamily: 'monospace', fontSize: '11px', color: '#fff6c2', stroke: '#000', strokeThickness: 3 })
-        .setOrigin(0.5, 1).setDepth(4);
-      // v0.2.6: a gold ! (quest available) or ? (turn-in ready) bobs above the name.
-      const marker = this.add.text(n.x * TILE, groundY - img.displayHeight - 24, '!', { fontFamily: 'monospace', fontSize: '26px', color: '#ffd23a', stroke: '#3a2400', strokeThickness: 5, fontStyle: 'bold' })
-        .setOrigin(0.5, 1).setDepth(6).setVisible(false);
-      this.tweens.add({ targets: marker, y: marker.y - 6, duration: 520, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-      this.npcs.push({ x: n.x * TILE, id: n.id, role: n.role, name: n.name, marker });
-    }
+    buildNpcs(this, groundY);
 
     // Player.
     const px = Phaser.Math.Clamp(Game.player.x, 40, W - 40);
@@ -190,7 +120,7 @@ export class WorldScene extends Phaser.Scene {
           this.spawnMonster(mid, (zone[0] + ((zone[1] - zone[0]) * (i + 0.5)) / count + (Math.random() - 0.5) * 2) * TILE, [zone[0] * TILE, zone[1] * TILE]);
         }
       }
-      this.ensureNamed();
+      ensureNamed(this);
     }
 
     this.drops = this.physics.add.group();
@@ -243,7 +173,6 @@ export class WorldScene extends Phaser.Scene {
   update(time: number, delta: number) {
     Game.now = time;
     const p = Game.player;
-    const body = this.player.body as Phaser.Physics.Arcade.Body;
     const menu = Game.menuOpen || Game.consoleOpen;
     // v0.2.7: a key that closed a window (E) must not also act in the world on the next frame.
     if (menu) this.wasMenu = true;
@@ -256,47 +185,11 @@ export class WorldScene extends Phaser.Scene {
       else this.player.clearTint();
     }
 
-    if (!Game.dead && !menu) {
-      const speedMul = this.buffActive('mint_sprig') ? 1 + (consumableEffect('mint_sprig').buff?.speedPct ?? 0) / 100 : 1;
-      let vx = 0;
-      if (this.controls.down('left')) vx -= 1;
-      if (this.controls.down('right')) vx += 1;
-      // let a hit's knockback play out briefly before input takes over again
-      if (time >= this.knockUntil) body.setVelocityX(vx * ASSUME.playerSpeed * speedMul);
-      if (vx !== 0) { this.facing = vx; this.player.setFlipX(vx < 0); }
-      if (this.controls.pressed('jump') && body.blocked.down) body.setVelocityY(-ASSUME.jumpVelocity);
-
-      // v0.2.3: buffer a swing pressed during recovery so the next hit fires as soon as ready.
-      if (this.controls.pressed('attack')) {
-        if (!this.trySwing(1.0, 0, 'basic')) this.pendingAttack = true;
-      } else if (this.pendingAttack) {
-        if (this.trySwing(1.0, 0, 'basic')) this.pendingAttack = false;
-      } else if (this.controls.down('attack')) {
-        this.trySwing(1.0, 0, 'basic');
-      }
-      if (this.controls.pressed('skill1')) this.useHotbar(0);
-      if (this.controls.pressed('skill2')) this.useHotbar(1);
-      if (this.controls.pressed('skill3')) this.useHotbar(2);
-      if (this.controls.pressed('skill4')) this.useHotbar(3);
-      if (this.controls.pressed('skill5')) this.useHotbar(4);
-      if (this.controls.pressed('skill6')) this.useHotbar(5);
-      if (this.controls.pressed('skill7')) this.useHotbar(6);
-      if (this.controls.pressed('skill8')) this.useHotbar(7);
-      if (this.controls.pressed('interact')) this.interact();
-      // Walk wobble: ~35% slower than v0.1.2 (period 95 vs 70) and tied to actual move speed.
-      const spd = Math.abs(body.velocity.x);
-      if (spd > 8 && body.blocked.down) {
-        this.walkT += delta * (spd / ASSUME.playerSpeed);
-        this.player.setAngle(Math.sin(this.walkT / ANIM.heroWalkPeriod) * 5);
-      } else this.player.setAngle(0);
-    } else {
-      this.controls.clear();
-      if (!Game.dead && body.blocked.down) body.setVelocityX(0);
-    }
+    playerInput(this, time, delta, menu);
 
     if (!Game.dead) {
       p.mp = Math.min(P.maxMp(p), p.mp + (P.mpRegenPerSec(p) * delta) / 1000);
-      this.regen(time, delta);
+      regen(this, time, delta);
     }
 
     this.player.setAlpha(time < Game.invulnUntil && !Game.dead ? (Math.floor(time / 80) % 2 ? 0.35 : 1) : Game.dead ? 0.3 : 1);
@@ -305,11 +198,11 @@ export class WorldScene extends Phaser.Scene {
     for (const m of this.monsters) {
       const a = m.tick(time, target);
       if (a === 'swing') this.monsterSwings(m);
-      else if (a === 'shoot') this.fireShot(m);
+      else if (a === 'shoot') fireShot(this, m);
       // v0.2.6: a mob that is in combat bumps for 40% of a swing when its body touches the player.
       else if (!Game.dead && m.alive && m.engaged && this.touching(m)) this.monsterSwings(m, m.x, true);
     }
-    this.updateShots(time, delta);
+    updateShots(this, time, delta);
     this.updateBolts(delta);
     this.tickBurns(time);
 
@@ -318,52 +211,19 @@ export class WorldScene extends Phaser.Scene {
       this.lastQuestAt = time;
       Q.checkPlace(p, this.areaId, this.player.x / TILE);
       Q.tick(p);
-      this.ensureNamed();
+      ensureNamed(this);
     }
-    this.updateMarkers(time);
+    updateMarkers(this, time);
     this.updatePrompt();
     if (this.chestImg) this.chestImg.setTexture(Game.storageOpen ? 'deco.chest_open' : 'deco.chest');
     p.x = this.player.x;
     if (time - this.lastSave > ASSUME.autosaveMs) { this.lastSave = time; Game.save(); }
   }
 
-  /** Out-of-combat HP regen (assumptions.REGEN). */
-  private regen(time: number, delta: number) {
-    const p = Game.player;
-    const max = P.maxHp(p);
-    if ((Game.buffs.soul_guard ?? 0) <= time) Game.shield = 0;
-    const active = time - this.lastCombatAt > REGEN.delayMs && p.hp < max;
-    Game.regenActive = active;
-    this.glow.clear();
-    // Buff visuals must use wall-clock (Date.now), same as Game.buffs. Using the
-    // scene clock here left Dig In's aura on forever after v0.2.1 (Date.now() >> scene time).
-    const wall = Date.now();
-    if (Game.shield > 0 && (Game.buffs.soul_guard ?? 0) > wall) {
-      const a = 0.3 + 0.15 * Math.sin(wall / 160);
-      this.glow.lineStyle(3, 0x9fe0ff, a).strokeEllipse(this.player.x, this.player.y - 22, 52, 58);
-    }
-    if ((Game.buffs.dig_in ?? 0) > wall) {
-      const a = 0.35 + 0.2 * Math.sin(wall / 180);
-      this.glow.lineStyle(4, 0xc4a06a, a).strokeEllipse(this.player.x, this.player.y - 18, 60, 52);
-      this.glow.fillStyle(0xc4a06a, 0.08 + 0.05 * Math.sin(wall / 180));
-      this.glow.fillEllipse(this.player.x, this.player.y - 18, 60, 52);
-    }
-    if ((Game.buffs.mana_shield ?? 0) > wall) Fx.wardGlow(this.glow, this.player.x, this.player.y - 22, wall);
-    if (!active) return;
-    const perSec = P.hpRegenPerSec(p);
-    p.hp = Math.min(max, p.hp + (perSec * delta) / 1000);
-    const a = 0.25 + 0.15 * Math.sin(time / 200);
-    this.glow.fillStyle(0x7dff9b, a).fillEllipse(this.player.x, this.player.y - 4, 44, 12);
-    if (Math.random() < delta / 250) {
-      const t = this.add.text(this.player.x + (Math.random() - 0.5) * 30, this.player.y - 20, '+', { fontFamily: 'monospace', fontSize: '14px', color: '#7dff9b', stroke: '#000', strokeThickness: 3 }).setDepth(12);
-      this.tweens.add({ targets: t, y: t.y - 30, alpha: 0, duration: 800, onComplete: () => t.destroy() });
-    }
-  }
-
   // ─────────────────────────── combat ───────────────────────────
-  private buffActive(id: string) { return (Game.buffs[id] ?? 0) > Date.now(); }
+  buffActive(id: string) { return (Game.buffs[id] ?? 0) > Date.now(); }
 
-  private trySwing(mult: number, mpCost: number, kind: 'basic' | 'power_strike'): boolean {
+  trySwing(mult: number, mpCost: number, kind: 'basic' | 'power_strike'): boolean {
     const p = Game.player;
     const now = Game.now;
     const atkSpeed = this.buffActive('mint_sprig') ? 1 + (consumableEffect('mint_sprig').buff?.speedPct ?? 0) / 100 : 1;
@@ -472,7 +332,7 @@ export class WorldScene extends Phaser.Scene {
     });
   }
 
-  private useHotbar(slot: number) {
+  useHotbar(slot: number) {
     const id = Sk.barOf(Game.player)[slot];
     if (!id) { Game.toast('Empty slot — bind a skill or a potion from K or I', 'info'); return; }
     if (Sk.isHotbarSkill(id)) this.useSkill(id);
@@ -765,32 +625,6 @@ export class WorldScene extends Phaser.Scene {
     });
   }
 
-  /** Ranged monsters: a slow, visible pebble aimed at chest height (jump over it or walk away). */
-  private fireShot(m: Monster) {
-    const dir = Math.sign(this.player.x - m.x) || 1;
-    const y = m.y - m.displayHeight * 0.55;
-    const img = fitSlot(this, this.add.image(m.x + dir * m.halfW, y, 'fx.pebble').setDepth(11), 'fx.pebble');
-    const ty = this.player.y - 24; // chest height at release time
-    const dist = Math.max(40, Math.abs(this.player.x - m.x));
-    const vy = Phaser.Math.Clamp(((ty - y) / dist) * RANGED.projectileSpeed, -80, 80);
-    this.shots.push({ img, vx: dir * RANGED.projectileSpeed, vy, dieAt: Game.now + RANGED.projectileLifeMs, m });
-  }
-
-  private updateShots(time: number, delta: number) {
-    this.shots = this.shots.filter((s) => {
-      s.img.x += (s.vx * delta) / 1000;
-      s.img.y += (s.vy * delta) / 1000;
-      s.img.angle += delta * 0.6;
-      const hit = !Game.dead && Math.abs(s.img.x - this.player.x) < RANGED.hitRadius + 6 && s.img.y > this.player.y - 46 && s.img.y < this.player.y + 2;
-      if (hit) this.monsterSwings(s.m, s.img.x);
-      if (hit || time > s.dieAt || s.img.y > this.groundY + 10) {
-        this.tweens.add({ targets: s.img, alpha: 0, scale: s.img.scale * 1.6, duration: 120, onComplete: () => s.img.destroy() });
-        return false;
-      }
-      return true;
-    });
-  }
-
   /** Body-on-body overlap between a mob and the player. */
   private touching(m: Monster): boolean {
     const a = m.body2;
@@ -799,7 +633,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   /** A swing, a pebble, or (contact) a bump. A bump is CONTACT.fraction of a swing, physical, with a small nudge and no miss roll. */
-  private monsterSwings(m: Monster, fromX = m.x, contact = false) {
+  monsterSwings(m: Monster, fromX = m.x, contact = false) {
     const p = Game.player;
     if (Game.dead || Game.now < Game.invulnUntil) return;
     if (!contact && !rollHit(m.feel.acc, P.evasion(p), m.def.level, p.level, HIT_MONSTER)) {
@@ -830,7 +664,7 @@ export class WorldScene extends Phaser.Scene {
     const nudge = contact ? CONTACT.kbScale : 1;
     body.setVelocity(Math.sign(this.player.x - fromX || 1) * PLAYER_HIT_KB.vx * nudge, PLAYER_HIT_KB.vy * nudge);
     this.floatText(this.player.x, this.player.y - 60, p.cheats.god ? 'GOD' : `-${dmg}`, digging ? '#c4a06a' : '#ff6b6b', 16);
-    if (p.hp <= 0) this.die();
+    if (p.hp <= 0) die(this);
   }
 
   onKill(m: Monster) {
@@ -919,25 +753,6 @@ export class WorldScene extends Phaser.Scene {
       this.tweens.add({ targets: d, alpha: 0.55, yoyo: true, repeat: -1, duration: 400 });
     }
     return d;
-  }
-
-  private die() {
-    const p = Game.player;
-    p.hp = 0;
-    Game.dead = true;
-    const lost = P.applyDeathPenalty(p);
-    (this.player.body as Phaser.Physics.Arcade.Body).setVelocityX(0);
-    Game.toast(`You were defeated. Lost ${lost} XP. Returning to Meadow Town…`, 'warn');
-    Game.events.emit('dead', true);
-    Game.changed();
-    this.time.delayedCall(ASSUME.respawnDelayMs, () => {
-      Game.dead = false;
-      p.hp = P.maxHp(p);
-      p.mp = P.maxMp(p);
-      Game.buffs = {};
-      Game.events.emit('dead', false);
-      this.scene.restart({ area: 'meadow_town', x: AREAS.meadow_town.spawnX });
-    });
   }
 
   /** Use a consumable (from hotkey or inventory). */
@@ -1041,20 +856,7 @@ export class WorldScene extends Phaser.Scene {
     return this.postInMelee();
   }
 
-  /** Spawn a named quest foe only while its kill-step is active and it is not already here. */
-  private ensureNamed() {
-    for (const n of this.geo.namedSpawns ?? []) {
-      if (this.monsters.some((m) => m.def.id === n.id && m.alive)) continue;
-      if (Q.shouldSpawn(Game.player, n.id)) {
-        this.spawnMonster(n.id, n.x * TILE);
-        if (n.id === 'bank_cracker') Game.toast('Bank-Cracker claws out of the bank.', 'rare');
-        if (n.id === 'cinderback') Game.toast('Cinderback claws out of the bank.', 'rare');
-        if (n.id === 'wool_shoulder') Game.toast('Wool-Shoulder shoulders out of the flock.', 'rare');
-      }
-    }
-  }
-
-  private interact() {
+  interact() {
     const drops = this.nearbyDrops().filter((d) => !d.picking);
     if (drops.length) {
       drops.forEach((d, i) => this.pickupDrop(d, i * 40));
@@ -1078,18 +880,6 @@ export class WorldScene extends Phaser.Scene {
   travel(area: string, x?: number) {
     Game.events.emit('close-all');
     this.scene.restart({ area, x: x ?? AREAS[area]?.spawnX });
-  }
-
-  /** Quest markers above NPCs; hidden while any window (including the conversation) is open. */
-  private updateMarkers(time: number) {
-    if (!this.npcs.length || time - this.lastMarkerAt < 120) return;
-    this.lastMarkerAt = time;
-    for (const n of this.npcs) {
-      if (!n.marker) continue;
-      const m = Game.menuOpen ? null : Q.markerFor(Game.player, n.id);
-      if (!m) { n.marker.setVisible(false); continue; }
-      n.marker.setText(m).setColor(m === '!' ? '#ffd23a' : '#fff4b8').setVisible(true);
-    }
   }
 
   private updatePrompt() {

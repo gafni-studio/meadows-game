@@ -36,13 +36,19 @@ Do not run long manual playthroughs, write one-off browser scripts, or re-read w
 | `data/*.json` | **all tabulated design**: items, monsters, drops, skills, skill/passive costs, gear, quests (`skill_quests`), dialogue (`quest_dialogue`), NPCs, paths, map spawns, formulas (`combat_formulas`: HP, XP) |
 | `src/data/db.ts` | typed access to the JSON; derives `num`, `spawns`, `links` at load |
 | `src/data/assumptions.ts` | numbers the sheet never had: cooldowns, mob speed/range/AI, contact, affinity table, projectiles (`BOLT`), knockback, loot skew |
-| `src/systems/Quests.ts` | quest engine (see Quest engine) |
+| `src/systems/Quests.ts` | quest engine (see Quest engine): start/advance/complete, talk, markers, journal |
+| `src/systems/quests/maps.ts` | the step-mechanic maps (`TALKSTEP`, `HUNT`, `COLLECT`, `REACH`, `AUTO_START`, ...) |
+| `src/systems/quests/state.ts` | quest state per line (`state`, `isDone`, `isActive`, `setState`) |
 | `src/systems/Player.ts` | stats, HP/MP, attack / magicAttack, XP, inventory, gear, bag slots |
 | `src/systems/Skills.ts` | training, costs, Paths rules (chain, node state, `TREE_LAYOUT`), rank scaling |
 | `src/systems/Bar.ts` | equip slots: attack 0-3 (keys 1-4), buff 4-5 (5-6), potion 6-7 (Q/G) |
 | `src/systems/Passives.ts` | passive trees, production, upgrades |
 | `src/systems/Loot.ts`, `Combat.ts`, `Gear.ts` | drops (cap 3 except Copper), damage / hit / affinity, gear rolls |
-| `src/scenes/WorldScene.ts` (1100 lines) | world, input, combat resolution, projectiles, NPC markers, drops. `grep` for the method you need |
+| `src/scenes/WorldScene.ts` (900 lines) | scene shell, combat resolution, Magician bolts, drops. `grep` for the method you need |
+| `src/scenes/world/terrain.ts` | sky, parallax, ground, decor, platforms, chest, post, portals |
+| `src/scenes/world/npcs.ts` | NPC sprites, quest markers, named quest foes |
+| `src/scenes/world/player.ts` | walk/jump/attack/hotbar input, regen, death |
+| `src/scenes/world/projectiles.ts` | mob projectiles |
 | `src/entities/Monster.ts` | mob AI: patrol, aggro, give-up, ledge jump, leash, windup/strike |
 | `src/systems/CombatFx.ts` | every attack/skill visual. Damage fires from inside the animation via `onImpact` |
 | `src/ui/Hud.ts` (1300 lines) | DOM HUD and all windows (`render<Panel>()`), keys, dialogue, rewards screen |
@@ -57,7 +63,7 @@ Rules:
 - Target **under ~400 lines per file**; one responsibility per file. If you add more than ~50 lines to a file already over 500, put it in a new module instead.
 - **Hud.ts** → `src/ui/panels/<panel>.ts`, one file per window (`inventory`, `stats`, `shop`, `storage`, `skills` (Paths tree), `journal`, `passives`, `exchange`, `dialog`, `rewards`, `pause`). Each exports `render(ctx)` and, if needed, its key and click handlers; `Hud.ts` keeps only the shell: panel stack, key routing, HUD bar, hotbar, toasts, console.
 - **WorldScene.ts** → `src/scenes/world/<system>.ts`: `combat.ts` (swings, strikes, skill hits, burns), `projectiles.ts` (Magician bolts, mob shots), `npcs.ts` (NPCs, markers, interaction), `drops.ts` (spawn, pickup), `player.ts` (input, regen, death). Plain functions that take the scene (`scene: WorldScene`) are fine; no new framework.
-- **Quests.ts** (750 lines) → when next touched: `quests/maps.ts` (the step-mechanic maps), `quests/talk.ts` (conversations, markers), `quests/journal.ts`.
+- **Quests.ts** (650 lines) → maps and state are split out (`quests/`); next: `quests/talk.ts` (conversations, markers), `quests/journal.ts`.
 - **CombatFx.ts** (750 lines) → `fx/<family>.ts` (melee, fire, nature, lightning, ward, shared helpers) when next touched.
 - A split is a **pure move**: no behavior change in the same commit as the move. `npm run verify` must pass before and after, and keep every export reachable (re-export from the old file if other code imports it).
 - Update the "Where things live" table in this file in the same commit, so the next turn can open the right small file directly.
