@@ -1,7 +1,8 @@
 /**
- * Data access layer. All gameplay numbers come from the JSON files exported
- * from the Game Design DB sheet (see scripts/export-sheet.mjs → /data).
- * Nothing here hard-codes stats; it only indexes and parses the exported rows.
+ * Data access layer. data/*.json is the source of truth for every tabulated number (edit it directly;
+ * `npm run sheet` regenerates the xlsx for sharing). Nothing here hard-codes stats; it only indexes and
+ * parses the rows. Derived fields (KV `num`, map `spawns` / `links`) are computed here at load, so a
+ * hand-edited row never needs a re-export.
  */
 type Row = Record<string, unknown>;
 interface TabFile { tab: string; note: string | null; columns: string[]; rows: Row[] }
@@ -9,6 +10,35 @@ interface TabFile { tab: string; note: string | null; columns: string[]; rows: R
 const files = import.meta.glob('../../data/*.json', { eager: true, import: 'default' }) as Record<string, TabFile>;
 const tabs: Record<string, TabFile> = {};
 for (const [p, f] of Object.entries(files)) tabs[p.split('/').pop()!.replace('.json', '')] = f;
+
+const firstNumber = (v: unknown): number | null => {
+  if (typeof v === 'number') return v;
+  const m = String(v ?? '').match(/-?\d+(\.\d+)?/);
+  return m ? Number(m[0]) : null;
+};
+const parseList = (s: unknown, sep: string): Record<string, string> => {
+  const out: Record<string, string> = {};
+  if (typeof s !== 'string') return out;
+  for (const part of s.split(sep)) {
+    const m = part.trim().match(/^([a-z_]+)\s*:?\s*(.*)$/);
+    if (m && m[1]) out[m[1]] = m[2].trim();
+  }
+  return out;
+};
+for (const t of Object.values(tabs)) {
+  if (t.columns?.includes('key') && t.columns.includes('value')) for (const r of t.rows) r.num = firstNumber(r.value);
+}
+if (tabs.map_layout) {
+  for (const r of tabs.map_layout.rows) {
+    const spawns: Record<string, number> = {};
+    for (const part of String(r.spawn_counts ?? '').split(',')) {
+      const m = part.trim().match(/^([a-z_]+)\s+(\d+)/);
+      if (m) spawns[m[1]] = Number(m[2]);
+    }
+    r.spawns = spawns;
+    r.links = parseList(r.connections, ';');
+  }
+}
 
 export function tab<T = Row>(name: string): T[] {
   const t = tabs[name];

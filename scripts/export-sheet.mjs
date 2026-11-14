@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Export the "Game Design DB - v0" Google Sheet tabs to /data/*.json.
- *
- * The sheet is the source of truth. Usage:
+ * IMPORT an edited xlsx into /data/*.json — this OVERWRITES the JSON, which is the source of truth since v0.2.9.
+ * Only use it when someone edited the sheet on purpose (run `npm run sheet:export` first to get a current xlsx).
+ * Requires --yes. Usage:
  *   1. In Google Sheets: File → Download → Microsoft Excel (.xlsx)
  *   2. Save it as sheet/Game_Design_DB_v0.xlsx (or pass a path)
  *   3. npm run export-sheet [-- path/to/file.xlsx]
@@ -18,7 +18,7 @@ import path from 'node:path';
 import XLSX from 'xlsx';
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
-const input = path.resolve(process.argv[2] ?? path.join(root, 'sheet', 'Game_Design_DB_v0.xlsx'));
+const input = path.resolve(process.argv.slice(2).find((a) => !a.startsWith('--')) ?? path.join(root, 'sheet', 'Game_Design_DB_v0.xlsx'));
 const outDir = path.join(root, 'data');
 
 if (!fs.existsSync(input)) {
@@ -26,6 +26,10 @@ if (!fs.existsSync(input)) {
   process.exit(1);
 }
 
+if (!process.argv.includes('--yes')) {
+  console.error('This overwrites data/*.json (the source of truth) from the xlsx. Re-run with: npm run sheet:import -- --yes');
+  process.exit(1);
+}
 const wb = XLSX.read(fs.readFileSync(input));
 fs.mkdirSync(outDir, { recursive: true });
 

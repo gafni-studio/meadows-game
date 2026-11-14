@@ -1,0 +1,346 @@
+{
+  "tab": "quest_dialogue",
+  "note": "NOTE: v0.2.9+. Every quest conversation, one row per key \"line:step:kind\". kind: ok (the step's talk), wait (not yet), done (the turn-in that completes the line), need / gate (talk-started quests' item step), start (step 0: Calden offers the quest). lines = one page each, one thought per page. Voices: Pell warm and folksy; Mara practical and dry; Calden gruff and patient; Ila talks in growing things; Tamsin dreamy, exact, counting.",
+  "columns": [
+    "key",
+    "lines"
+  ],
+  "rows": [
+    {
+      "key": "ql_intro:1:ok",
+      "lines": [
+        "Ah — a new face at the gate. Welcome to Meadow Town.",
+        "Small place. Good people. Everyone here knows one thing worth knowing.",
+        "See the mark over a head? That one’s got something for you.",
+        "Here, five Copper. Mara at the counter will show you what it buys."
+      ]
+    },
+    {
+      "key": "ql_intro:2:ok",
+      "lines": [
+        "Pell sent you? Then you’ve got five Copper and no idea what to do with it.",
+        "Strawberries are five. Buy one. That’s how a shop works.",
+        "And bring me your junk. Bones, pegs, shiny bits. I pay fair. I don’t buy what you need."
+      ]
+    },
+    {
+      "key": "ql_intro:4:ok",
+      "lines": [
+        "A berry in the bag does nothing. Put one where your hand can find it and take a bite."
+      ]
+    },
+    {
+      "key": "ql_intro:6:ok",
+      "lines": [
+        "That chest is mine, but you can use it. Your bag is not bottomless.",
+        "Put something in. Take it out. Now you know it’s safe."
+      ]
+    },
+    {
+      "key": "ql_intro:8:ok",
+      "lines": [
+        "Everything out there carries a little of where it came from. Nature. Elemental. Basic, for the plain blows.",
+        "Kill enough, and that becomes essence. Essence is how a skill takes root.",
+        "Ten common things for one essence, at my bench. And one day, roots of your own that grow while you rest.",
+        "Tamsin is counting something by the well. She always is."
+      ]
+    },
+    {
+      "key": "ql_intro:9:ok",
+      "lines": [
+        "Three. You have three. Points, I mean — you haven’t spent them.",
+        "Strength for the arm. Intellect for the spell. Agility for the feet. Spirit for the long breath.",
+        "Spend one. It changes you a little, and that’s the point."
+      ]
+    },
+    {
+      "key": "ql_intro:11:done",
+      "lines": [
+        "So. You’ve met the town. Now meet the work."
+      ]
+    },
+    {
+      "key": "ql_warrior:1:ok",
+      "lines": [
+        "Every Hero walks a Path. The Warrior’s is mine to teach.",
+        "It starts with a swing. Not a pretty one. An honest one.",
+        "Three blows on the post. Let me hear them."
+      ]
+    },
+    {
+      "key": "ql_warrior:3:ok",
+      "lines": [
+        "Better than I feared.",
+        "Now — the mice outside the gate are in the grain again. Clear five of them.",
+        "And bring me five Twig while you’re out. The post needs mending, and so do my manners."
+      ]
+    },
+    {
+      "key": "ql_warrior:4:wait",
+      "lines": [
+        "Five mice. Five Twig. I can count, Hero."
+      ]
+    },
+    {
+      "key": "ql_warrior:5:wait",
+      "lines": [
+        "Five mice. Five Twig. I can count, Hero."
+      ]
+    },
+    {
+      "key": "ql_warrior:5:done",
+      "lines": [
+        "That’s a Warrior’s first day.",
+        "Here’s your Path. Power Strike is its first step — Monster Essence, a few scrolls, a little Copper, and it’s yours.",
+        "Walk it as far as you like."
+      ]
+    },
+    {
+      "key": "ql_magician:1:ok",
+      "lines": [
+        "You hit things well. One, two, three — very loud.",
+        "There’s another Path. It asks more of your mana and less of your arm.",
+        "I need six Wool and four Feathers to make you a focus. Sheep and crows. Gently, if you can."
+      ]
+    },
+    {
+      "key": "ql_magician:2:wait",
+      "lines": [
+        "Six and four. I’ve counted twice."
+      ]
+    },
+    {
+      "key": "ql_magician:3:done",
+      "lines": [
+        "Soft wool, sharp feathers. A good focus.",
+        "Magic Bolt first. Watch your mana — it runs out before your courage does.",
+        "The Magician’s Path is open to you now."
+      ]
+    },
+    {
+      "key": "ql_warm_coat:1:ok",
+      "lines": [
+        "Winter’s three months off and my stock is thin. Wool and fur are what I’m short of.",
+        "Eight Wool from the sheep, six Fur from the mice. I don’t need a flock. A coat’s worth.",
+        "You’ll be paid in more than Copper. I count, but I’m not cruel."
+      ]
+    },
+    {
+      "key": "ql_warm_coat:2:wait",
+      "lines": [
+        "Eight and six, Hero. I counted the sheep myself."
+      ]
+    },
+    {
+      "key": "ql_warm_coat:2:done",
+      "lines": [
+        "Good wool. Thick fur. That’ll keep a blow off your ribs.",
+        "Not a knight’s coat. A good one.",
+        "If you ever want to sell me junk, the shop is still here."
+      ]
+    },
+    {
+      "key": "ql_dirt_path:1:ok",
+      "lines": [
+        "There you are. Level three already — the pasture must be getting small.",
+        "Past the east end the grass gives out and the Banks begin. Loose earth, old warmth.",
+        "Crows keep that gate. Four of them. They steal more than seeds.",
+        "Clear them, then walk on through. I’ll be here, pretending not to worry."
+      ]
+    },
+    {
+      "key": "ql_dirt_path:4:wait",
+      "lines": [
+        "Moles and beetles, Hero. The Banks don’t hurry, and neither should you.",
+        "Five moles, three beetles. Then come and tell me what you saw."
+      ]
+    },
+    {
+      "key": "ql_dirt_path:4:done",
+      "lines": [
+        "You came back with the Banks on your boots. Good.",
+        "Root and stone, and a little warmth in the beetles. That’s what the ground keeps out there.",
+        "I may have another question for the dirt before long."
+      ]
+    },
+    {
+      "key": "ql_blood:1:ok",
+      "lines": [
+        "Rage is a bargain, Hero. A good one, if you read the terms.",
+        "You strike harder. So does everything that strikes you.",
+        "There’s a sheep at the far east of the pasture. Stubborn. Wears the fleece of three.",
+        "Stand in front of it a while. Learn what the bargain costs."
+      ]
+    },
+    {
+      "key": "ql_blood:3:wait",
+      "lines": [
+        "Still out there. East pasture, by the path. Don’t come back until you’ve stood in it."
+      ]
+    },
+    {
+      "key": "ql_blood:3:done",
+      "lines": [
+        "You stayed in the fight. Most don’t.",
+        "Rage is yours. Remember the other half of the bargain."
+      ]
+    },
+    {
+      "key": "ql_quiet_work:1:ok",
+      "lines": [
+        "You have a swing now. That’s the loud work.",
+        "There is slower work: roots, underfoot, that grow while you walk and while you sleep.",
+        "Gather what one root costs. Nature Essence, pebble and bark from the Banks, and a little copper.",
+        "Then plant it in the passive tree. I’ll be here, watching the dirt."
+      ]
+    },
+    {
+      "key": "ql_quiet_work:2:wait",
+      "lines": [
+        "Nature Essence, pebble, bark, copper. A root costs what it costs.",
+        "Gather it, plant it, then come and tell me."
+      ]
+    },
+    {
+      "key": "ql_quiet_work:3:done",
+      "lines": [
+        "There. A root is in the dirt.",
+        "It will yield while you hunt, and while you’re away. One at a time — don’t rush the second.",
+        "When you want a path to walk, Pell has one. He always does."
+      ]
+    },
+    {
+      "key": "ql_dirt_keeps:1:ok",
+      "lines": [
+        "You’ve walked the Banks once. They keep things under the loose earth.",
+        "Eight pinches of Earth Grit and four honest Stone Chunks. I want to feel what the place is holding.",
+        "Then I’ve something for your hand."
+      ]
+    },
+    {
+      "key": "ql_dirt_keeps:2:wait",
+      "lines": [
+        "Eight grit, four stone. The Banks will give them up, if you ask with a blade."
+      ]
+    },
+    {
+      "key": "ql_dirt_keeps:2:done",
+      "lines": [
+        "Grit and stone. That’s the Banks, all right.",
+        "This club came out of packed dirt and a stubborn idea. It should sit well in a Hero’s hand.",
+        "If it asks for more strength than you have, keep it. The Banks aren’t going anywhere."
+      ]
+    },
+    {
+      "key": "ql_crack:0:start",
+      "lines": [
+        "There’s a stone in the Banks that wants to break more than itself.",
+        "The moles turn it up now and then. Cracked, pale, heavier than it looks.",
+        "Bring me one. And bring an arm that can hold what comes after."
+      ]
+    },
+    {
+      "key": "ql_crack:1:need",
+      "lines": [
+        "No stone yet. The moles turn them up. Look for the pale, cracked one."
+      ]
+    },
+    {
+      "key": "ql_crack:1:gate",
+      "lines": [
+        "I can feel what’s in that stone. You’re not strong enough to finish this.",
+        "Keep it safe. Come back when you are."
+      ]
+    },
+    {
+      "key": "ql_crack:1:ok",
+      "lines": [
+        "This stone wants to break more than itself.",
+        "The Banks will finish the lesson. Go east through the pasture and take the dirt path.",
+        "A thing lives there that splits the earth with its shoulders. You’ll know it when it stands."
+      ]
+    },
+    {
+      "key": "ql_crack:3:ok",
+      "lines": [
+        "Pebble and grit. The Banks gave them up.",
+        "Now the named one. Bank-Cracker. It’s already in the dirt, if you’ve walked there once.",
+        "Put it down, and come back to me."
+      ]
+    },
+    {
+      "key": "ql_crack:3:wait",
+      "lines": [
+        "Eight pebble, six grit. The moles and the sprites keep them."
+      ]
+    },
+    {
+      "key": "ql_crack:4:wait",
+      "lines": [
+        "Bank-Cracker is still in the Banks. Look for the pale, heavy one — bigger than a mole, the color of cracked stone."
+      ]
+    },
+    {
+      "key": "ql_crack:4:done",
+      "lines": [
+        "The ground answered.",
+        "Earthbreaker training is open. Bring Nature Essence, Earth Shard and Clay when you want to learn it."
+      ]
+    },
+    {
+      "key": "ql_hot:0:start",
+      "lines": [
+        "Level six. You’re stirring the dirt now.",
+        "Fire wants a spark first. Bring me a Smoldering Scale from the Ember Beetles in the Banks.",
+        "And a strong arm, ten strength at least, or it will burn you worse than the beetle."
+      ]
+    },
+    {
+      "key": "ql_hot:1:need",
+      "lines": [
+        "No scale yet. The Ember Beetles in the Banks carry them.",
+        "Bring me one, and bring a strong arm to hold it."
+      ]
+    },
+    {
+      "key": "ql_hot:1:gate",
+      "lines": [
+        "I can feel the heat on that scale. You’re not ready for the rest of it.",
+        "Keep it. Come back when your arm can carry the lesson."
+      ]
+    },
+    {
+      "key": "ql_hot:1:ok",
+      "lines": [
+        "Still warm. Good.",
+        "Bring me Warm Grain from the Ember Beetles. Then we will talk fire."
+      ]
+    },
+    {
+      "key": "ql_hot:2:ok",
+      "lines": [
+        "Warm grain, still smelling of the beetle.",
+        "Cinderback is next. In the eastern Banks, where the dirt holds a little fire. Bring me its Live Ember."
+      ]
+    },
+    {
+      "key": "ql_hot:2:wait",
+      "lines": [
+        "Six grain. The beetles carry it, and so do the sprites."
+      ]
+    },
+    {
+      "key": "ql_hot:3:wait",
+      "lines": [
+        "Cinderback first. The ember comes off its shell. Don’t lose it on the walk back."
+      ]
+    },
+    {
+      "key": "ql_hot:3:done",
+      "lines": [
+        "A clean, hot edge.",
+        "Flame Cleave training is open. Elemental Essence will teach it."
+      ]
+    }
+  ]
+}

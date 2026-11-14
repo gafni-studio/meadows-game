@@ -25,3 +25,4 @@ new Hud();
 window.addEventListener('beforeunload', () => { if (Game.player && !isWiping()) Game.save(); });
 (window as unknown as { __game: Phaser.Game; __state: typeof Game }).__game = game;
 (window as unknown as { __state: typeof Game }).__state = Game;
+(window as unknown as { __version: string }).__version = __APP_VERSION__;

@@ -1,23 +1,30 @@
 {
   "name": "meadows-game",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.9",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "export-sheet": "node scripts/export-sheet.mjs",
-    "smoke": "node scripts/smoke-test.mjs"
+    "test": "vitest run",
+    "check": "tsc --noEmit && vitest run",
+    "smoke": "node scripts/smoke.mjs",
+    "verify": "npm run check && vite build && node scripts/smoke.mjs",
+    "shots": "node scripts/shots.mjs",
+    "sheet:export": "node scripts/json-to-sheet.mjs",
+    "sheet:import": "node scripts/export-sheet.mjs"
   },
   "dependencies": {
     "phaser": "^3.90.0"
   },
   "devDependencies": {
+    "@types/node": "^22.20.5",
     "playwright-core": "^1.65.0",
     "typescript": "^5.9.3",
     "vite": "^6.4.6",
+    "vitest": "^3.2.4",
     "xlsx": "^0.18.5"
   }
 }

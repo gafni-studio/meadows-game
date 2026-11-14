@@ -1,0 +1,15 @@
+name: verify
+# Typecheck, fast tests, build and the boot smoke on every push and PR (~1-2 min).
+on: [push, pull_request]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run check
+      - run: npx vite build
+      - run: npm run smoke
+        env: { CHROME_PATH: /usr/bin/google-chrome }
