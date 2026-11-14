@@ -18,7 +18,7 @@ Nothing. The last two commits were tooling only (tests, CLAUDE.md, file-split ru
 
 ## Known gaps and judgment calls worth remembering
 - Placeholder art: Tamsin's sprite (a recolour of Ila's), the Club and Chain Spark icons.
-- The open questions from the v0.2.6 spec (HP toughness with contact damage; late-rank recipe shape while the east is closed) were never answered; numbers were implemented as written.
+- v0.2.6 open questions, answered by Oded: Hero HP (100 + 7/level) is fine; late-rank recipes (3-10, Dirt Banks goods only) stay as they are and will be reworked when more content arrives.
 - Pell's quest marker was reported missing in v0.2.7 and could not be reproduced; it is covered by tests. If it recurs, get the exact step from Oded.
 - The Cracked Stone and Ember in the Scale start by talking to Calden (`!`); the first Burrow Mole (level 5+) / Ember Beetle (level 6+) kill drops the needed item once.
 - The in-game `droprate` console cheat bypasses the 3-per-kill cap on purpose.
