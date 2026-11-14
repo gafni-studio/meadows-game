@@ -3,6 +3,7 @@ import { migrateBar } from './Bar';
 import { migrateQuests } from './Quests';
 import { settle } from './Passives';
 import { DB } from '../data/db';
+import { AREA_ALIAS } from '../world/areas';
 
 const KEY = 'meadows.save.v1';
 const KEY_PREFIX = 'meadows';
@@ -33,6 +34,7 @@ export function loadSave(): PlayerData {
     migrateBar(p);
     migrateQuests(p);
     settle(p, Date.now(), true); // offline production; toasts after Game is ready
+    p.area = AREA_ALIAS[p.area] ?? p.area; // v0.3.0: Sunny Pasture / Dirt Banks saves land in the matching half
     if (!DB.areas[p.area]) p.area = 'meadow_town';
     // Drop unknown item ids if the sheet removed them since the save was written.
     for (const id of Object.keys(p.inventory)) if (!DB.items[id]) delete p.inventory[id];

@@ -1,6 +1,6 @@
 {
   "tab": "quest_dialogue",
-  "note": "NOTE: v0.2.9+. Every quest conversation, one row per key \"line:step:kind\". kind: ok (the step's talk), wait (not yet), done (the turn-in that completes the line), need / gate (talk-started quests' item step), start (step 0: Calden offers the quest). lines = one page each, one thought per page. Voices: Pell warm and folksy; Mara practical and dry; Calden gruff and patient; Ila talks in growing things; Tamsin dreamy, exact, counting.",
+  "note": "NOTE: v0.2.9+. Every quest conversation, one row per key \"line:step:kind\". kind: ok (the step's talk), wait (not yet), done (the turn-in that completes the line), need / gate (talk-started quests' item step), start (step 0: Calden offers the quest). lines = one page each, one thought per page. Voices: Pell warm and folksy; Mara practical and dry; Calden gruff and patient; Ila talks in growing things; Tamsin dreamy, exact, counting.  v0.3.0: place names follow the split halves; Whisperwood chain pages (Pell starts, Wren gives the rest).",
   "columns": [
     "key",
     "lines"
@@ -143,8 +143,8 @@
       "key": "ql_dirt_path:1:ok",
       "lines": [
         "There you are. Level three already — the pasture must be getting small.",
-        "Past the east end the grass gives out and the Banks begin. Loose earth, old warmth.",
-        "Crows keep that gate. Four of them. They steal more than seeds.",
+        "Past the hills of the east meadow the grass gives out and the Banks begin. A river, then a cave.",
+        "Crows keep the east meadow. Four of them. They steal more than seeds.",
         "Clear them, then walk on through. I’ll be here, pretending not to worry."
       ]
     },
@@ -168,14 +168,14 @@
       "lines": [
         "Rage is a bargain, Hero. A good one, if you read the terms.",
         "You strike harder. So does everything that strikes you.",
-        "There’s a sheep at the far east of the pasture. Stubborn. Wears the fleece of three.",
+        "There’s a sheep at the far end of the east meadow. Stubborn. Wears the fleece of three.",
         "Stand in front of it a while. Learn what the bargain costs."
       ]
     },
     {
       "key": "ql_blood:3:wait",
       "lines": [
-        "Still out there. East pasture, by the path. Don’t come back until you’ve stood in it."
+        "Still out there. Far end of the east meadow. Don’t come back until you’ve stood in it."
       ]
     },
     {
@@ -256,15 +256,15 @@
       "key": "ql_crack:1:ok",
       "lines": [
         "This stone wants to break more than itself.",
-        "The Banks will finish the lesson. Go east through the pasture and take the dirt path.",
-        "A thing lives there that splits the earth with its shoulders. You’ll know it when it stands."
+        "The Banks will finish the lesson. Go east through the meadows to the river.",
+        "A thing dens in the pit under the cave, past the river. It splits the earth with its shoulders."
       ]
     },
     {
       "key": "ql_crack:3:ok",
       "lines": [
         "Pebble and grit. The Banks gave them up.",
-        "Now the named one. Bank-Cracker. It’s already in the dirt, if you’ve walked there once.",
+        "Now the named one. Bank-Cracker. It dens in the lower pit of the cave. Drop down to it.",
         "Put it down, and come back to me."
       ]
     },
@@ -277,7 +277,7 @@
     {
       "key": "ql_crack:4:wait",
       "lines": [
-        "Bank-Cracker is still in the Banks. Look for the pale, heavy one — bigger than a mole, the color of cracked stone."
+        "Bank-Cracker is still in its den, the pit under the cave. Pale and heavy, the color of cracked stone."
       ]
     },
     {
@@ -320,7 +320,7 @@
       "key": "ql_hot:2:ok",
       "lines": [
         "Warm grain, still smelling of the beetle.",
-        "Cinderback is next. In the eastern Banks, where the dirt holds a little fire. Bring me its Live Ember."
+        "Cinderback is next. Up on the gallery of the cave, where the dirt holds a little fire. Bring me its Live Ember."
       ]
     },
     {
@@ -340,6 +340,130 @@
       "lines": [
         "A clean, hot edge.",
         "Flame Cleave training is open. Elemental Essence will teach it."
+      ]
+    },
+    {
+      "key": "ql_mist:1:ok",
+      "lines": [
+        "You’ve grown into those boots.",
+        "There’s a road behind the grove in the east meadow. Goes north, into the Whisperwood.",
+        "Used to be traders on it. Lately, just mist.",
+        "There’s a woodwarden out there called Wren. Find Wren. Tell me the road’s still a road."
+      ]
+    },
+    {
+      "key": "ql_mist:2:wait",
+      "lines": [
+        "Up past the grove, then north. You’ll know the wood by the quiet."
+      ]
+    },
+    {
+      "key": "ql_mist:3:done",
+      "lines": [
+        "You walked in loud. That’s fine. The wood heard you before I did.",
+        "Pell sent you. Pell always sends someone.",
+        "Stay a while. I could use the help."
+      ]
+    },
+    {
+      "key": "ql_lanterns:1:ok",
+      "lines": [
+        "See the lights between the trees? Pretty. They lead people into the bog.",
+        "They didn’t used to come this close.",
+        "Thin them out. Six should do. Bring me four pinches of their dust, so I can see what they’re made of."
+      ]
+    },
+    {
+      "key": "ql_lanterns:2:wait",
+      "lines": [
+        "The lights are still drifting. So are you."
+      ]
+    },
+    {
+      "key": "ql_lanterns:2:done",
+      "lines": [
+        "Cold, even in the hand.",
+        "Wisps don’t gather like this unless something’s calling them.",
+        "Something deeper in."
+      ]
+    },
+    {
+      "key": "ql_branches:1:ok",
+      "lines": [
+        "My rope lines keep coming down. Cut clean.",
+        "Up in the branches there’s moss that breathes. And thornlings throwing barbs at anything that climbs.",
+        "Five lurkers, three thornlings. And bring me moss fiber. I’ll need new rope."
+      ]
+    },
+    {
+      "key": "ql_branches:2:wait",
+      "lines": [
+        "Watch the moss that isn’t moving. That’s the one that will."
+      ]
+    },
+    {
+      "key": "ql_branches:2:done",
+      "lines": [
+        "Good fiber. Strong.",
+        "They were guarding something, up there. Or someone told them to.",
+        "There are tracks below. Big ones."
+      ]
+    },
+    {
+      "key": "ql_hollow:1:ok",
+      "lines": [
+        "Hoofprints. Bigger than any deer’s.",
+        "They go through the bog, where the toads sit. I don’t walk there.",
+        "Bring me three toad glands. Then follow the tracks. Don’t go into the clearing. Just look."
+      ]
+    },
+    {
+      "key": "ql_hollow:2:wait",
+      "lines": [
+        "The glands first. Then the tracks. Then you come back and tell me."
+      ]
+    },
+    {
+      "key": "ql_hollow:3:wait",
+      "lines": [
+        "The glands first. Then the tracks. Then you come back and tell me."
+      ]
+    },
+    {
+      "key": "ql_hollow:4:wait",
+      "lines": [
+        "The glands first. Then the tracks. Then you come back and tell me."
+      ]
+    },
+    {
+      "key": "ql_hollow:4:done",
+      "lines": [
+        "A stag. Hollow through the ribs, you said?",
+        "The old stories call it the Keeper. It’s supposed to sleep.",
+        "It’s not sleeping."
+      ]
+    },
+    {
+      "key": "ql_antlers:1:ok",
+      "lines": [
+        "Everything here started when the Keeper woke.",
+        "I won’t ask you to hate it. Just to end it.",
+        "It charges. It sweeps. When it rears, get off the ground.",
+        "Bring me an antler. I’ll keep it at the camp, so the wood remembers."
+      ]
+    },
+    {
+      "key": "ql_antlers:2:wait",
+      "lines": [
+        "The Hollow is east of the bog. Rest first. It won’t."
+      ]
+    },
+    {
+      "key": "ql_antlers:2:done",
+      "lines": [
+        "Still cold.",
+        "Listen. The mist is lifting.",
+        "Tell Pell the road is a road again. And come back. The wood has more paths than that one."
       ]
     }
   ]

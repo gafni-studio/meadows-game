@@ -169,3 +169,74 @@ describe('old saves', () => {
     expect(p.skillRanks.power_strike).toBe(2);
   });
 });
+
+describe('the Whisperwood chain (v0.3.0)', () => {
+  it('Pell opens the road at level 5; Wren gives the rest by level; no dialogue gives materials', () => {
+    const { p, rewards } = freshHero();
+    p.questLog = { ql_intro: { step: 11, done: true }, ql_warrior: { step: 5, done: true }, ql_dirt_path: { step: 4, done: true } };
+    p.level = 4;
+    Q.offerAll(p, true);
+    expect(step(p, 'ql_mist').step).toBe(0);
+    p.level = 5;
+    Q.offerAll(p, true);
+    expect(Q.markerFor(p, 'pell')).toBe('!');
+    expect(Q.roadOpen(p)).toBe(false);
+    const before = bagOf(p);
+    talk(p, 'pell'); // What the Banks Hide opens first (also level 5)
+    expect(Q.roadOpen(p)).toBe(false);
+    talk(p, 'pell'); // its "not yet" does not block the road
+    expect(Q.roadOpen(p)).toBe(true);
+    Q.checkPlace(p, 'whisperwood', 4);
+    expect(Q.markerFor(p, 'wren')).toBe('?');
+    talk(p, 'wren');
+    expect(Q.isDone(p, 'ql_mist')).toBe(true);
+    expect(rewards.at(-1)!.rows).toEqual(['30 XP', '6 Copper']);
+
+    // Lanterns That Wander: 6 Wisps and 4 Wisp Dust, consumed at the turn-in
+    expect(Q.markerFor(p, 'wren')).toBe('!');
+    talk(p, 'wren');
+    for (let i = 0; i < 6; i++) Q.onKill(p, 'wisp');
+    expect(Q.markerFor(p, 'wren')).toBe(null); // hunt done, dust missing
+    P.addItem(p, 'wisp_dust', 5);
+    expect(Q.markerFor(p, 'wren')).toBe('?');
+    talk(p, 'wren');
+    expect(Q.isDone(p, 'ql_lanterns')).toBe(true);
+    expect(p.inventory.wisp_dust).toBe(1);
+
+    // What Waits in the Branches only at level 7
+    p.level = 6; Q.offerAll(p, true);
+    expect(step(p, 'ql_branches').step).toBe(0);
+    p.level = 7; Q.offerAll(p, true);
+    talk(p, 'wren');
+    for (let i = 0; i < 5; i++) Q.onKill(p, 'moss_lurker');
+    for (let i = 0; i < 3; i++) Q.onKill(p, 'thornling');
+    P.addItem(p, 'moss_fiber', 4);
+    talk(p, 'wren');
+    expect(Q.isDone(p, 'ql_branches')).toBe(true);
+
+    // The Drowned Hollow: glands, then the tracks, then back to Wren
+    p.level = 8; Q.offerAll(p, true);
+    talk(p, 'wren');
+    P.addItem(p, 'toad_gland', 3);
+    Q.tick(p);
+    expect(step(p, 'ql_hollow').step).toBe(3);
+    Q.checkPlace(p, 'whisperwood', 120);
+    expect(step(p, 'ql_hollow').step).toBe(3);
+    Q.checkPlace(p, 'whisperwood', 150);
+    expect(Q.markerFor(p, 'wren')).toBe('?');
+    talk(p, 'wren');
+    expect(Q.isDone(p, 'ql_hollow')).toBe(true);
+    expect(p.inventory.toad_gland ?? 0).toBe(0);
+
+    // Antlers in the Mist: the first Stag kill always gives the antler
+    p.level = 9; Q.offerAll(p, true);
+    talk(p, 'wren');
+    Q.onKill(p, 'hollow_stag');
+    expect(p.inventory.hollow_antler).toBe(1);
+    talk(p, 'wren');
+    expect(Q.isDone(p, 'ql_antlers')).toBe(true);
+    expect(rewards.at(-1)!.rows).toEqual(['80 XP', '15 Copper', '3× Nature Essence']);
+    const gained = Object.keys(p.inventory).filter((id) => (p.inventory[id] ?? 0) > (before[id] ?? 0));
+    expect(gained.filter((id) => !['wisp_dust', 'moss_fiber', 'nature_essence', 'meadow_dew'].includes(id))).toEqual([]);
+  });
+});

@@ -25,7 +25,7 @@ Do not run long manual playthroughs, write one-off browser scripts, or re-read w
 | `npm run check` | `tsc` + tests |
 | `npm run verify` | check + build + boot smoke. Run before every release |
 | `npm run smoke` | boot smoke only (needs a build): boots, opens I/C/K/J/T, talks to Pell, fights. ~15 s |
-| `npm run shots -- slash fire_bolt` | contact sheet per attack in `shots/` (needs a build) |
+| `npm run shots -- slash fire_bolt` | contact sheet per attack in `shots/` (needs a build); `-- areas` one sheet per area (`AREA=id` for one) |
 | `npm run sheet:export` | `data/*.json` → `sheet/Game_Design_DB_v0.xlsx` (for sharing) |
 | `npm run sheet:import -- --yes` | xlsx → JSON. Overwrites the JSON; only when someone edited the sheet on purpose |
 
@@ -45,15 +45,21 @@ Do not run long manual playthroughs, write one-off browser scripts, or re-read w
 | `src/systems/Passives.ts` | passive trees, production, upgrades |
 | `src/systems/Loot.ts`, `Combat.ts`, `Gear.ts` | drops (cap 3 except Copper), damage / hit / affinity, gear rolls |
 | `src/scenes/WorldScene.ts` (900 lines) | scene shell, combat resolution, Magician bolts, drops. `grep` for the method you need |
-| `src/scenes/world/terrain.ts` | sky, parallax, ground, decor, platforms, chest, post, portals |
+| `src/scenes/world/terrain.ts` | sky, parallax, ground, blocks, water, decor, platforms, climbs, chest, post, portals |
 | `src/scenes/world/npcs.ts` | NPC sprites, quest markers, named quest foes |
-| `src/scenes/world/player.ts` | walk/jump/attack/hotbar input, regen, death |
+| `src/scenes/world/player.ts` | walk/jump/attack/hotbar input, climbing, drop-through, slopes, regen, death |
+| `src/scenes/world/ambient.ts` | area ambience: Whisperwood fog/shafts/fireflies/bog, hill wind, river, cave |
 | `src/scenes/world/projectiles.ts` | mob projectiles |
 | `src/entities/Monster.ts` | mob AI: patrol, aggro, give-up, ledge jump, leash, windup/strike |
+| `src/entities/mobs/kinds.ts` | movement kinds: ledge-bound, hover (Wisp), hop (Toad, Thornling), ambush (Lurker), camp, slopes |
+| `src/entities/mobs/looks.ts` | Whisperwood mob idle / wind-up / strike / hit / death visuals |
+| `src/entities/mobs/HollowStag.ts` | the Hollow Stag's own AI (charge, sweep, root stomp, phase 2, death) |
+| `src/entities/mobs/index.ts` | `createMonster` (Stag or Monster) |
 | `src/systems/CombatFx.ts` | every attack/skill visual. Damage fires from inside the animation via `onImpact` |
 | `src/ui/Hud.ts` (1270 lines) | DOM HUD and all windows (`render<Panel>()`), keys, dialogue, rewards screen |
 | `src/ui/panels/npc.ts` | E on an NPC: quest talk, else their window, else a greeting |
-| `src/world/areas.ts` | area geometry: platforms, NPC positions, portals, spawn zones |
+| `src/world/areas.ts` | area geometry: height, solid blocks, one-way platforms, climbs, water, NPCs, portals, per-level spawn zones |
+| `src/world/surface.ts` | pure geometry queries: ground height, ledge spans, zone bounds, spawn split, slope step-up |
 | `tests/` | `data.test.ts` (invariants), `rules.test.ts`, `quests.test.ts` (flows simulated in Node) |
 
 ## Keep files small (split as you go)
@@ -74,13 +80,14 @@ Rules:
 - One file per tab: `{ tab, note, columns, rows }`. Edit rows directly (a small `node -e` script for bulk edits). Keep `note` updated with a one-line `vX.Y.Z:` change note.
 - Player-facing text goes in `desc` / dialogue; design reasoning goes in `notes`. Player text is short. The character is the **Hero** (internal class id stays `warrior`).
 - New item: a row in `items` (+ `gear` if equippable) and an icon `public/art/icons/<id>.png` (a data test fails without it).
+- New art for v0.3.0+ is drawn by `scripts/draw-art-v030.py` (Pillow; ASCII grids or shapes, auto outline). Sprite slots and frame sizes live in `src/art/sprites.ts`.
 - Recipes: explicit per rank 1-10, 10-40 per material, family essence is the main cost, no Heartwood/Log (tests enforce it).
 
-## Quest engine (`Quests.ts`)
+## Quest engine (`Quests.ts`, maps in `quests/maps.ts`)
 
 Rows in `skill_quests` give line, step, objective, giver, gates and final rewards; `quest_dialogue` gives the pages (`line:step:ok|wait|done|need|gate`, `line:0:start` for talk-started quests). The mechanics of each step are maps keyed `"line:step"`:
 
-`TALKSTEP` (a conversation finishes the step) · `ACTION` (player action via `onAction`) · `DUMMY` (post hits) · `REACH` (area / x range) · `HUNT` (kills) · `COLLECT` (items consumed at turn-in) · `PREVIEW` (items shown before turn-in) · `KILL` (named foe) · `WAIT_ONLY` · `GIFT` (small step gifts → rewards screen) · `AUTO_START` (line starts when a condition holds) · `TALK_START` (Calden offers it) · `ITEM_START` · `STEP1_ITEM`.
+`TALKSTEP` (a conversation finishes the step) · `BAG_ADVANCE` (moves on once the `PREVIEW` items are in the bag) · `ACTION` (player action via `onAction`) · `DUMMY` (post hits) · `REACH` (area / x range) · `HUNT` (kills; with `COLLECT` on the same step, items too) · `COLLECT` (items consumed at turn-in) · `PREVIEW` (items shown before turn-in) · `KILL` (named foe) · `WAIT_ONLY` · `GIFT` (small step gifts → rewards screen) · `AUTO_START` (line starts when a condition holds) · `TALK_START` (Calden offers it) · `ITEM_START` · `STEP1_ITEM`.
 
 To add a quest: rows in `skill_quests`, pages in `quest_dialogue`, entries in the maps above, one case in `tests/quests.test.ts`. Markers (`!` / `?`), the journal, the tracker and rewards all derive from the same maps.
 
@@ -93,6 +100,8 @@ To add a quest: rows in `skill_quests`, pages in `quest_dialogue`, entries in th
 - Hit-stop pauses tweens but not timers. Time damage from inside an animation (`onImpact`), not with `delayedCall`.
 - Timed buffs and cooldowns use `Date.now()` (`Game.buffs`, `Game.cooldowns`), not the scene clock.
 - The sandbox cannot reach the live site or Netlify.
+- v0.3.0 vertical areas: `scene.groundY` is the *base* ground at the bottom of a taller world. The floor under x can be a block (`groundAt` in `world/surface.ts`); spawn and arrive with it, never at `groundY` blindly.
+- A ledge spawn zone (`y` set) makes a ledge-bound mob: it never walks off and gives up when you leave its level. Give a named foe on a ledge a `y` too.
 
 ## Test hooks
 

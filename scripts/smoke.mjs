@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Boot smoke (~20 s): the built game starts, every window opens and closes, an NPC talks,
- * the Hero walks into the pasture and fights — with no console errors. That is all it checks:
+ * the Hero walks into the pasture and fights, every area loads, a ladder climbs — with no console errors. That is all it checks:
  * logic lives in the fast tests (`npm test`), feel is for playtesting.
  *
  * Usage: npm run build && npm run smoke     (CHROME_PATH overrides the browser; SHOTS=dir saves screenshots)
@@ -60,14 +60,14 @@ try {
   step('NPC conversation and rewards screen');
 
   // into the pasture and fight with F
-  await page.evaluate(() => { window.__state.scene.travel('sunny_pasture', 20 * 32); });
-  await page.waitForFunction(() => window.__state.player.area === 'sunny_pasture' && window.__game?.scene.isActive('World'), null, { timeout: 10000 });
+  await page.evaluate(() => { window.__state.scene.travel('meadow_west', 20 * 32); });
+  await page.waitForFunction(() => window.__state.player.area === 'meadow_west' && window.__game?.scene.isActive('World'), null, { timeout: 10000 });
   await page.waitForTimeout(400);
   const xp0 = await page.evaluate(() => window.__state.player.xp);
   for (let i = 0; i < 40; i++) {
     await page.evaluate(() => {
       const w = window.__state.scene;
-      const m = w.monsters.filter((x) => x.alive).sort((a, b) => Math.abs(a.x - w.player.x) - Math.abs(b.x - w.player.x))[0];
+      const m = w.monsters.filter((x) => x.alive && x.def.id === 'field_mouse').sort((a, b) => Math.abs(a.x - w.player.x) - Math.abs(b.x - w.player.x))[0];
       if (m) { w.player.x = m.x - 50; w.facing = 1; w.player.setFlipX(false); }
       window.__state.player.hp = 100;
     });
@@ -77,6 +77,25 @@ try {
   if ((await page.evaluate(() => window.__state.player.xp)) <= xp0) fail('no XP after fighting in the pasture');
   await shot('combat');
   step('pasture combat');
+
+  // v0.3.0: every half and Whisperwood load without errors; the Hero climbs a ladder in Meadow East.
+  for (const area of ['meadow_east', 'dirt_banks_west', 'dirt_banks_east', 'whisperwood']) {
+    await page.evaluate((a) => window.__state.scene.travel(a, 6 * 32), area);
+    await page.waitForFunction((a) => window.__state.player.area === a && window.__game?.scene.isActive('World'), area, { timeout: 10000 });
+    await page.waitForTimeout(500);
+    if (!(await page.evaluate(() => window.__state.scene.monsters.length))) fail(`no mobs in ${area}`);
+    await shot(area);
+  }
+  await page.evaluate(() => window.__state.scene.travel('meadow_east', 24 * 32));
+  await page.waitForFunction(() => window.__state.player.area === 'meadow_east' && window.__game?.scene.isActive('World'), null, { timeout: 10000 });
+  await page.evaluate(() => { const w = window.__state.scene; w.monsters.forEach((m) => m.kill()); window.__state.player.cheats.god = true; });
+  await page.waitForTimeout(600);
+  const y0 = await page.evaluate(() => window.__state.scene.player.y);
+  await page.keyboard.down('ArrowUp'); await page.waitForTimeout(1600); await page.keyboard.up('ArrowUp');
+  await page.waitForTimeout(300);
+  const y1 = await page.evaluate(() => window.__state.scene.player.y);
+  if (!(y0 - y1 > 100)) fail(`the Hero did not climb the Meadow East ladder (${Math.round(y0)} → ${Math.round(y1)})`);
+  step('every area loads; ladder climb');
   ok = true;
 } catch (e) {
   console.error(`SMOKE FAILED: ${e.message}`);

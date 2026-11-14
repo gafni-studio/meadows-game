@@ -1,6 +1,8 @@
 /** Game rules that are easy to break silently: stats, slots, loot, recipes, passives. */
 import { describe, it, expect } from 'vitest';
-import { xpToNext } from '../src/data/db';
+import { xpToNext, DB } from '../src/data/db';
+import { AREAS, AREA_ALIAS } from '../src/world/areas';
+import { splitCount, surfaceSpan } from '../src/world/surface';
 import * as P from '../src/systems/Player';
 import * as Sk from '../src/systems/Skills';
 import * as Bar from '../src/systems/Bar';
@@ -8,6 +10,7 @@ import { rollDrops, MAX_STACK_PER_KILL } from '../src/systems/Loot';
 import * as Pa from '../src/systems/Passives';
 import { affinityOf } from '../src/systems/Combat';
 import { freshHero } from './helpers';
+import { writeSave, loadSave } from '../src/systems/Save';
 
 describe('Hero stats', () => {
   it('HP is 100 + 7 per level + 2 per STR', () => {
@@ -68,7 +71,7 @@ describe('Paths', () => {
     expect(Sk.unlockStatus(p, Sk.skill('root_lash')!).ok).toBe(true);
   });
   it('recipes are explicit per rank (no 1.6× scaling)', () => {
-    expect(Sk.nextCost('power_strike', 2)).toEqual(expect.arrayContaining([{ itemId: 'monster_essence', qty: 24 }, { itemId: 'clay', qty: 16 }]));
+    expect(Sk.nextCost('power_strike', 2)).toEqual(expect.arrayContaining([{ itemId: 'monster_essence', qty: 24 }, { itemId: 'fur', qty: 14 }]));
     expect(Pa.nextCost('nature_prod', 1)).toEqual(expect.arrayContaining([{ itemId: 'nature_essence', qty: 20 }, { itemId: 'pebble', qty: 16 }]));
   });
   it('passive production is a whole-number table', () => {
@@ -97,5 +100,64 @@ describe('loot', () => {
       }
     }
     expect(maxCopper).toBeGreaterThan(3); // Copper is exempt
+  });
+});
+
+describe('the split Meadows and Whisperwood (v0.3.0)', () => {
+  const HALVES: Record<string, string[]> = {
+    meadow_west: ['field_mouse', 'wool_sheep'],
+    meadow_east: ['crow', 'meadow_boar', 'old_stump'],
+    dirt_banks_west: ['burrow_mole', 'earth_sprite'],
+    dirt_banks_east: ['ember_beetle', 'spark_bug'],
+    whisperwood: ['wisp', 'thornling', 'mire_toad', 'moss_lurker', 'hollow_stag'],
+  };
+  it('every half has its listed mobs and no others, each with a place to spawn', () => {
+    for (const [id, mobs] of Object.entries(HALVES)) {
+      expect(Object.keys(DB.areas[id].spawns).sort(), id).toEqual([...mobs].sort());
+      for (const m of mobs) {
+        expect(AREAS[id].spawnZones[m]?.length, `${id} ${m}`).toBeGreaterThan(0);
+        expect(splitCount(AREAS[id].spawnZones[m], DB.areas[id].spawns[m]).reduce((a, b) => a + b, 0), `${id} ${m} count`).toBe(DB.areas[id].spawns[m]);
+      }
+    }
+  });
+  it('the halves link up: town, Meadow West, Meadow East (Whisperwood north), Banks West, Banks East', () => {
+    expect(DB.areas.meadow_town.links.east).toBe('meadow_west');
+    expect(DB.areas.meadow_west.links.east).toBe('meadow_east');
+    expect(DB.areas.meadow_east.links).toMatchObject({ west: 'meadow_west', east: 'dirt_banks_west', north: 'whisperwood' });
+    expect(DB.areas.dirt_banks_west.links).toMatchObject({ west: 'meadow_east', east: 'dirt_banks_east' });
+    expect(DB.areas.whisperwood.links.south).toBe('meadow_east');
+    for (const id of Object.keys(HALVES)) for (const pt of AREAS[id].portals) expect(DB.areas[id].links[pt.dir], `${id} ${pt.dir}`).toBeTruthy();
+  });
+  it('Meadow West has no climbing; every other half has reachable upper levels', () => {
+    expect(AREAS.meadow_west.climbs ?? []).toEqual([]);
+    for (const id of ['meadow_east', 'dirt_banks_west', 'dirt_banks_east', 'whisperwood']) {
+      const g = AREAS[id];
+      expect(g.climbs!.length, id).toBeGreaterThan(0);
+      // every climb ends on something to stand on, at both ends
+      for (const c of g.climbs!) {
+        expect(surfaceSpan(g, c.x, c.y1) ?? g.platforms.find((p) => p.y === c.y1 && c.x >= p.x - 1 && c.x <= p.x + p.w + 1), `${id} climb at ${c.x} top`).toBeTruthy();
+        expect(c.y0 === 0 || surfaceSpan(g, c.x, c.y0) || g.platforms.some((p) => p.y === c.y0 && c.x >= p.x && c.x <= p.x + p.w), `${id} climb at ${c.x} bottom`).toBeTruthy();
+      }
+    }
+  });
+  it('ledge spawns stand on a real ledge', () => {
+    for (const [id, g] of Object.entries(AREAS)) for (const [m, zones] of Object.entries(g.spawnZones)) for (const z of zones) {
+      if (z.y == null) continue;
+      expect(surfaceSpan(g, (z.x[0] + z.x[1]) / 2, z.y), `${id} ${m} at ${z.x} y${z.y}`).toBeTruthy();
+    }
+  });
+  it('old saves in Sunny Pasture / Dirt Banks land in the matching half', () => {
+    expect(AREA_ALIAS).toEqual({ sunny_pasture: 'meadow_west', dirt_banks: 'dirt_banks_west' });
+    for (const [old, now] of Object.entries(AREA_ALIAS)) {
+      const p = P.newPlayer();
+      p.area = old;
+      writeSave(p);
+      expect(loadSave().area).toBe(now);
+    }
+  });
+  it('Whisperwood mobs: nature weak to Elemental, the Wisp to Nature, nothing immune', () => {
+    for (const id of ['thornling', 'moss_lurker', 'mire_toad', 'hollow_stag']) expect(affinityOf(id, 'elemental')).toBe('weak');
+    expect(affinityOf('wisp', 'nature')).toBe('weak');
+    for (const id of ['wisp', 'thornling', 'moss_lurker', 'mire_toad', 'hollow_stag']) for (const s of ['basic', 'nature', 'elemental'] as const) expect(affinityOf(id, s)).not.toBe('immune');
   });
 });

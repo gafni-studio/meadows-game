@@ -2,6 +2,10 @@
 
 One section per release, newest first. The full write-up of each release is `docs/vX.Y.Z.md`; the spec it came from is `planning/vX.Y.Z.md`.
 
+## v0.3.0 (The Split Meadows and Whisperwood)
+
+The Meadows split into **Meadow West** (flat starter field), hilly **Meadow East** (terraces with Meadow Boars, a raised grove with the Old Stump), **Dirt Banks West** (river, mud shelves, root ladders) and **Dirt Banks East** (a cave with galleries and Bank-Cracker's pit), with vertical levels: **Up/Down** climbs ladders, ropes and vines, **Down + Space** drops through a ledge. North of Meadow East opens the **Whisperwood** (5–10): Wren's camp, Wisps, Thornlings, Moss Lurkers, Mire Toads, a three-tier canopy, the bog and the **Hollow Stag** miniboss (charge, sweep, root stomp, phase 2). A five-quest chain from Pell and Wren, three new materials and the Hollow Antler trophy, and every Path skill's rank recipes rewritten to follow the map. Write-up in `docs/v0.3.0.md`.
+
 ## v0.2.9 (fixes before Whisperwood)
 
 A new Hero starts with **Welcome to Meadow Town**, an eleven-step walk through town where each NPC teaches one thing for a tiny gift, then **Path of the Warrior** (Calden) and **Path of the Magician** (Tamsin). Path trees stay hidden until their quest is done, other quests appear gradually by level, NPCs never hand over quest materials, rewards are about a third of what they were, and every quest has new copy and ends on a completion banner and the rewards screen. Also: a **Back** button in conversations, magic scaling with **INT**, a journal that shows only startable quests, a gray side slash for the basic attack, drops down 25% with no stack above 3 per kill (Copper excepted), and buffs and attacks only in their own slots. Write-up in `docs/v0.2.9.md`.

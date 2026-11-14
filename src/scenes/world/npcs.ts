@@ -2,6 +2,7 @@ import { fitSlot } from '../../art/SpriteFactory';
 import { TILE } from '../../data/assumptions';
 import { Game } from '../../systems/GameState';
 import * as Q from '../../systems/Quests';
+import { zoneBounds } from '../../world/surface';
 import type { WorldScene } from '../WorldScene';
 
 /** NPC sprites, names and quest markers (moved out of WorldScene). */
@@ -38,7 +39,9 @@ export function ensureNamed(scene: WorldScene): void {
   for (const n of scene.geo.namedSpawns ?? []) {
     if (scene.monsters.some((m) => m.def.id === n.id && m.alive)) continue;
     if (Q.shouldSpawn(Game.player, n.id)) {
-      scene.spawnMonster(n.id, n.x * TILE);
+      // v0.3.0: a named foe may live on a ledge (Cinderback on the cave gallery); it patrols only that ledge.
+      const b = zoneBounds(scene.geo, { x: [n.x - 8, n.x + 8], y: n.y });
+      scene.spawnMonster(n.id, n.x * TILE, [b.x0 * TILE, b.x1 * TILE], { y: n.y, ledge: b.ledge });
       if (n.id === 'bank_cracker') Game.toast('Bank-Cracker claws out of the bank.', 'rare');
       if (n.id === 'cinderback') Game.toast('Cinderback claws out of the bank.', 'rare');
       if (n.id === 'wool_shoulder') Game.toast('Wool-Shoulder shoulders out of the flock.', 'rare');

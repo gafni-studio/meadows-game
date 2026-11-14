@@ -35,6 +35,30 @@ describe('recipes (v0.2.6 rules)', () => {
   });
 });
 
+describe('recipes follow the map (v0.3.0 rules)', () => {
+  const ESS = ['monster_essence', 'nature_essence', 'elemental_essence'];
+  const WOOD = ['wisp_dust', 'moss_fiber', 'toad_gland'];
+  const rank = (id: string, rk: number) => skillCosts.filter((r) => r.skill_id === id && r.rank === rk);
+  it('no rank from 3 up uses Twig, Bark, Fur, Wool, Feather or Pebble', () => {
+    const bad = skillCosts.filter((r) => LIVE_SKILLS.includes(r.skill_id) && r.rank >= 3 && ['twig', 'bark', 'fur', 'wool', 'feather', 'pebble'].includes(r.material_id));
+    expect(bad.map((r) => `${r.skill_id} r${r.rank} ${r.material_id}`)).toEqual([]);
+  });
+  it('every rank from 5 up uses a Whisperwood material', () => {
+    for (const id of LIVE_SKILLS) for (let rk = 5; rk <= 10; rk++) expect(rank(id, rk).some((r) => WOOD.includes(r.material_id)), `${id} r${rk}`).toBe(true);
+  });
+  it('exactly four recipes use the Hollow Antler: rank 10 of Earthbreaker, Flame Cleave, Fire Bolt, Chain Spark', () => {
+    expect(skillCosts.filter((r) => r.material_id === 'hollow_antler').map((r) => `${r.skill_id}:${r.rank}`).sort())
+      .toEqual(['chain_spark:10', 'earthbreaker:10', 'fire_bolt:10', 'flame_cleave:10']);
+  });
+  it('essence stays the main cost: no other material (but Copper) asks for more', () => {
+    for (const id of LIVE_SKILLS) for (let rk = 1; rk <= 10; rk++) {
+      const rows = rank(id, rk);
+      const ess = rows.find((r) => ESS.includes(r.material_id))!.quantity;
+      for (const r of rows) if (!ESS.includes(r.material_id) && r.material_id !== 'copper_coin') expect(r.quantity, `${id} r${rk} ${r.material_id}`).toBeLessThanOrEqual(ess);
+    }
+  });
+});
+
 describe('drops (v0.2.9 rules)', () => {
   it('nothing but Copper drops more than 3 from one kill', () => {
     const over = drops.filter((d) => d.item_id !== 'copper_coin' && (d.max_qty > 3 || d.min_qty > 3));

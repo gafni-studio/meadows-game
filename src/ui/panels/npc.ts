@@ -26,8 +26,9 @@ export function routeNpc(hud: Hud, id: string, role: string, name: string): void
     hud.open('skills');
     return;
   }
-  if (id === 'pell' && Q.wantsTalk(Game.player, 'pell')) {
-    hud.openTalk(Q.talk(Game.player, 'pell'));
+  // v0.3.0: any talk-only NPC (Pell, Wren) with a quest step to talk about.
+  if (Q.wantsTalk(Game.player, id)) {
+    hud.openTalk(Q.talk(Game.player, id));
     return;
   }
   const lines: Record<string, string> = {};

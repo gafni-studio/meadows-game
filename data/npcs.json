@@ -1,6 +1,6 @@
 {
   "tab": "npcs",
-  "note": "NOTE: Player-facing NPC lines. `desc` is shown in the talk dialog (or kept for later if the role opens a window directly). `notes` is design-only and is never shown in game. v0.1.2-descs.  v0.2.8: Tamsin, the Magician Path tutorial giver in Meadow Town.",
+  "note": "NOTE: Player-facing NPC lines. `desc` is shown in the talk dialog (or kept for later if the role opens a window directly). `notes` is design-only and is never shown in game. v0.1.2-descs.  v0.2.8: Tamsin, the Magician Path tutorial giver in Meadow Town.  v0.3.0: Wren, the woodwarden, at the Whisperwood camp.",
   "columns": [
     "id",
     "name",
@@ -43,6 +43,13 @@
       "role": "path",
       "desc": "Magic is mostly patience, and a great deal of mana. Walk the Magician Path when you are ready.",
       "notes": "v0.2.8. Dreamy and exact; counts under her breath. Gives The Quiet Spell. After it, E opens the Paths window on the Magician tab."
+    },
+    {
+      "id": "wren",
+      "name": "Wren",
+      "role": "hint",
+      "desc": "The woodwarden. Reads tracks and weather.",
+      "notes": "v0.3.0. Stands at the camp at the Whisperwood edge (no shop). Quiet, watchful, practical; talks in tracks and weather. Gives the Whisperwood chain."
     }
   ]
 }

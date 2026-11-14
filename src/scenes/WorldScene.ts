@@ -1,7 +1,10 @@
 import Phaser from 'phaser';
 import { DB, f, consumableEffect } from '../data/db';
 import { ASSUME, TILE, ATTACK_FEEL, PLAYER_HIT_KB, HIT_MONSTER, CONTACT, SKILL_SCHOOL, BOLT } from '../data/assumptions';
-import { AREAS, AreaGeometry } from '../world/areas';
+import { AREAS, AREA_ALIAS, AreaGeometry } from '../world/areas';
+import { groundAt, zoneBounds, splitCount } from '../world/surface';
+import { createMonster } from '../entities/mobs';
+import { buildAmbient } from './world/ambient';
 import { SPRITES, iconKey, DROP_SIZE } from '../art/sprites';
 import { fitSlot, applyBody } from '../art/SpriteFactory';
 import { Monster } from '../entities/Monster';
@@ -22,7 +25,7 @@ import { buildNpcs, updateMarkers, ensureNamed } from './world/npcs';
 
 
 interface Drop extends Phaser.Physics.Arcade.Image { itemId: string; qty: number; expireAt: number; rare: boolean; inst?: GearInstance; picking?: boolean }
-interface Shot { img: Phaser.GameObjects.Image; vx: number; vy: number; dieAt: number; m: Monster }
+interface Shot { img: Phaser.GameObjects.Image; vx: number; vy: number; dieAt: number; m: Monster; spin?: number }
 /** A Magician Path projectile in flight (v0.2.8). */
 interface Bolt { kind: Fx.BoltKind; head: Phaser.GameObjects.Container; vx: number; vy: number; dir: number; mul: number; travelled: number }
 
@@ -40,7 +43,7 @@ export class WorldScene extends Phaser.Scene {
   npcs: { x: number; id: string; role: string; name: string; marker?: Phaser.GameObjects.Text }[] = [];
   lastMarkerAt = 0;
   wasMenu = false;
-  portals: { x: number; dir: string; arriveX: number; target?: string }[] = [];
+  portals: { x: number; y: number; dir: string; arriveX: number; arriveY?: number; target?: string }[] = [];
   prompt!: Phaser.GameObjects.Text;
   sword!: Phaser.GameObjects.Image;
   glow!: Phaser.GameObjects.Graphics;
@@ -60,11 +63,27 @@ export class WorldScene extends Phaser.Scene {
   /** v0.2.6: the readyAt of the cooldown we already showed a banner for (so a mash stays quiet). */
   cdBanner: Record<string, number> = {};
   platformGroup!: Phaser.Physics.Arcade.StaticGroup;
+  /** v0.3.0 solid terrain steps. */
+  blockGroup!: Phaser.Physics.Arcade.StaticGroup;
+  /** v0.3.0 ladders, ropes and vines (px; top/bottom are feet heights). */
+  climbs: { x: number; top: number; bottom: number; kind: string }[] = [];
+  /** The climb the player is on, if any. */
+  climbing: { x: number; top: number; bottom: number; kind: string } | null = null;
+  /** Down + jump: one-way ledges let the player through until this time. */
+  dropUntil = 0;
+  waterBands: { x: number; w: number; y: number; bog: boolean }[] = [];
+  /** Arrival height (px, feet) from a portal on a ledge. */
+  arriveY?: number;
 
   constructor() { super('World'); }
 
-  init(data: { area?: string; x?: number }) {
-    this.areaId = data.area && AREAS[data.area] ? data.area : 'meadow_town';
+  init(data: { area?: string; x?: number; y?: number }) {
+    const want = data.area ? AREA_ALIAS[data.area] ?? data.area : undefined;
+    this.areaId = want && AREAS[want] ? want : 'meadow_town';
+    this.arriveY = data.y;
+    this.climbs = [];
+    this.climbing = null;
+    this.waterBands = [];
     this.geo = AREAS[this.areaId];
     Game.player.area = this.areaId;
     if (data.x !== undefined) Game.player.x = data.x;
@@ -81,12 +100,14 @@ export class WorldScene extends Phaser.Scene {
 
   create() {
     const W = this.geo.widthTiles * TILE;
-    const H = this.scale.height;
+    // v0.3.0: tall areas (vertical levels) scroll up; the base ground is always at the bottom.
+    const H = Math.max(this.scale.height, (this.geo.heightTiles ?? 0) * TILE);
     this.groundY = H - GROUND_H;
     this.cameras.main.setBackgroundColor(this.geo.sky);
     this.physics.world.setBounds(0, 0, W, H);
     this.physics.world.gravity.y = ASSUME.gravity;
     this.cameras.main.setBounds(0, 0, W, H);
+    this.cameras.main.scrollY = H - this.scale.height;
     this.cameras.main.roundPixels = true;
 
     const area = DB.areas[this.areaId];
@@ -96,13 +117,17 @@ export class WorldScene extends Phaser.Scene {
 
     // Player.
     const px = Phaser.Math.Clamp(Game.player.x, 40, W - 40);
-    this.player = this.physics.add.sprite(px, groundY - 2, 'player.warrior').setOrigin(0.5, 1).setDepth(10);
+    // Arrive on the portal's ledge, else on top of whatever solid ground is under x.
+    const py = this.arriveY != null ? groundY - this.arriveY * TILE - 2 : groundY - groundAt(this.geo, px / TILE) * TILE - 2;
+    this.player = this.physics.add.sprite(px, py, 'player.warrior').setOrigin(0.5, 1).setDepth(10);
     fitSlot(this, this.player, 'player.warrior');
     this.playerBaseScale = { x: this.player.scaleX, y: this.player.scaleY };
     applyBody(this.player, 'player.warrior');
     this.player.setCollideWorldBounds(true);
     this.physics.add.collider(this.player, this.ground);
+    this.physics.add.collider(this.player, this.blockGroup, undefined, () => !this.climbing);
     this.physics.add.collider(this.player, platforms, undefined, (pl, plat) => {
+      if (this.climbing || Game.now < this.dropUntil) return false;
       const b = (pl as Phaser.Physics.Arcade.Sprite).body as Phaser.Physics.Arcade.Body;
       const pb = (plat as Phaser.GameObjects.TileSprite).body as Phaser.Physics.Arcade.StaticBody;
       return b.velocity.y >= 0 && b.bottom <= pb.top + 10;
@@ -113,12 +138,19 @@ export class WorldScene extends Phaser.Scene {
 
     // Monsters (types + counts from map_layout.spawn_counts).
     if (!this.geo.safe && area) {
+      // v0.3.0: each zone sits on one level; its mobs patrol that surface only.
       for (const [mid, count] of Object.entries(area.spawns)) {
-        const zone = this.geo.spawnZones[mid];
-        if (!zone) continue;
-        for (let i = 0; i < count; i++) {
-          this.spawnMonster(mid, (zone[0] + ((zone[1] - zone[0]) * (i + 0.5)) / count + (Math.random() - 0.5) * 2) * TILE, [zone[0] * TILE, zone[1] * TILE]);
-        }
+        const zones = this.geo.spawnZones[mid];
+        if (!zones) continue;
+        const counts = splitCount(zones, count);
+        zones.forEach((z, zi) => {
+          const b = zoneBounds(this.geo, z);
+          const n = counts[zi];
+          for (let i = 0; i < n; i++) {
+            const xt = b.x0 + ((b.x1 - b.x0) * (i + 0.5)) / n + (Math.random() - 0.5) * Math.min(2, (b.x1 - b.x0) / n);
+            this.spawnMonster(mid, xt * TILE, [b.x0 * TILE, b.x1 * TILE], { y: b.y, ledge: b.ledge, fly: z.fly });
+          }
+        });
       }
       ensureNamed(this);
     }
@@ -126,6 +158,8 @@ export class WorldScene extends Phaser.Scene {
     this.drops = this.physics.add.group();
     this.physics.add.collider(this.drops, this.ground);
     this.physics.add.collider(this.drops, platforms);
+    this.physics.add.collider(this.drops, this.blockGroup);
+    buildAmbient(this);
 
     this.prompt = this.add.text(0, 0, '', { fontFamily: 'monospace', fontSize: '12px', color: '#fff', backgroundColor: '#000a', padding: { x: 4, y: 2 } })
       .setOrigin(0.5, 1).setDepth(30).setVisible(false);
@@ -153,12 +187,17 @@ export class WorldScene extends Phaser.Scene {
     Game.save();
   }
 
-  spawnMonster(id: string, x: number, patrol?: [number, number]): Monster | null {
+  /** opts.y: surface height in tiles (default: the solid ground under x). ledge: patrol only that surface. fly: hover tiles. */
+  spawnMonster(id: string, x: number, patrol?: [number, number], opts: { y?: number; ledge?: boolean; fly?: number } = {}): Monster | null {
     const def = DB.monsters[id];
     if (!def) return null;
-    const m = new Monster(this, def, Phaser.Math.Clamp(x, 40, this.geo.widthTiles * TILE - 40), this.groundY + 4, patrol);
+    const cx = Phaser.Math.Clamp(x, 40, this.geo.widthTiles * TILE - 40);
+    const yt = opts.y ?? groundAt(this.geo, cx / TILE);
+    const m = createMonster(this, def, cx, this.groundY + 4 - yt * TILE, patrol, { ledge: opts.ledge, fly: opts.fly, arena: this.geo.arena, camp: this.geo.camp, terrain: { geo: this.geo, groundY: this.groundY + 4 } });
+    m.strikePlayer = (mult, fromX) => this.monsterSwings(m, fromX, false, mult);
     m.setDepth(8);
     this.physics.add.collider(m, this.ground);
+    this.physics.add.collider(m, this.blockGroup);
     // v0.2.6: mobs can stand on (and jump up to) the same one-way ledges as the player.
     this.physics.add.collider(m, this.platformGroup, undefined, (mob, plat) => {
       const b = (mob as Phaser.Physics.Arcade.Sprite).body as Phaser.Physics.Arcade.Body;
@@ -633,7 +672,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   /** A swing, a pebble, or (contact) a bump. A bump is CONTACT.fraction of a swing, physical, with a small nudge and no miss roll. */
-  monsterSwings(m: Monster, fromX = m.x, contact = false) {
+  monsterSwings(m: Monster, fromX = m.x, contact = false, mult = 1) {
     const p = Game.player;
     if (Game.dead || Game.now < Game.invulnUntil) return;
     if (!contact && !rollHit(m.feel.acc, P.evasion(p), m.def.level, p.level, HIT_MONSTER)) {
@@ -643,7 +682,7 @@ export class WorldScene extends Phaser.Scene {
     this.lastCombatAt = Game.now;
     const taken = this.buffActive('rage') ? Sk.rageNumbers(p).takenPct : 0;
     const digging = this.buffActive('dig_in');
-    const matk = rollMonsterAttack(m.def.attack, m.def.attack_min, m.def.attack_max) * (contact ? CONTACT.fraction : 1);
+    const matk = rollMonsterAttack(m.def.attack, m.def.attack_min, m.def.attack_max) * (contact ? CONTACT.fraction : 1) * mult;
     let dmg = p.cheats.god ? 0 : incomingDamage(matk, P.defense(p) * (digging ? 1.5 : 1), taken);
     // v0.2.8 Mana Shield: a ward that dulls every incoming hit (swings, pebbles and bumps alike).
     if (this.buffActive('mana_shield') && dmg > 0) {
@@ -824,7 +863,7 @@ export class WorldScene extends Phaser.Scene {
   }
   private nearNpc() { return this.npcs.find((n) => Math.abs(n.x - this.player.x) < 40); }
   private nearChest() { return this.chestX !== null && Math.abs(this.chestX - this.player.x) < 36; }
-  private nearPortal() { return this.portals.find((pt) => Math.abs(pt.x - this.player.x) < 34); }
+  private nearPortal() { return this.portals.find((pt) => Math.abs(pt.x - this.player.x) < 34 && Math.abs(pt.y - this.player.y) < 40); }
   /** Close enough to talk to / arrive at the practice post (interact and quest-reach). */
   private nearPost() { return this.postX !== null && Math.abs(this.postX - this.player.x) < 40; }
 
@@ -873,13 +912,15 @@ export class WorldScene extends Phaser.Scene {
     const portal = this.nearPortal();
     if (portal) {
       if (!portal.target) { Game.toast('That path is not open yet.', 'info'); return; }
-      this.travel(portal.target, portal.arriveX);
+      // v0.3.0: the Whisperwood road opens with Mist on the North Road.
+      if (portal.target === 'whisperwood' && !Q.roadOpen(Game.player)) { Game.toast('The mist is too thick to follow. Pell might know the way.', 'info'); return; }
+      this.travel(portal.target, portal.arriveX, portal.arriveY);
     }
   }
 
-  travel(area: string, x?: number) {
+  travel(area: string, x?: number, y?: number) {
     Game.events.emit('close-all');
-    this.scene.restart({ area, x: x ?? AREAS[area]?.spawnX });
+    this.scene.restart({ area, x: x ?? AREAS[area]?.spawnX, y });
   }
 
   private updatePrompt() {
@@ -888,7 +929,7 @@ export class WorldScene extends Phaser.Scene {
     else if (this.nearPost()) text = 'E: practice';
     else if (this.nearNpc()) text = `E: talk to ${this.nearNpc()!.name.split(' ')[0]}`;
     else if (this.nearChest()) text = 'E: open storage';
-    else if (this.nearPortal()) text = this.nearPortal()!.target ? 'E: enter' : 'Closed (later)';
+    else if (this.nearPortal()) text = !this.nearPortal()!.target ? 'Closed (later)' : this.nearPortal()!.target === 'whisperwood' && !Q.roadOpen(Game.player) ? 'Too misty' : 'E: enter';
     this.prompt.setText(text).setVisible(!!text && !Game.dead && !Game.menuOpen).setPosition(this.player.x, this.player.y - 56);
   }
 

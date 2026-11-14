@@ -39,6 +39,7 @@ export const SPRITES: Record<string, SpriteSlot> = {
   'npc.calden': char('npc_calden', 48, 48, 0x8e7cc3, [10, 14, 3, 2]),
   'npc.ila': char('npc_ila', 48, 48, 0x45a5a5, [10, 14, 3, 2]),
   'npc.tamsin': char('npc_tamsin', 48, 48, 0x4a6ad0, [10, 14, 3, 2]),
+  'npc.wren': char('npc_wren', 48, 48, 0x4a7a40, [10, 14, 3, 2]), // v0.3.0 (Pell's sprite in woodwarden green)
 
   // Monsters (one slot per monsters.id)
   'monster.field_mouse': char('monster_field_mouse', 36, 36, 0x9c8b7a, [12, 10, 2, 4]),
@@ -52,6 +53,13 @@ export const SPRITES: Record<string, SpriteSlot> = {
   'monster.shrine_wisp': char('monster_shrine_wisp', 36, 36, 0x9fe0ff, [10, 10, 3, 3]),
   'monster.dusk_wisp': char('monster_dusk_wisp', 36, 36, 0x8a5ad0, [10, 10, 3, 3]),
   'monster.meadow_boar': char('monster_meadow_boar', 52, 52, 0x7a5a40, [14, 11, 1, 4]),
+  // v0.3.0 (scripts/draw-art-v030.py). Frames: 0/1 idle-move, 2 wind-up; Lurker 3 = mound; Stag 2-4 = charge/stomp/sweep.
+  'monster.old_stump': char('monster_old_stump', 84, 84, 0x7a5a3a, [16, 17, 4, 6], { frameW: 24, frameH: 24 }),
+  'monster.wisp': char('monster_wisp', 40, 40, 0xbfefff, [10, 12, 3, 2], { frameW: 16, frameH: 16 }),
+  'monster.thornling': char('monster_thornling', 42, 42, 0x8a6a3a, [10, 14, 3, 1], { frameW: 16, frameH: 16 }),
+  'monster.moss_lurker': char('monster_moss_lurker', 60, 48, 0x4a7a30, [15, 11, 2, 4], { frameW: 20, frameH: 16 }),
+  'monster.mire_toad': char('monster_mire_toad', 60, 48, 0x6a8a3a, [17, 11, 1, 4], { frameW: 20, frameH: 16 }),
+  'monster.hollow_stag': char('monster_hollow_stag', 128, 128, 0x8a8478, [20, 18, 4, 13], { frameW: 32, frameH: 32 }),
   'monster.default': { w: 32, h: 32, color: 0xcc3355, shape: 'roundrect' },
 
   // World
@@ -59,6 +67,15 @@ export const SPRITES: Record<string, SpriteSlot> = {
   'tile.dirt_top': { w: 36, h: 36, color: 0x9a7048, file: `${A}world/dirt_top.png` },
   'tile.dirt': { w: 36, h: 36, color: 0x8a6440, file: `${A}world/dirt.png` },
   'tile.platform': { w: 32, h: 16, color: 0x9a7b4f, file: `${A}world/platform.png` },
+  'tile.moss_top': { w: 36, h: 36, color: 0x3e6a3a, file: `${A}world/moss_top.png` },
+  'tile.branch': { w: 32, h: 16, color: 0x5a4a3a, file: `${A}world/branch.png` },
+  'deco.tent': { w: 84, h: 70, color: 0xa89060, file: `${A}world/tent.png` },
+  'deco.campfire': { w: 44, h: 44, color: 0xf08030, file: `${A}world/campfire.png` },
+  'deco.old_tree': { w: 110, h: 165, color: 0x3e6a3a, file: `${A}world/old_tree.png` },
+  'deco.dead_tree': { w: 80, h: 134, color: 0x8a8478, file: `${A}world/dead_tree.png` },
+  'deco.fern': { w: 48, h: 36, color: 0x5f9a3a, file: `${A}world/fern.png` },
+  'deco.mushroom': { w: 30, h: 30, color: 0x8ad0c0, file: `${A}world/mushroom.png` },
+  'deco.reeds': { w: 36, h: 48, color: 0x6a8a3a, file: `${A}world/reeds.png` },
   'deco.house_red': { w: 192, h: 144, color: 0xb98a5a, file: `${A}world/house_red.png` },
   'deco.house_stone': { w: 192, h: 144, color: 0x8899aa, file: `${A}world/house_stone.png` },
   'deco.tree_round': { w: 72, h: 72, color: 0x3f8a3a, file: `${A}world/tree_round.png` },
@@ -78,6 +95,8 @@ export const SPRITES: Record<string, SpriteSlot> = {
   'fx.slash': { w: 64, h: 40, color: 0xffffff, shape: 'roundrect' },
   'fx.sword': { w: 36, h: 36, color: 0xdddddd, file: `${A}fx/sword.png` },
   'fx.pebble': { w: 22, h: 22, color: 0x777777, shape: 'circle', file: `${A}fx/pebble.png` },
+  'fx.mote': { w: 16, h: 16, color: 0xbfefff, shape: 'circle', file: `${A}fx/mote.png` },
+  'fx.thorn': { w: 24, h: 12, color: 0x8ac050, file: `${A}fx/thorn.png` },
   'fx.glow': { w: 16, h: 16, color: 0x7dff9b, shape: 'circle' },
 };
 

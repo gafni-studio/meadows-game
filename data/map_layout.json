@@ -1,6 +1,6 @@
 {
   "tab": "map_layout",
-  "note": "DRAFT — Meadows is a set of connected side-scrolling areas, not one long strip. monster_ids must already exist on the monsters tab; spawn_counts are v0 placeholders (on-map at once, not a daily cap). connections are walking paths / portals to adjacent areas. Town is a safe hub with the NPC shop. Names are plain and low-tier. Only Meadows is laid out in v0; later worlds get their own rows. All values are placeholders. v0.2.0: Dirt Banks is playable (portal from the east pasture). Meadow Shrine and further east remain closed.  v0.2.4: Dirt Banks also spawns Spark Bug (3) and Frost Moth (3). Meadow Shrine stays closed.  v0.2.6: Frost Moth leaves the Dirt Banks (Banks 20 regulars: mole 6, sprite 5, beetle 5, spark bug 4).",
+  "note": "DRAFT — Meadows is a set of connected side-scrolling areas, not one long strip. monster_ids must already exist on the monsters tab; spawn_counts are v0 placeholders (on-map at once, not a daily cap). connections are walking paths / portals to adjacent areas. Town is a safe hub with the NPC shop. Names are plain and low-tier. Only Meadows is laid out in v0; later worlds get their own rows. All values are placeholders. v0.2.0: Dirt Banks is playable (portal from the east pasture). Meadow Shrine and further east remain closed.  v0.2.4: Dirt Banks also spawns Spark Bug (3) and Frost Moth (3). Meadow Shrine stays closed.  v0.2.6: Frost Moth leaves the Dirt Banks (Banks 20 regulars: mole 6, sprite 5, beetle 5, spark bug 4).  v0.3.0: Sunny Pasture and Dirt Banks split into Meadow West / Meadow East and Dirt Banks West / East, with vertical levels; Whisperwood branches north from Meadow East. Meadow East adds Meadow Boar 4 (terraces) and the Old Stump (grove).",
   "columns": [
     "id",
     "name",
@@ -21,53 +21,63 @@
       "level_range": "safe",
       "monster_ids": "(none)",
       "spawn_counts": "—",
-      "connections": "east: sunny_pasture",
-      "notes": "The starting hub. No combat. Mara's shop, Pell at the east gate, Calden the trainer, and Ila at the exchange bench. Players spawn and respawn here. Portals/paths only lead east into Sunny Pasture. Plain wooden houses, a well, a short fence.",
-      "spawns": {},
-      "links": {
-        "east": "sunny_pasture"
-      }
+      "connections": "east: meadow_west",
+      "notes": "The starting hub. No combat. Mara's shop, Pell at the east gate, Calden the trainer, and Ila at the exchange bench. Players spawn and respawn here. Portals/paths only lead east into Meadow West. Plain wooden houses, a well, a short fence."
     },
     {
-      "id": "sunny_pasture",
-      "name": "Sunny Pasture",
+      "id": "meadow_west",
+      "name": "Meadow West",
       "zone_id": "meadows",
       "order": 2,
       "level_range": "1-3",
-      "monster_ids": "field_mouse, wool_sheep, crow",
-      "spawn_counts": "field_mouse 8, wool_sheep 5, crow 3",
-      "connections": "west: meadow_town; east: dirt_banks",
-      "notes": "The starter field just outside town. Open grass, a low fence, a few trees. Field Mice and Wool Sheep near the town side; Crows perch farther east toward the dirt path. First-30-minute quests take place here.",
-      "spawns": {
-        "field_mouse": 8,
-        "wool_sheep": 5,
-        "crow": 3
-      },
-      "links": {
-        "west": "meadow_town",
-        "east": "dirt_banks"
-      }
+      "monster_ids": "field_mouse, wool_sheep",
+      "spawn_counts": "field_mouse 8, wool_sheep 6",
+      "connections": "west: meadow_town; east: meadow_east",
+      "notes": "v0.3.0: the town side of the old Sunny Pasture. Flat: open grass, a fence and one low ledge. The gentle starter field (Path of the Warrior mice, Wool Before Winter)."
     },
     {
-      "id": "dirt_banks",
-      "name": "Dirt Banks",
+      "id": "meadow_east",
+      "name": "Meadow East",
       "zone_id": "meadows",
       "order": 3,
-      "level_range": "3-6",
-      "monster_ids": "burrow_mole, earth_sprite, ember_beetle, spark_bug",
-      "spawn_counts": "burrow_mole 6, earth_sprite 5, ember_beetle 5, spark_bug 4",
-      "connections": "west: sunny_pasture; east: meadow_shrine",
-      "notes": "A dug-up stretch of bank and loose earth. Burrow Moles turn up stones, Earth Sprites drift in the cuts, and Ember Beetles keep a little warmth in the dirt. Mid-Meadows hunting once the pasture feels easy.  v0.2.4: Spark Bugs along the east banks (3) and Frost Moths on the west (3). Shared materials plus a unique extra each. Shrine remains closed; these two also stay listed on the Shrine row for later.  v0.2.6: Frost Moths no longer spawn here (their slots went to sprites, beetles and spark bugs).",
-      "spawns": {
-        "burrow_mole": 6,
-        "earth_sprite": 5,
-        "ember_beetle": 5,
-        "spark_bug": 4
-      },
-      "links": {
-        "west": "sunny_pasture",
-        "east": "meadow_shrine"
-      }
+      "level_range": "3-7 (grove 10)",
+      "monster_ids": "crow, meadow_boar, old_stump",
+      "spawn_counts": "crow 4, meadow_boar 4, old_stump 1",
+      "connections": "west: meadow_west; east: dirt_banks_west; north: whisperwood",
+      "notes": "v0.3.0: hilly. Ground: rolling slopes and Crows (Beyond the Pasture Gate); Wool-Shoulder on the far ground. Middle: hill terraces with Meadow Boars, linked by short ladders. Top: a raised grove (rope) with the Old Stump; the Whisperwood road starts behind it."
+    },
+    {
+      "id": "dirt_banks_west",
+      "name": "Dirt Banks West",
+      "zone_id": "meadows",
+      "order": 4,
+      "level_range": "4-5",
+      "monster_ids": "burrow_mole, earth_sprite",
+      "spawn_counts": "burrow_mole 6, earth_sprite 5",
+      "connections": "west: meadow_east; east: dirt_banks_east",
+      "notes": "v0.3.0: the riverbank. A shallow river along the bottom, mud shelves above it, high bank ledges tied together with root ladders. What the Banks Hide and The Cracked Stone gathering happen here."
+    },
+    {
+      "id": "dirt_banks_east",
+      "name": "Dirt Banks East",
+      "zone_id": "meadows",
+      "order": 5,
+      "level_range": "4-6",
+      "monster_ids": "ember_beetle, spark_bug",
+      "spawn_counts": "ember_beetle 5, spark_bug 4",
+      "connections": "west: dirt_banks_west; east: meadow_shrine",
+      "notes": "v0.3.0: a cave. Cave floor, upper galleries by rope (Cinderback), and a lower pit you drop into (Bank-Cracker’s den). The Meadow Shrine past it stays closed."
+    },
+    {
+      "id": "whisperwood",
+      "name": "Whisperwood",
+      "zone_id": "whisperwood",
+      "order": 6,
+      "level_range": "5-10",
+      "monster_ids": "wisp, thornling, mire_toad, moss_lurker, hollow_stag",
+      "spawn_counts": "wisp 9, thornling 5, mire_toad 4, moss_lurker 5, hollow_stag 1",
+      "connections": "south: meadow_east",
+      "notes": "v0.3.0: misty forest north of Meadow East. Wren’s camp at the edge. Forest floor (Wisps at the entrance, Thornlings, Mire Toads in the bog), canopy in tiers (Moss Lurkers, Wisps), and the Hollow past the bog (Hollow Stag). Opens with Mist on the North Road."
     },
     {
       "id": "meadow_shrine",
@@ -77,17 +87,8 @@
       "level_range": "5-7",
       "monster_ids": "frost_moth, spark_bug, shrine_wisp",
       "spawn_counts": "frost_moth 5, spark_bug 4, shrine_wisp 3",
-      "connections": "west: dirt_banks; east: dusk_margin",
-      "notes": "A small old shrine in a quieter part of the meadow. Frost Moths in the morning dew, Spark Bugs along the stones, Shrine Wisps close to the shrine itself. No new shop — return to town through the path.",
-      "spawns": {
-        "frost_moth": 5,
-        "spark_bug": 4,
-        "shrine_wisp": 3
-      },
-      "links": {
-        "west": "dirt_banks",
-        "east": "dusk_margin"
-      }
+      "connections": "west: dirt_banks_east; east: dusk_margin",
+      "notes": "A small old shrine in a quieter part of the meadow. Frost Moths in the morning dew, Spark Bugs along the stones, Shrine Wisps close to the shrine itself. No new shop — return to town through the path."
     },
     {
       "id": "dusk_margin",
@@ -98,16 +99,7 @@
       "monster_ids": "meadow_boar, spark_bug, dusk_wisp",
       "spawn_counts": "meadow_boar 5, spark_bug 3, dusk_wisp 4",
       "connections": "west: meadow_shrine; north: stump_hollow",
-      "notes": "The dim eastern edge of the meadow. Meadow Boars root the brush, a few Spark Bugs still snap in the grass, and Dusk Wisps drift as the light falls. The path north leads to the boss clearing. Spark Bugs also appear at Meadow Shrine — overlapping, not the whole zone.",
-      "spawns": {
-        "meadow_boar": 5,
-        "spark_bug": 3,
-        "dusk_wisp": 4
-      },
-      "links": {
-        "west": "meadow_shrine",
-        "north": "stump_hollow"
-      }
+      "notes": "The dim eastern edge of the meadow. Meadow Boars root the brush, a few Spark Bugs still snap in the grass, and Dusk Wisps drift as the light falls. The path north leads to the boss clearing. Spark Bugs also appear at Meadow Shrine — overlapping, not the whole zone."
     },
     {
       "id": "stump_hollow",
@@ -118,15 +110,7 @@
       "monster_ids": "old_stump, night_stump, meadow_boar",
       "spawn_counts": "old_stump 1 (day), night_stump 1 (night), meadow_boar 2 (rim only)",
       "connections": "south: dusk_margin",
-      "notes": "A small clearing with one old stump. Old Stump (nature boss, the only Heartwood source) is here during the day. At night the same stump is the Night Stump (spiritual boss; Cursed Dust once Heartwood is owned). Two Meadow Boars at the rim, not in the boss pit. Bosses cannot be leashed out of this area. Intended for late Meadows.",
-      "spawns": {
-        "old_stump": 1,
-        "night_stump": 1,
-        "meadow_boar": 2
-      },
-      "links": {
-        "south": "dusk_margin"
-      }
+      "notes": "A small clearing with one old stump. Old Stump (nature boss, the only Heartwood source) is here during the day. At night the same stump is the Night Stump (spiritual boss; Cursed Dust once Heartwood is owned). Two Meadow Boars at the rim, not in the boss pit. Bosses cannot be leashed out of this area. Intended for late Meadows."
     }
   ]
 }

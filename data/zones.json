@@ -1,6 +1,6 @@
 {
   "tab": "zones",
-  "note": null,
+  "note": "v0.3.0: Whisperwood (levels 5-10) north of Meadow East.",
   "columns": [
     "id",
     "name",
@@ -15,6 +15,13 @@
       "world": "Starting World",
       "level_range": "1-10",
       "description": "The starting zone: easygoing meadows with a warm, nostalgic feel. The first area players hunt and gather in, before later worlds are added."
+    },
+    {
+      "id": "whisperwood",
+      "name": "Whisperwood",
+      "world": "Starting World",
+      "level_range": "5-10",
+      "description": "A misty forest north of the Meadows. Light in shafts through the fog, fireflies, and trees old enough to walk on."
     }
   ]
 }

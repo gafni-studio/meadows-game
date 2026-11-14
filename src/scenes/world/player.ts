@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import { consumableEffect } from '../../data/db';
 import { ANIM, ASSUME, REGEN } from '../../data/assumptions';
 import { AREAS } from '../../world/areas';
+import { groundAt, stepUpTo } from '../../world/surface';
+import { TILE } from '../../data/assumptions';
 import { Game } from '../../systems/GameState';
 import * as P from '../../systems/Player';
 import * as Fx from '../../systems/CombatFx';
@@ -16,9 +18,20 @@ export function playerInput(scene: WorldScene, time: number, delta: number, menu
     if (scene.controls.down('left')) vx -= 1;
     if (scene.controls.down('right')) vx += 1;
     // let a hit's knockback play out briefly before input takes over again
+    // v0.3.0: ladders and ropes. While climbing, nothing else moves the Hero.
+    if (climb(scene, time, delta, vx)) return;
     if (time >= scene.knockUntil) body.setVelocityX(vx * ASSUME.playerSpeed * speedMul);
     if (vx !== 0) { scene.facing = vx; scene.player.setFlipX(vx < 0); }
-    if (scene.controls.pressed('jump') && body.blocked.down) body.setVelocityY(-ASSUME.jumpVelocity);
+    const jump = scene.controls.pressed('jump') || (scene.controls.pressed('up') && !climbAt(scene, 'up'));
+    if (jump && body.blocked.down) {
+      // down + jump on a one-way ledge drops through it
+      if (scene.controls.down('down') && onLedge(scene)) { scene.dropUntil = time + 260; body.setVelocityY(80); }
+      else body.setVelocityY(-ASSUME.jumpVelocity);
+    }
+    if (vx !== 0 && body.blocked.down && (vx < 0 ? body.blocked.left : body.blocked.right)) {
+      const top = stepUpTo(scene.geo, scene.groundY + 4, scene.player.x + vx * (body.halfWidth + 3), body.bottom);
+      if (top != null) scene.player.y = top - 0.5;
+    }
 
     // v0.2.3: buffer a swing pressed during recovery so the next hit fires as soon as ready.
     if (scene.controls.pressed('attack')) {
@@ -99,4 +112,62 @@ export function die(scene: WorldScene): void {
     Game.events.emit('dead', false);
     scene.scene.restart({ area: 'meadow_town', x: AREAS.meadow_town.spawnX });
   });
+}
+
+/** v0.3.0 climbing speeds (px/s). */
+const CLIMB = { speed: 120, grabPx: 15 };
+
+/** A climb the Hero can grab going up (feet on it) or down (standing on its top). */
+function climbAt(scene: WorldScene, dir: 'up' | 'down'): WorldScene['climbs'][number] | undefined {
+  const x = scene.player.x;
+  const feet = (scene.player.body as Phaser.Physics.Arcade.Body).bottom;
+  return scene.climbs.find((c) => Math.abs(c.x - x) < CLIMB.grabPx
+    && (dir === 'up' ? feet > c.top + 4 && feet <= c.bottom + 8 : Math.abs(feet - c.top) <= 10));
+}
+
+/** Standing on a one-way ledge (not on solid ground). */
+function onLedge(scene: WorldScene): boolean {
+  const feet = (scene.player.body as Phaser.Physics.Arcade.Body).bottom;
+  const solid = scene.groundY + 4 - groundAt(scene.geo, scene.player.x / TILE) * TILE;
+  return Math.abs(feet - solid) > 8;
+}
+
+function letGo(scene: WorldScene): void {
+  const body = scene.player.body as Phaser.Physics.Arcade.Body;
+  scene.climbing = null;
+  body.setAllowGravity(true);
+  scene.player.setAngle(0);
+}
+
+/** Grab, climb and leave ladders / ropes / vines. Returns true while the Hero is on one. */
+function climb(scene: WorldScene, time: number, delta: number, vx: number): boolean {
+  const body = scene.player.body as Phaser.Physics.Arcade.Body;
+  const up = scene.controls.down('up'), down = scene.controls.down('down');
+  if (!scene.climbing) {
+    if (time < scene.knockUntil) return false;
+    const c = up ? climbAt(scene, 'up') : down && body.blocked.down && !scene.controls.down('jump') ? climbAt(scene, 'down') : undefined;
+    if (!c) return false;
+    scene.climbing = c;
+    body.setAllowGravity(false);
+    body.setVelocity(0, 0);
+    scene.player.x = c.x;
+    if (!up) scene.player.y += 8; // step down past the ledge lip
+    scene.pendingAttack = false;
+  }
+  const c = scene.climbing;
+  if (scene.controls.pressed('jump')) {
+    // jump off, sideways if a direction is held
+    letGo(scene);
+    body.setVelocity(vx * ASSUME.playerSpeed, vx ? -260 : 0);
+    if (vx) { scene.facing = vx; scene.player.setFlipX(vx < 0); }
+    return false;
+  }
+  const dy = up ? -1 : down ? 1 : 0;
+  body.setVelocity(0, dy * CLIMB.speed);
+  scene.player.x = c.x;
+  if (dy) { scene.walkT += delta; scene.player.setAngle(Math.sin(scene.walkT / 70) * 6); }
+  const feet = body.bottom + (dy * CLIMB.speed * delta) / 1000;
+  if (dy < 0 && feet <= c.top) { letGo(scene); scene.player.y = c.top - 1; body.setVelocity(0, 0); return false; }
+  if (dy > 0 && feet >= c.bottom) { letGo(scene); return false; }
+  return true;
 }

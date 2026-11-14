@@ -7,7 +7,11 @@ import Phaser from 'phaser';
 export const BINDINGS = {
   left: ['A', 'LEFT'],
   right: ['D', 'RIGHT'],
-  jump: ['SPACE', 'UP'],
+  // v0.3.0: up / down climb ladders and ropes; UP still jumps when there is nothing to climb; down + jump drops
+  // through a one-way ledge.
+  jump: ['SPACE'],
+  up: ['W', 'UP'],
+  down: ['S', 'DOWN'],
   attack: ['F'],
   interact: ['E'],
   skill1: ['ONE'],

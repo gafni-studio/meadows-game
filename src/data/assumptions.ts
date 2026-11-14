@@ -26,7 +26,9 @@ export const ASSUME = {
   hurtInvulnMs: 700,
   // v0.2.6: travel speed up ~45-50% (animation frame rates are unchanged; they scale off this number).
   // Chase is still 1.6× walk speed; the player stays at 148.
-  monsterSpeed: { field_mouse: 42, wool_sheep: 30, crow: 55, burrow_mole: 32, earth_sprite: 40, ember_beetle: 32, wool_shoulder: 28, bank_cracker: 30, cinderback: 32, spark_bug: 36, frost_moth: 34, meadow_boar: 36, default: 36 } as Record<string, number>,
+  monsterSpeed: { field_mouse: 42, wool_sheep: 30, crow: 55, burrow_mole: 32, earth_sprite: 40, ember_beetle: 32, wool_shoulder: 28, bank_cracker: 30, cinderback: 32, spark_bug: 36, frost_moth: 34, meadow_boar: 36, old_stump: 20,
+    // v0.3.0 Whisperwood: Wisp and Thornling about the Crow's speed; the Lurker is slow (its lunge is not); the Toad hops.
+    wisp: 52, thornling: 54, moss_lurker: 22, mire_toad: 34, hollow_stag: 40, default: 36 } as Record<string, number>,
   // Player movement (px/s, px/s², px/s). v0.1.3: 148 (was 190, ≈−22%).
   playerSpeed: 148,
   gravity: 1300,
@@ -77,6 +79,13 @@ export const MONSTER_FEEL: Record<string, MonsterFeel> = {
   bank_cracker: { acc: 12, eva: 7, kbRes: 0.65, range: 36, windupMs: [324, 612] },
   cinderback: { acc: 12, eva: 9, kbRes: 0.55, range: 34, windupMs: [288, 540] },
   meadow_boar: { acc: 11, eva: 7, kbRes: 0.55, range: 44, windupMs: [288, 540] },
+  old_stump: { acc: 13, eva: 5, kbRes: 0.9, range: 40, windupMs: [500, 800] },
+  // v0.3.0 Whisperwood. Lurker: short pause, then a heavy lunge-bite (range ~30). Toad: tongue lash (range ~44).
+  wisp: { acc: 11, eva: 12, kbRes: 0.1, range: 18, windupMs: [420, 620] },
+  thornling: { acc: 12, eva: 12, kbRes: 0.2, range: 22, windupMs: [300, 480] },
+  moss_lurker: { acc: 12, eva: 6, kbRes: 0.8, range: 30, windupMs: [380, 520] },
+  mire_toad: { acc: 12, eva: 6, kbRes: 0.65, range: 44, windupMs: [480, 680] },
+  hollow_stag: { acc: 14, eva: 8, kbRes: 0.95, range: 60, windupMs: [600, 800] },
   default: { acc: 9, eva: 8, kbRes: 0.3, range: 20, windupMs: [270, 540] },
 };
 
@@ -92,6 +101,27 @@ export const RANGED = {
   projectileLifeMs: 2800,
   hitRadius: 14,
   cooldownMs: [2200, 3600] as [number, number],
+};
+/** v0.3.0 per-mob projectiles: Wisp motes are slow glowing orbs, Thornling thorns are quick green barbs. */
+export const SHOT_KIND: Record<string, { speed: number; tex: string; spin: number }> = {
+  crow: { speed: 120, tex: 'fx.pebble', spin: 0.6 },
+  wisp: { speed: 92, tex: 'fx.mote', spin: 0 },
+  thornling: { speed: 150, tex: 'fx.thorn', spin: 0 },
+};
+
+/**
+ * v0.3.0 movement and behavior per mob (default: walk).
+ *  fly: hovers `fly` tiles over its surface (no gravity) and bobs.  hop: moves in hops (Toad: big, slow;
+ *  Thornling: short, jittery).  ambush: sits still until the player is this many tiles away (or hits it).
+ *  meleePx: a ranged mob that scratches instead when the player is this close (edge to edge).
+ *  lungeVx: forward speed of the strike lunge (default 90).
+ */
+export interface MobKind { fly?: boolean; hop?: { vy: number; vxMul: number; everyMs: [number, number] }; ambushTiles?: number; meleePx?: number; lungeVx?: number }
+export const MOB_KIND: Record<string, MobKind> = {
+  wisp: { fly: true },
+  thornling: { hop: { vy: 210, vxMul: 2.2, everyMs: [260, 520] }, meleePx: 26 },
+  moss_lurker: { ambushTiles: 3, lungeVx: 260 },
+  mire_toad: { hop: { vy: 330, vxMul: 2.6, everyMs: [700, 1200] } },
 };
 
 /**
@@ -219,6 +249,8 @@ export const AFFINITY: Record<string, { weak?: School; immune?: School }> = {
   spark_bug: { weak: 'nature', immune: 'elemental' }, cinderback: { weak: 'nature', immune: 'elemental' },
   frost_moth: { weak: 'nature', immune: 'elemental' },
   shrine_wisp: { weak: 'nature' }, dusk_wisp: { weak: 'nature' }, night_stump: { weak: 'nature' },
+  // v0.3.0 Whisperwood: nature mobs are weak to Elemental, the (spiritual) Wisp to Nature. Nothing is immune.
+  wisp: { weak: 'nature' }, thornling: { weak: 'elemental' }, moss_lurker: { weak: 'elemental' }, mire_toad: { weak: 'elemental' }, hollow_stag: { weak: 'elemental' },
 };
 export const WEAK_MUL = 1.5;
 

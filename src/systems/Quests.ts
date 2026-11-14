@@ -20,7 +20,7 @@ import { isGear, makeGear } from './Gear';
 import { autoBind, barOf } from './Bar';
 import { state, isDone, isActive, setState } from './quests/state';
 import {
-  COLLECT, PREVIEW, KILL, KILL_LINE, HUNT, REACH, DUMMY, TALKSTEP, WAIT_ONLY, ACTION, GIFT, AUTO_START, TALK_START, ITEM_START, STEP1_ITEM, GRANT_RANK, PATH_REVEAL,
+  COLLECT, PREVIEW, KILL, KILL_LINE, HUNT, REACH, DUMMY, TALKSTEP, WAIT_ONLY, ACTION, GIFT, AUTO_START, TALK_START, ITEM_START, STEP1_ITEM, GRANT_RANK, PATH_REVEAL, BAG_ADVANCE,
 } from './quests/maps';
 
 export { state, isDone, isActive };
@@ -45,6 +45,15 @@ function huntDone(need: Record<string, number>, kills: Record<string, number> | 
 }
 function huntLabel(need: Record<string, number>, kills: Record<string, number> | undefined): string {
   return Object.entries(need).map(([id, n]) => `${DB.monsters[id]?.name ?? id} ${Math.min(kills?.[id] ?? 0, n)}/${n}`).join(' · ');
+}
+
+/** An NPC's short name for toasts ("Return to Wren."). */
+function npcName(id: string | null | undefined): string { return (id && DB.npcs[id]?.name) || 'the quest giver'; }
+
+/** v0.3.0: the Whisperwood road opens once Pell has sent the Hero up it (Mist on the North Road, step 2). */
+export function roadOpen(p: P.PlayerData): boolean {
+  const s = state(p, 'ql_mist');
+  return !!s.done || s.step >= 2;
 }
 
 // ───────────────────────── rows and state ─────────────────────────
@@ -223,8 +232,9 @@ export function onItem(p: P.PlayerData, itemId: string, silent = false): void {
 /** Called a few times a second: new quests, and steps that finish when the bag is ready. */
 export function tick(p: P.PlayerData): void {
   offerAll(p, false);
-  if (isActive(p, 'ql_magician') && state(p, 'ql_magician').step === 2 && hasCollect(p, COLLECT['ql_magician:3'])) {
-    advance(p, 'ql_magician', 'Return to Tamsin.');
+  for (const [key, msg] of Object.entries(BAG_ADVANCE)) {
+    const [line, step] = key.split(':');
+    if (isActive(p, line) && state(p, line).step === Number(step) && hasCollect(p, PREVIEW[key])) advance(p, line, msg);
   }
 }
 
@@ -275,8 +285,14 @@ export function onKill(p: P.PlayerData, monsterId: string): void {
         P.addItem(p, 'live_ember', 1);
         Game.toast('Live Ember — take it to Calden', 'rare', 'live_ember');
       }
-      if (s.step === k.step) Game.toast(`${DB.monsters[monsterId]?.name ?? monsterId} falls. Return to Calden.`, 'info');
-      else Game.toast(`${DB.monsters[monsterId]?.name ?? monsterId} falls. Calden will want to hear it.`, 'info');
+      // v0.3.0: the first Hollow Stag kill during Antlers in the Mist always gives its antler.
+      if (monsterId === 'hollow_stag') {
+        P.addItem(p, 'hollow_antler', 1);
+        Game.toast('Hollow Antler — take it to Wren', 'rare', 'hollow_antler');
+      }
+      const giver = npcName(row(k.line, k.step)?.giver);
+      if (s.step === k.step) Game.toast(`${DB.monsters[monsterId]?.name ?? monsterId} falls. Return to ${giver}.`, 'info');
+      else Game.toast(`${DB.monsters[monsterId]?.name ?? monsterId} falls. ${giver} will want to hear it.`, 'info');
       Game.changed();
       Game.save();
     }
@@ -291,7 +307,8 @@ export function onKill(p: P.PlayerData, monsterId: string): void {
     setState(p, line, { ...s, kills });
     if (huntDone(need, kills)) {
       if (s.step === lastStep(line)) {
-        Game.toast(`Return to ${row(line, s.step)?.giver === 'pell' ? 'Pell' : 'Calden'}.`, 'info');
+        Game.toast(COLLECT[`${line}:${s.step}`] && !hasCollect(p, COLLECT[`${line}:${s.step}`])
+          ? `Hunt done. Still to gather: ${collectLabel(p, COLLECT[`${line}:${s.step}`])}.` : `Return to ${npcName(row(line, s.step)?.giver)}.`, 'info');
         Game.changed();
         Game.save();
       } else {
@@ -391,11 +408,24 @@ export function talk(p: P.PlayerData, npc: string): TalkResult | null {
       if (ready) { P.removeItem(p, item, 1); advance(p, offer); }
     });
   }
+  // v0.3.0: an NPC with several quests (Pell, Wren) leads with the one that moves forward; a "not yet" only
+  // when nothing else is ready.
+  let wait: TalkResult | null = null;
   for (const line of LINES) {
-    if (!isActive(p, line)) continue;
+    const r = talkLine(p, npc, line);
+    if (r?.onFinish) return r;
+    wait ??= r;
+  }
+  return wait;
+}
+
+/** The conversation one quest line offers with this NPC right now (null: none). */
+function talkLine(p: P.PlayerData, npc: string, line: string): TalkResult | null {
+  {
+    if (!isActive(p, line)) return null;
     const s = state(p, line);
     const r = row(line, s.step);
-    if (!r || r.giver !== npc) continue;
+    if (!r || r.giver !== npc) return null;
     const key = `${line}:${s.step}`;
     const last = s.step === lastStep(line);
 
@@ -415,7 +445,11 @@ export function talk(p: P.PlayerData, npc: string): TalkResult | null {
     const hunt = HUNT[key];
     if (hunt) {
       if (!huntDone(hunt, s.kills)) return say(npc, TALK[`${key}:wait`] ?? [`Still short. ${huntLabel(hunt, s.kills)}.`]);
-      if (last) return say(npc, linesFor(line, s.step), () => complete(p, line));
+      // v0.3.0: a hunt can also ask for items, turned in (consumed) with it.
+      const bring = COLLECT[key];
+      if (bring && !hasCollect(p, bring)) return say(npc, TALK[`${key}:wait`] ?? [`Bring me ${collectLabel(p, bring)}.`]);
+      const take = () => { for (const [id, n] of Object.entries(bring ?? {})) P.removeItem(p, id, n); };
+      if (last) return say(npc, linesFor(line, s.step), () => { take(); complete(p, line); });
       return say(npc, TALK[`${key}:ok`] ?? ['That will do.'], () => advance(p, line));
     }
 
@@ -451,9 +485,16 @@ export function greeting(npc: string): TalkResult | null {
   }
   if (npc === 'pell') {
     return say('pell', [
-      'Meadow Town sits easy, for now. The pasture to the east is honest work — mice and sheep leave you be unless you hit them. Watch the crows.',
-      'The dirt path at the far end goes on to the Banks. Loose earth, moles, a little warmth in the beetles.',
+      'Meadow Town sits easy, for now. The west meadow is honest work — mice and sheep leave you be unless you hit them.',
+      'The east meadow is all hills. Crows on the slopes, boars up on the terraces, and an old stump in the grove that does not like visitors.',
+      'Past that, the Banks: moles along the river, and a cave beyond it where the beetles keep a little warmth.',
       'Sell junk to Mara. Train with Calden. If you want something slower than a swing, Ila’s bench is the place.',
+    ]);
+  }
+  if (npc === 'wren') {
+    return say('wren', [
+      'Wind’s from the bog today. Smells like rain and old leaves.',
+      'Stay off the moss that breathes. Watch the lights. Come back before dark.',
     ]);
   }
   if (npc === 'calden') {
@@ -503,7 +544,7 @@ export function markerFor(p: P.PlayerData, npc: string): '!' | '?' | null {
       continue;
     }
     const hunt = HUNT[key];
-    if (hunt) { if (huntDone(hunt, s.kills) && last) return '?'; continue; }
+    if (hunt) { if (huntDone(hunt, s.kills) && last && (!COLLECT[key] || hasCollect(p, COLLECT[key]))) return '?'; continue; }
     const need = COLLECT[key];
     if (need) { if ((!KILL[key] || s.killed) && hasCollect(p, need)) return '?'; continue; }
     if (KILL[key]) { if (s.killed) return '?'; continue; }

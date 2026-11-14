@@ -78,7 +78,7 @@ export class Hud {
       <div id="levelup" hidden></div>
       <div id="questup" hidden></div>
       <div id="quest-track" hidden></div>
-      <div id="help">F attack · 1–4 attacks · 5–6 buffs · Q/G potions · E talk · I bag · C hero · K paths · J journal · L objectives · T passives · Esc${DEV_CONSOLE ? ' · `' : ''} · v${__APP_VERSION__}</div>
+      <div id="help">↑↓ climb · ↓+Space drop · F attack · 1–4 attacks · 5–6 buffs · Q/G potions · E talk · I bag · C hero · K paths · J journal · L objectives · T passives · Esc${DEV_CONSOLE ? ' · `' : ''} · v${__APP_VERSION__}</div>
       <div id="dead" hidden>Defeated…</div>
       ${PANELS.map((p) => `<div class="panel" id="p-${p}" hidden></div>`).join('')}
       <div id="console" hidden><div id="console-out"></div><input id="console-in" autocomplete="off" spellcheck="false" placeholder="type help, Enter to run, Esc to close" /></div>`;

@@ -1,6 +1,6 @@
 # Meadows
 
-A 2D side-scrolling browser MMORPG prototype (MapleStory-style real-time grinding, later Travian-style offline growth). A single-player slice of the Meadows zone: **Meadow Town**, **Sunny Pasture** (levels 1–3) and the **Dirt Banks** (3–6+). The Hero walks Paths (Warrior, Magician).
+A 2D side-scrolling browser MMORPG prototype (MapleStory-style real-time grinding, later Travian-style offline growth). A single-player slice of the Meadows zone: **Meadow Town**, **Meadow West** (levels 1–3), hilly **Meadow East** (3–7, the Old Stump at 10), the **Dirt Banks** West (river) and East (cave), and the misty **Whisperwood** (5–10, the Hollow Stag). The Hero walks Paths (Warrior, Magician).
 
 Stack: **Phaser 3 + TypeScript + Vite**. Save in `localStorage`. CC0 pixel art (see [CREDITS.md](CREDITS.md)).
 
@@ -78,7 +78,7 @@ Press **`** to open, type a command, press **Enter** to run, **↑/↓** for his
 | `god` | Toggle invulnerability |
 | `heal` | Full HP and MP |
 | `kill` | Kill every monster in the area (gives XP and drops) |
-| `tp <area>` | Teleport: `meadow_town`, `sunny_pasture` |
+| `tp <area>` | Teleport: `meadow_town`, `meadow_west`, `meadow_east`, `dirt_banks_west`, `dirt_banks_east`, `whisperwood` |
 | `spawn <monsterId> [n]` | Spawn monsters next to you (e.g. `spawn crow 3`) |
 | `droprate <x>` | Multiply all drop chances (1 = normal) |
 | `rank <skill> [n]` | Set a skill rank (default +1) |

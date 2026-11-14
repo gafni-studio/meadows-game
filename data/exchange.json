@@ -1,6 +1,6 @@
 {
   "tab": "exchange",
-  "note": "DRAFT — Convert common (and listed uncommon shard) materials into the matching category essence at a steep 10:1 rate. Nature: Twig, Bark, Pebble, Clay, Wool, Feather, Fur → Nature Essence. Elemental: Earth Grit and Fire/Ice/Lightning/Earth Shards → Elemental Essence. Spiritual: Holy Dust, Soul Dust → Spirit Essence. Rare items (crystals, Heartwood, Holy Essence, Soul Shard, etc.) are not exchanged; they are milestone costs. The steep rate makes category essence desirable — having a lot of it is a lot of power. Placeholders. v0.2.0: Dry Root also exchanges 10:1 for Nature Essence (same sell and essence value as Twig/Bark).",
+  "note": "DRAFT — Convert common (and listed uncommon shard) materials into the matching category essence at a steep 10:1 rate. Nature: Twig, Bark, Pebble, Clay, Wool, Feather, Fur → Nature Essence. Elemental: Earth Grit and Fire/Ice/Lightning/Earth Shards → Elemental Essence. Spiritual: Holy Dust, Soul Dust → Spirit Essence. Rare items (crystals, Heartwood, Holy Essence, Soul Shard, etc.) are not exchanged; they are milestone costs. The steep rate makes category essence desirable — having a lot of it is a lot of power. Placeholders. v0.2.0: Dry Root also exchanges 10:1 for Nature Essence (same sell and essence value as Twig/Bark).  v0.3.0: Moss Fiber and Toad Gland → Nature Essence, Wisp Dust → Spirit Essence (10:1).",
   "columns": [
     "id",
     "input_item_id",
@@ -129,6 +129,30 @@
       "output_item_id": "nature_essence",
       "output_qty": 1,
       "notes": "v0.2.0: 10 Dry Root = 1 Nature Essence, same steep rate as Twig and Bark."
+    },
+    {
+      "id": "ex_moss_fiber",
+      "input_item_id": "moss_fiber",
+      "input_qty": 10,
+      "output_item_id": "nature_essence",
+      "output_qty": 1,
+      "notes": "v0.3.0: Whisperwood material, same steep 10:1 rate."
+    },
+    {
+      "id": "ex_toad_gland",
+      "input_item_id": "toad_gland",
+      "input_qty": 10,
+      "output_item_id": "nature_essence",
+      "output_qty": 1,
+      "notes": "v0.3.0: Whisperwood material, same steep 10:1 rate."
+    },
+    {
+      "id": "ex_wisp_dust",
+      "input_item_id": "wisp_dust",
+      "input_qty": 10,
+      "output_item_id": "spirit_essence",
+      "output_qty": 1,
+      "notes": "v0.3.0: Whisperwood material, same steep 10:1 rate."
     }
   ]
 }
