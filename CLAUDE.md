@@ -46,6 +46,19 @@ Do not run long manual playthroughs, write one-off browser scripts, or re-read w
 | `src/world/areas.ts` | area geometry: platforms, NPC positions, portals, spawn zones |
 | `tests/` | `data.test.ts` (invariants), `rules.test.ts`, `quests.test.ts` (flows simulated in Node) |
 
+## Keep files small (split as you go)
+
+`src/ui/Hud.ts` and `src/scenes/WorldScene.ts` are too big (1,100-1,300 lines): reading them costs more than the change itself. **Whenever a release touches one of them, split out the piece you are changing in the same release**, then leave the file smaller than you found it. Do not do a separate big-bang refactor.
+
+Rules:
+- Target **under ~400 lines per file**; one responsibility per file. If you add more than ~50 lines to a file already over 500, put it in a new module instead.
+- **Hud.ts** → `src/ui/panels/<panel>.ts`, one file per window (`inventory`, `stats`, `shop`, `storage`, `skills` (Paths tree), `journal`, `passives`, `exchange`, `dialog`, `rewards`, `pause`). Each exports `render(ctx)` and, if needed, its key and click handlers; `Hud.ts` keeps only the shell: panel stack, key routing, HUD bar, hotbar, toasts, console.
+- **WorldScene.ts** → `src/scenes/world/<system>.ts`: `combat.ts` (swings, strikes, skill hits, burns), `projectiles.ts` (Magician bolts, mob shots), `npcs.ts` (NPCs, markers, interaction), `drops.ts` (spawn, pickup), `player.ts` (input, regen, death). Plain functions that take the scene (`scene: WorldScene`) are fine; no new framework.
+- **Quests.ts** (750 lines) → when next touched: `quests/maps.ts` (the step-mechanic maps), `quests/talk.ts` (conversations, markers), `quests/journal.ts`.
+- **CombatFx.ts** (750 lines) → `fx/<family>.ts` (melee, fire, nature, lightning, ward, shared helpers) when next touched.
+- A split is a **pure move**: no behavior change in the same commit as the move. `npm run verify` must pass before and after, and keep every export reachable (re-export from the old file if other code imports it).
+- Update the "Where things live" table in this file in the same commit, so the next turn can open the right small file directly.
+
 ## Data
 
 - One file per tab: `{ tab, note, columns, rows }`. Edit rows directly (a small `node -e` script for bulk edits). Keep `note` updated with a one-line `vX.Y.Z:` change note.
