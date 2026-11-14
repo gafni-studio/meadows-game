@@ -111,6 +111,14 @@ export function attack(p: PlayerData): number {
   const mult = w ? w.statMultiplier : ASSUME.unarmedMultiplier;
   return Math.floor(dmg * mult) + Math.floor(mainStat(p) / 2) + (p.cheats?.atk ?? 0);
 }
+/** v0.2.9: Magician Path skills scale with INT exactly as the basic attack and Warrior Path skills scale with STR
+ *  (weapon part + floor(INT / 2)). STR does nothing for them and INT nothing for Warrior skills. */
+export function magicAttack(p: PlayerData): number {
+  const w = inst(p, p.equipment.weapon);
+  const dmg = w ? w.weaponDamage : ASSUME.unarmedDamage;
+  const mult = w ? w.statMultiplier : ASSUME.unarmedMultiplier;
+  return Math.floor(dmg * mult) + Math.floor(statOf(p, 'INT') / 2) + (p.cheats?.atk ?? 0);
+}
 export function defense(p: PlayerData): number {
   let d = p.cheats?.def ?? 0;
   for (const g of equippedGear(p)) d += g.defense;

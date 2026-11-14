@@ -316,7 +316,8 @@ export class WorldScene extends Phaser.Scene {
     for (const d of this.drops.getChildren() as Drop[]) if (time > d.expireAt) d.destroy();
     if (!Game.dead && !menu && time - this.lastQuestAt > 350) {
       this.lastQuestAt = time;
-      Q.checkPlace(p, this.areaId, this.player.x / TILE, this.nearPost());
+      Q.checkPlace(p, this.areaId, this.player.x / TILE);
+      Q.tick(p);
       this.ensureNamed();
     }
     this.updateMarkers(time);
@@ -444,15 +445,9 @@ export class WorldScene extends Phaser.Scene {
       return;
     }
     if (kind === 'basic') {
-      // v0.2.7: the normal attack is a quick swing / slash that reaches the real melee range (70 px).
-      s.setVisible(true).setFlipX(this.facing < 0).setTint(0xffffff);
-      s.setPosition(this.player.x + this.facing * 14, this.player.y - 18);
-      s.setAngle(-80 * this.facing);
-      this.tweens.add({
-        targets: s, angle: 70 * this.facing, duration: Fx.FX.basicMs, ease: 'Cubic.easeIn',
-        onComplete: () => s.setVisible(false),
-      });
-      Fx.slashArc(this, ox, oy, this.facing, { reach, duration: Fx.FX.basicMs, onImpact });
+      // v0.2.9: the normal attack is a wide gray crescent swept in front of the Hero, reaching the real melee range (70 px).
+      s.setVisible(false);
+      Fx.sideSlash(this, ox, oy, this.facing, { reach, duration: Fx.FX.basicMs, onImpact });
       this.tweens.add({
         targets: this.player,
         scaleX: this.playerBaseScale.x * 1.06,
@@ -481,7 +476,13 @@ export class WorldScene extends Phaser.Scene {
     const id = Sk.barOf(Game.player)[slot];
     if (!id) { Game.toast('Empty slot — bind a skill or a potion from K or I', 'info'); return; }
     if (Sk.isHotbarSkill(id)) this.useSkill(id);
-    else if (Sk.isHotbarItem(id)) this.useItem(id);
+    else if (Sk.isHotbarItem(id)) {
+      const p = Game.player;
+      const before = p.inventory[id] ?? 0;
+      this.useItem(id);
+      // Welcome to Meadow Town: a berry eaten from the Q slot
+      if ((p.inventory[id] ?? 0) < before && (id === 'strawberry' || id === 'blueberry')) Q.onAction(p, 'eat_berry', slot);
+    }
     else Game.toast('Empty slot', 'info');
   }
 
@@ -660,7 +661,7 @@ export class WorldScene extends Phaser.Scene {
     const aff = affinityOf(m.def.id, SKILL_SCHOOL[kind]);
     if (aff === 'immune') { this.floatText(m.x, topY, 'Immune', '#9fd8ff', 15); m.provoke(); return { landed: false, crit: false }; }
     const rage = this.buffActive('rage') ? Sk.rageNumbers(p).dealtPct : 0;
-    let { dmg, crit } = computeHit(P.attack(p), mul, m.def.defense, P.critChance(p), rage);
+    let { dmg, crit } = computeHit(P.magicAttack(p), mul, m.def.defense, P.critChance(p), rage);
     if (aff === 'weak') { dmg = weakDamage(dmg); this.floatText(m.x, topY - 16, 'Weak!', '#ff9a3a', 11); }
     const color = crit ? '#ffcf33' : aff === 'weak' ? '#ff9a3a' : ({ magic_bolt: '#cfe6ff', fire_bolt: '#ffb070', thorn_volley: '#b6ee86', chain_spark: '#a6ecff' } as Record<string, string>)[kind] ?? '#ffffff';
     this.floatText(m.x, topY, `${dmg}`, color, crit ? 20 : aff === 'weak' ? 18 : 16);
@@ -846,13 +847,19 @@ export class WorldScene extends Phaser.Scene {
       Game.toast(`${n} Copper`, 'loot', 'copper_coin');
     }
     const rolled = rollDrops(m.def.id, p.cheats.dropMul, p);
-    // v0.2.6: the first Ember Beetle killed at level 6+ always drops a Smoldering Scale (once per character),
-    // so a ready player can never be locked out of Hot Edge.
-    if (['ember_beetle', 'cinderback'].includes(m.def.id) && p.level >= 6 && !p.questFlags.scale_seen && !(p.inventory.smoldering_scale ?? 0)
+    // v0.2.6: the first Ember Beetle killed at level 6+ (once Ember in the Scale can start) always drops a Smoldering Scale
+    // (once per character); v0.2.9: the same for the first Burrow Mole at level 5+ and a Cracked Bank Stone, so a ready
+    // player can never be locked out of those quests.
+    if (['ember_beetle', 'cinderback'].includes(m.def.id) && p.level >= 6 && Q.isDone(p, 'ql_crack') && !p.questFlags.scale_seen && !(p.inventory.smoldering_scale ?? 0)
       && !rolled.some((d) => d.itemId === 'smoldering_scale')) {
       rolled.push({ itemId: 'smoldering_scale', qty: 1, rare: true });
     }
-    if (p.level >= 6 && rolled.some((d) => d.itemId === 'smoldering_scale')) p.questFlags.scale_seen = true; // dropped for a ready player: counts
+    if (p.level >= 6 && Q.isDone(p, 'ql_crack') && rolled.some((d) => d.itemId === 'smoldering_scale')) p.questFlags.scale_seen = true;
+    if (['burrow_mole', 'bank_cracker'].includes(m.def.id) && p.level >= 5 && Q.isDone(p, 'ql_dirt_path') && !p.questFlags.stone_seen && !(p.inventory.cracked_bank_stone ?? 0)
+      && !rolled.some((d) => d.itemId === 'cracked_bank_stone')) {
+      rolled.push({ itemId: 'cracked_bank_stone', qty: 1, rare: true });
+    }
+    if (p.level >= 5 && Q.isDone(p, 'ql_dirt_path') && rolled.some((d) => d.itemId === 'cracked_bank_stone')) p.questFlags.stone_seen = true;
     for (const d of rolled) this.spawnDrop(m.x, m.y - 20, d.itemId, d.qty, d.rare, d.inst);
     Game.changed();
   }

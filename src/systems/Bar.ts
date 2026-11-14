@@ -44,7 +44,13 @@ export function autoBind(bar: (string | null)[], id: string): number {
 /** Sort an old six-slot bar (skills and potions mixed) into the grouped layout. */
 export function migrateBar(p: PlayerData): void {
   const old = p.skillBar;
-  if (old && old.length === BAR_SIZE) return;
+  if (old && old.length === BAR_SIZE) {
+    // v0.2.9: sort anything sitting in the wrong kind of slot (attacks in attacks, buffs in buffs, potions in potions)
+    const wrong: string[] = [];
+    old.forEach((id, i) => { if (id && idGroup(id) !== slotGroup(i)) { wrong.push(id); old[i] = null; } });
+    for (const id of wrong) autoBind(old, id);
+    return;
+  }
   const next: (string | null)[] = new Array(BAR_SIZE).fill(null);
   for (const id of old ?? []) if (id) autoBind(next, id);
   const def = defaultBar();
@@ -64,7 +70,7 @@ export function assignBar(p: PlayerData, slot: number, id: string | null): strin
   if (id) {
     const g = idGroup(id);
     if (g !== slotGroup(slot)) {
-      return g === 'attack' ? 'Attack skills go in slots 1–4' : g === 'buff' ? 'Buff skills go in slots 5–6' : g === 'potion' ? 'Potions go in the Q and G slots' : 'Cannot be bound';
+      return g === 'attack' ? 'Attacks go in the attack slots (1–4)' : g === 'buff' ? 'Buffs go in the buff slots (5–6)' : g === 'potion' ? 'Potions go in the Q and G slots' : 'Cannot be bound';
     }
     const i = bar.indexOf(id);
     if (i >= 0) bar[i] = bar[slot]; // swap if already bound

@@ -702,3 +702,55 @@ export function wardGlow(gfx: Phaser.GameObjects.Graphics, x: number, y: number,
     gfx.fillRect(x + Math.cos(t) * 29 - 1.5, y + Math.sin(t) * 34 - 1.5, 3, 3);
   }
 }
+
+/**
+ * v0.2.9 basic attack: a wide horizontal crescent swept in front of the Hero, in grey (see planning/refs/side-slash.png).
+ * A crisp gray-white outer edge, a softer gray body, and a short tail that fades fast. It reaches `reach` px (the real melee
+ * range). `onImpact` fires when the crescent's head crosses the hitting line (FX.basicImpactMs), so damage, the hit-stop and
+ * the sparks all land on the visual's impact frame.
+ */
+export function sideSlash(scene: SC, ox: number, oy: number, facing: number, opts: { reach?: number; duration?: number; onImpact?: () => void } = {}): void {
+  const f = facing || 1;
+  const reach = opts.reach ?? ASSUME.meleeReach;
+  const dur = opts.duration ?? FX.basicMs;
+  const rx = reach * 0.82, ry = 19;
+  const cx = ox + f * (reach - rx), cy = oy + 9;
+  const a0 = Phaser.Math.DegToRad(205), a1 = Phaser.Math.DegToRad(-18); // from behind-low, through the front, to just above level
+  const gfx = g(scene, 14);
+  let impacted = false;
+  const pt = (a: number, k: number) => ({ x: cx + f * Math.cos(a) * rx * k, y: cy - Math.sin(a) * ry * k });
+  const strip = (aFrom: number, aTo: number, thickAt: (u: number) => number, color: number, alpha: (u: number) => number) => {
+    const n = 14;
+    for (let i = 0; i < n; i++) {
+      const u0 = i / n, u1 = (i + 1) / n;
+      const aa = aFrom + (aTo - aFrom) * u0, bb = aFrom + (aTo - aFrom) * u1;
+      const o0 = pt(aa, 1), o1 = pt(bb, 1);
+      const i0 = pt(aa, 1 - thickAt(u0)), i1 = pt(bb, 1 - thickAt(u1));
+      gfx.fillStyle(color, alpha((u0 + u1) / 2));
+      gfx.fillPoints([o0, o1, i1, i0] as Phaser.Types.Math.Vector2Like[], true);
+    }
+  };
+  scene.tweens.addCounter({
+    from: 0, to: 1, duration: dur, ease: 'Cubic.easeOut',
+    onUpdate: (tw) => {
+      if (!impacted && tw.elapsed >= FX.basicImpactMs) { impacted = true; opts.onImpact?.(); }
+      const t = tw.getValue() ?? 0;
+      const head = a0 + (a1 - a0) * t;
+      const tailFrom = a0 + (a1 - a0) * Math.max(0, t - 0.55); // the tail is short: it fades fast
+      gfx.clear();
+      // soft body, then the crisp edge, thickest at the head and tapering to nothing in the tail
+      strip(tailFrom, head, (u) => 0.16 + 0.5 * u, 0x9ea4ae, (u) => 0.25 + 0.6 * u);
+      strip(tailFrom, head, (u) => 0.07 + 0.2 * u, 0xeef0f3, (u) => 0.3 + 0.7 * u * u);
+      gfx.lineStyle(3, 0xffffff, 1);
+      gfx.beginPath();
+      const steps = 12;
+      for (let i = 0; i <= steps; i++) {
+        const a = tailFrom + (head - tailFrom) * (i / steps);
+        const q = pt(a, 1.0);
+        if (i === 0) gfx.moveTo(q.x, q.y); else gfx.lineTo(q.x, q.y);
+      }
+      gfx.strokePath();
+    },
+    onComplete: () => scene.tweens.add({ targets: gfx, alpha: 0, duration: 70, onComplete: () => gfx.destroy() }),
+  });
+}

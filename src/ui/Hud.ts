@@ -1,4 +1,4 @@
-import { DB, quest, xpToNext, shopPrice, vendorBuyPrice, consumableEffect, descOf } from '../data/db';
+import { DB, xpToNext, shopPrice, vendorBuyPrice, consumableEffect, descOf } from '../data/db';
 import { ASSUME } from '../data/assumptions';
 import { DEV_CONSOLE } from '../config';
 import { Game } from '../systems/GameState';
@@ -32,6 +32,8 @@ import { playSfx } from '../systems/Sfx';
  */
 const $ = <T extends HTMLElement = HTMLElement>(sel: string) => document.querySelector(sel) as T;
 const esc = (s: string) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+/** The rewards screen: a quest's name, one flavor line and the rows. `final` = the quest is complete (banner first). */
+interface RewardPayload { name: string; flavor: string; rows: string[]; title?: string; final?: boolean }
 type Panel = 'inventory' | 'stats' | 'shop' | 'storage' | 'skills' | 'journal' | 'passives' | 'exchange' | 'dialog' | 'rewards' | 'pause' | 'confirm' | 'drop';
 const PANELS: Panel[] = ['inventory', 'stats', 'shop', 'storage', 'skills', 'journal', 'passives', 'exchange', 'dialog', 'rewards', 'pause', 'confirm', 'drop'];
 const TYPE_ORDER = ['consumable', 'gear', 'currency', 'material', 'misc'];
@@ -49,7 +51,7 @@ export class Hud {
   private dialogTalk: Q.TalkResult | null = null;
   private dialogPage = 0;
   /** v0.2.6: the quest rewards screen, shown after a quest's last conversation page. */
-  private rewards: { name: string; flavor: string; rows: string[] } | null = null;
+  private rewards: RewardPayload | null = null;
   private consoleHistory: string[] = [];
   private historyIdx = -1;
   /** Stack picked up for moving (keyboard M or mouse drag). */
@@ -83,8 +85,16 @@ export class Hud {
     Game.events.on('changed', () => this.renderPanels());
     Game.events.on('toast', (m: string, k: string, icon?: string) => this.toast(m, k, icon));
     Game.events.on('levelup', (lvl: number, pts: number) => this.levelBanner(lvl, pts));
-    Game.events.on('quest-rewards', (r: { name: string; flavor: string; rows: string[] }) => { this.rewards = r; this.sel.rewards = undefined; this.open('rewards'); });
-    Game.events.on('chest', () => { this.held = null; this.open('storage'); });
+    Game.events.on('quest-rewards', (r: RewardPayload) => this.showRewards(r));
+    Game.events.on('chest', () => {
+      this.held = null;
+      // Welcome to Meadow Town: Mara's words about her chest come first, then the chest opens.
+      if (Q.wantsTalk(Game.player, 'chest')) {
+        const t = Q.talk(Game.player, 'chest');
+        if (t) { const fin = t.onFinish; t.onFinish = () => { fin?.(); this.open('storage'); }; this.openTalk(t); return; }
+      }
+      this.open('storage');
+    });
     Game.events.on('area', (n: string) => {
       this.areaName = n;
       this.stack = this.stack.filter((p) => p !== 'shop' && p !== 'dialog' && p !== 'storage');
@@ -164,6 +174,7 @@ export class Hud {
       }
     }
     if (!top) return;
+    if (top === 'dialog' && this.dialogTalk && (k === 'Backspace' || k === 'ArrowLeft')) { e.preventDefault(); this.backTalk(); return; }
     const dirs: Record<string, [number, number]> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
     if (dirs[k]) { e.preventDefault(); this.move(top, dirs[k]); return; }
     if (top === 'skills' && ['1', '2', '3', '4', '5', '6'].includes(k)) {
@@ -208,9 +219,9 @@ export class Hud {
     if (k === 'Tab' && top === 'shop') { e.preventDefault(); this.shopTab = this.shopTab === 'buy' ? 'sell' : 'buy'; this.sel.shop = undefined; this.renderPanels(); }
     if (k === 'Tab' && top === 'skills') {
       e.preventDefault();
-      const ids = Sk.PATHS.map((x) => x.id);
+      const ids = Sk.PATHS.filter((x) => Q.pathRevealed(Game.player, x.id)).map((x) => x.id);
+      if (ids.length < 2) return;
       this.pathTab = ids[(ids.indexOf(this.pathTab) + 1) % ids.length];
-      Q.onPathView(Game.player, this.pathTab);
       this.sel.skills = undefined;
       this.renderPanels();
       return;
@@ -224,7 +235,7 @@ export class Hud {
   private selectedEl(panel: Panel): HTMLElement | null {
     const els = this.navEls(panel);
     // Default to the first tile (not the tab row) so Enter acts on an item right away.
-    return els.find((el) => el.dataset.key === this.sel[panel]) ?? els.find((el) => el.classList.contains('pnode')) ?? els.find((el) => el.classList.contains('tile') && !!el.dataset.item && el.dataset.mode !== 'equipped') ?? els.find((el) => el.classList.contains('tile') && el.dataset.mode !== 'equipped') ?? els.find((el) => el.classList.contains('tile')) ?? els[0] ?? null;
+    return els.find((el) => el.dataset.key === this.sel[panel]) ?? els.find((el) => el.dataset.dlg === 'next') ?? els.find((el) => el.classList.contains('pnode')) ?? els.find((el) => el.classList.contains('tile') && !!el.dataset.item && el.dataset.mode !== 'equipped') ?? els.find((el) => el.classList.contains('tile') && el.dataset.mode !== 'equipped') ?? els.find((el) => el.classList.contains('tile')) ?? els[0] ?? null;
   }
 
   /** Spatial navigation: nearest element in the arrow's direction; wraps in DOM order for ←/→. */
@@ -349,6 +360,24 @@ export class Hud {
     if (hb.dataset.last !== html) { hb.innerHTML = html; hb.dataset.last = html; }
   }
 
+  /** v0.2.9: every quest completion plays the banner and sound first, then the rewards screen. */
+  private showRewards(r: RewardPayload) {
+    const open = () => { this.rewards = r; this.sel.rewards = undefined; this.open('rewards'); };
+    if (r.final) { this.questBanner(r.name); window.setTimeout(open, 1100); } else open();
+  }
+
+  private questBanner(name: string) {
+    const el = $('#questup');
+    if (!el) return;
+    el.innerHTML = `<div class="burst"></div><div class="lv-title quest">QUEST COMPLETE</div><div class="lv-sub">${esc(name)}</div>`;
+    el.hidden = false;
+    el.classList.remove('show');
+    void el.offsetWidth;
+    el.classList.add('show');
+    clearTimeout((this as unknown as { qT?: number }).qT);
+    (this as unknown as { qT?: number }).qT = window.setTimeout(() => { el.hidden = true; el.classList.remove('show'); }, 2800);
+  }
+
   /** Show the objectives tracker (what L toggles). Used by the journal's Objectives button. */
   private showTracker() {
     this.trackHidden = false;
@@ -387,6 +416,7 @@ export class Hud {
     this.held = null;
     if (h && target?.dataset.idx !== undefined && target.dataset.c) {
       P.moveSlot(Game.player, h.c, h.idx, target.dataset.c as P.Container, Number(target.dataset.idx));
+      if (h.c !== target.dataset.c) Q.onAction(Game.player, target.dataset.c === 'storage' ? 'chest_put' : 'chest_take');
       Game.save();
       const panel = this.stack[this.stack.length - 1];
       if (panel) this.keepSel(panel, target.dataset.c as P.Container, Number(target.dataset.idx));
@@ -399,6 +429,7 @@ export class Hud {
     const from = el.dataset.c as P.Container;
     const to: P.Container = from === 'bag' ? 'storage' : 'bag';
     if (!P.moveSlot(Game.player, from, Number(el.dataset.idx), to, -1, qty)) { this.toast(`${to === 'bag' ? 'Bag' : 'Storage'} is full`, 'warn'); return; }
+    if (from !== to) Q.onAction(Game.player, to === 'storage' ? 'chest_put' : 'chest_take');
     Game.save();
     this.keepSel('storage', from, Number(el.dataset.idx));
     Game.changed();
@@ -464,7 +495,6 @@ export class Hud {
 
   // ───────────────────────── windows ─────────────────────────
   private open(p: Panel) {
-    if (p === 'skills' && !this.stack.includes('skills')) Q.onPathView(Game.player, this.pathTab);
     if (!this.stack.includes(p) && (p === 'inventory' || p === 'storage' || p === 'shop')) this.sel[p] = undefined; // reopen at the first item
     this.stack = this.stack.filter((x) => x !== p);
     this.stack.push(p);
@@ -485,7 +515,7 @@ export class Hud {
     if (role === 'path') {
       // v0.2.8 Tamsin: her tutorial first; once it is done, E opens the Paths window on the Magician tab.
       if (Q.wantsTalk(Game.player, id)) { this.openTalk(Q.talk(Game.player, id)); return; }
-      if (Q.isDone(Game.player, 'ql_magic')) { this.pathTab = 'magician'; this.open('skills'); return; }
+      if (Q.pathRevealed(Game.player, 'magician')) { this.pathTab = 'magician'; this.open('skills'); return; }
       this.openTalk(Q.greeting(id));
       return;
     }
@@ -500,30 +530,9 @@ export class Hud {
     }
     const lines: Record<string, string> = {};
     for (const n of Object.values(DB.npcs ?? {})) if (n.desc) lines[n.id] = n.desc;
-    let extra = '';
-    let starterRewards: { name: string; flavor: string; rows: string[] } | null = null;
-    const q = id === 'pell' ? quest('sq_welcome') : null;
-    if (q && !Game.player.questFlags[q.id]) {
-      // v0.1 stub of the starter chain: talking to Pell grants "A First Step" once.
-      Game.player.questFlags[q.id] = true;
-      const lv = P.gainXp(Game.player, q.reward_xp ?? 0);
-      if (lv) Game.scene?.levelUpFx(lv);
-      Game.player.coins += q.reward_coins ?? 0;
-      q.items.forEach((it) => P.addItem(Game.player, it.id, it.qty));
-      const rows = [`${q.reward_xp} XP`, `${q.reward_coins} Copper`, ...q.items.map((it) => `${it.qty}× ${DB.items[it.id].name}`)];
-      this.toast(`Quest: ${q.name} — ${rows.join(', ')}`, 'rare');
-      Game.save();
-      // v0.2.6: even this starter stub ends on the rewards screen, after the talk.
-      starterRewards = { name: q.name, flavor: 'A good first step.', rows };
-    }
     const greet = Q.greeting(id);
-    if (greet) {
-      if (starterRewards) { const r = starterRewards; greet.onFinish = () => Game.events.emit('quest-rewards', r); }
-      this.openTalk(greet);
-      return;
-    }
-    if (starterRewards) Game.events.emit('quest-rewards', starterRewards);
-    this.dialogHtml = `<h3>${esc(name)}</h3><p>${esc(lines[id] ?? '...')}</p>${extra}`;
+    if (greet) { this.openTalk(greet); return; }
+    this.dialogHtml = `<h3>${esc(name)}</h3><p>${esc(lines[id] ?? '...')}</p>`;
     this.sel.dialog = undefined;
     this.open('dialog');
   }
@@ -547,8 +556,17 @@ export class Hud {
     this.dialogHtml = `<h3>${esc(talk.speaker)}</h3>
       <p class="dlg-line">${esc(talk.pages[i] ?? '')}</p>
       ${n > 1 ? `<div class="dlg-pager">${i + 1} / ${n}</div>` : ''}
-      <div class="btns"><button data-nav data-key="ok" data-dlg="next">${last ? 'OK' : 'Continue'}</button></div>
-      ${hint(last ? 'Enter or click: OK · Esc close' : 'Enter or click: continue · Esc close')}`;
+      <div class="btns">${i > 0 ? '<button data-nav data-key="back" data-dlg="back">Back</button>' : ''}<button data-nav data-key="ok" data-dlg="next">${last ? 'OK' : 'Continue'}</button></div>
+      ${hint(`Enter or click: ${last ? 'OK' : 'continue'}${i > 0 ? ' · Backspace / ← back' : ''} · Esc close`)}`;
+  }
+
+  /** Previous page. Going back never repeats or undoes a quest step: the step only advances on the last page. */
+  private backTalk(): void {
+    if (!this.dialogTalk || this.dialogPage <= 0) return;
+    this.dialogPage -= 1;
+    this.sel.dialog = 'ok';
+    this.paintTalk();
+    this.renderPanels();
   }
 
   private advanceTalk(): void {
@@ -601,7 +619,7 @@ export class Hud {
     }
     if (this.stack.includes('rewards') && this.rewards) {
       const r = this.rewards;
-      $('#p-rewards').innerHTML = `<h3>${esc(r.name)} — Complete</h3>
+      $('#p-rewards').innerHTML = `<h3>${esc(r.name)} — ${esc(r.title ?? 'Complete')}</h3>
         <p class="rw-flavor">${esc(r.flavor)}</p>
         <div class="rw-title">Rewards</div>
         <ul class="rw-list">${r.rows.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
@@ -748,9 +766,16 @@ export class Hud {
   private renderSkills() {
     const p = Game.player;
     const FAMILY: Record<string, string> = { basic: 'Basic', nature: 'Nature', elemental: 'Elemental', spiritual: 'Spirit' };
-    const paths = Sk.PATHS;
+    // v0.2.9: a Path's tree is hidden until its Path quest is done; a tab you have not earned does not exist.
+    const paths = Sk.PATHS.filter((x) => Q.pathRevealed(p, x.id));
+    if (!paths.length) {
+      $('#p-skills').innerHTML = `<div class="frame-title">Paths <small>(K)</small><button class="x" data-close="skills">×</button></div>
+        <p class="path-none">Calden in Meadow Town can set you on a Path.</p>${hint('Esc close')}`;
+      return;
+    }
     const path = paths.find((x) => x.id === this.pathTab) ?? paths[0];
-    const tabs = paths.map((x) => `<button data-nav data-key="ptab:${x.id}" data-ptab="${x.id}" class="${x.id === path.id ? 'on' : ''}">${esc(x.name)}${x.status === 'soon' ? ' <small>(soon)</small>' : ''}</button>`).join('');
+    this.pathTab = path.id;
+    const tabs = paths.map((x) => `<button data-nav data-key="ptab:${x.id}" data-ptab="${x.id}" class="${x.id === path.id ? 'on' : ''}">${esc(x.name)}</button>`).join('');
     // equip slots: attack 1-4, buff 5-6 (potions live on Q / G and are bound from the bag)
     const bar = Sk.barOf(p);
     const slotHtml = (i: number) => {
@@ -762,8 +787,8 @@ export class Hud {
       <div class="eq-group"><span class="eq-label">Buff</span>${GROUP_SLOTS.buff.map(slotHtml).join('')}</div></div>`;
     let tree = '';
     const layout = Sk.TREE_LAYOUT[path.id];
-    if (path.status === 'soon' || !layout) {
-      tree = `<div class="path-soon"><b>${esc(path.name)}</b><p>${esc(path.description)}</p><p class="muted">Coming soon.</p></div>`;
+    if (!layout) {
+      tree = `<div class="path-soon"><b>${esc(path.name)}</b><p>${esc(path.description)}</p></div>`;
     } else {
       const NW = 84, NH = 92, GX = 118, GY = 104, PAD = 10;
       const px = (c: number) => PAD + c * GX, py = (r: number) => PAD + r * GY;
@@ -1075,7 +1100,7 @@ export class Hud {
   private renderJournal() {
     const entries = Q.journal(Game.player);
     const tiles = entries.map((e) => {
-      const tag = e.status === 'active' ? `s${e.step}` : e.status === 'done' ? 'done' : 'soon';
+      const tag = e.status === 'active' ? `s${e.step}` : e.status === 'done' ? 'done' : 'new';
       return `<button class="tile t-quest t-${e.status}" data-nav data-key="q:${e.line}" data-line="${e.line}" data-mode="quest">
         ${e.skill ? `<img src="${skillIconUrl(e.skill)}" alt="">` : '<span class="empty"></span>'}
         <span class="qty">${tag}</span><span class="price">${esc(e.name)}</span></button>`;
@@ -1103,7 +1128,7 @@ export class Hud {
 
   private renderStats() {
     const p = Game.player;
-    const desc: Record<string, string> = { STR: `Raises attack and max HP`, INT: '+5 max MP', AGI: 'Faster attacks, higher crit, +acc/eva', SPI: 'Faster MP and HP regen' };
+    const desc: Record<string, string> = { STR: `Raises attack and max HP`, INT: '+5 max MP, raises magic attack', AGI: 'Faster attacks, higher crit, +acc/eva', SPI: 'Faster MP and HP regen' };
     // v0.2.6: the number is the TOTAL the player has (points + gear), with the gear part named next to it.
     const rows = P.STATS.map((s) => {
       const gearPts = P.affixBonus(p, s);
@@ -1135,7 +1160,7 @@ export class Hud {
       <p>Level ${p.level} Hero · Points to spend: <b>${p.unspent}</b></p>
       <div class="statlist">${rows}</div>
       <table class="derived">
-        <tr><td>Attack</td><td>${P.attack(p)}</td></tr><tr><td>Defense</td><td>${P.defense(p)}</td></tr>
+        <tr><td>Attack</td><td>${P.attack(p)}</td></tr><tr><td>Magic attack</td><td>${P.magicAttack(p)}</td></tr><tr><td>Defense</td><td>${P.defense(p)}</td></tr>
         <tr><td>Max HP / MP</td><td>${P.maxHp(p)} / ${P.maxMp(p)}</td></tr>
         <tr><td>Accuracy / Evasion</td><td>${P.accuracy(p).toFixed(1)} / ${P.evasion(p).toFixed(1)}</td></tr>
         <tr><td>MP regen</td><td>${P.mpRegenPerSec(p).toFixed(2)}/s</td></tr>
@@ -1157,6 +1182,7 @@ export class Hud {
     if (panel && d.key) this.sel[panel] = d.key;
     if (this.held && d.idx !== undefined) { this.placeHeld(t); t.blur(); return; }
     if (d.dlg === 'next') { this.advanceTalk(); t.blur(); return; }
+    if (d.dlg === 'back') { this.backTalk(); t.blur(); return; }
     if (d.close) this.close(d.close as Panel);
     else if (d.xfer) this.transfer(t);
     else if (d.train) {
@@ -1181,7 +1207,7 @@ export class Hud {
       this.close('drop');
       if (id) { this.doDrop(id, d.act === 'drop1' ? 1 : (this.dropUid ? 1 : Game.player.inventory[id] ?? 0), this.dropUid); this.dropUid = null; }
     }
-    else if (d.ptab) { this.pathTab = d.ptab; Q.onPathView(p, d.ptab); this.sel.skills = undefined; }
+    else if (d.ptab) { this.pathTab = d.ptab; this.sel.skills = undefined; }
     else if (d.invtab) { this.invTab = d.invtab as typeof this.invTab; this.sel.inventory = undefined; }
     else if (d.act === 'askdrop') { this.requestDrop(d.item ?? this.dropItem ?? '', d.uid); }
     else if (d.act === 'bind' && d.item && d.slot) {
@@ -1192,7 +1218,7 @@ export class Hud {
       }
     }
     else if (d.tab) { this.shopTab = d.tab as 'buy' | 'sell'; }
-    else if (d.stat) { if (p.unspent > 0) { P.spendPoint(p, d.stat as P.Stat); Game.save(); } }
+    else if (d.stat) { if (p.unspent > 0) { P.spendPoint(p, d.stat as P.Stat); Q.onAction(p, 'spend_point'); Game.save(); } }
     else if (d.use) Game.events.emit('use-item', d.use);
     else if (d.equip) {
       const err = P.equip(p, d.equip);
@@ -1205,7 +1231,7 @@ export class Hud {
     else if (d.unequip) P.unequip(p, d.unequip as P.EquipSlot);
     else if (d.buy) {
       const price = shopPrice(d.buy);
-      if (price !== null && p.coins >= price) { p.coins -= price; if (isGear(d.buy)) P.addGear(p, makeGear(d.buy, { mode: 'typical', magic: false })); else P.addItem(p, d.buy, 1); this.toast(`Bought ${DB.items[d.buy].name}`, 'loot'); Game.save(); }
+      if (price !== null && p.coins >= price) { p.coins -= price; if (isGear(d.buy)) P.addGear(p, makeGear(d.buy, { mode: 'typical', magic: false })); else P.addItem(p, d.buy, 1); this.toast(`Bought ${DB.items[d.buy].name}`, 'loot'); Q.onAction(p, 'buy', d.buy); Game.save(); }
       else this.toast('Not enough copper', 'warn');
     } else if (d.sell) {
       const price = vendorBuyPrice(d.sell);

@@ -1,4 +1,4 @@
-# Meadows — prototype v0.2.8
+# Meadows — prototype v0.2.9
 
 A 2D side-scrolling browser MMORPG prototype (MapleStory-style real-time grinding, later Travian-style offline growth).
 v0.2 is a **single-player** slice of the Meadows zone: **Meadow Town** (hub + Mara's shop), **Sunny Pasture** (levels 1-3), and **Dirt Banks** (levels 3-6), reached by the east path from the pasture.
@@ -57,6 +57,10 @@ Hovering a tile with the mouse selects it too, and the preview panel shows the i
 
 **Why these keys:** no modifier keys are used, so gameplay can't trigger browser shortcuts (Ctrl+W closes the tab, etc.). Phaser calls `preventDefault` on every bound key, and a small guard blocks stray Ctrl+letter page shortcuts (Ctrl+S, Ctrl+P, ...). The hotbar is 1–6 (skills or consumables); Q and G still fire slots 5 and 6, instead of the sheet's Q/R potion keys.
 
+
+## What's new in v0.2.9 (fixes before Whisperwood)
+
+A new Hero starts with **Welcome to Meadow Town**, an eleven-step walk through town where each NPC teaches one thing for a tiny gift, then **Path of the Warrior** (Calden) and **Path of the Magician** (Tamsin). Path trees stay hidden until their quest is done, other quests appear gradually by level, NPCs never hand over quest materials, rewards are about a third of what they were, and every quest has new copy and ends on a completion banner and the rewards screen. Also: a **Back** button in conversations, magic scaling with **INT**, a journal that shows only startable quests, a gray side slash for the basic attack, drops down 25% with no stack above 3 per kill (Copper excepted), and buffs and attacks only in their own slots. Write-up in `docs/v0.2.9.md`.
 
 ## What's new in v0.2.8 (Magician Path)
 

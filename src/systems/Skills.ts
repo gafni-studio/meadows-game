@@ -159,7 +159,7 @@ export function train(p: P.PlayerData, id: string): string | null {
   p.skillRanks[id] = cur + 1;
   // Auto-bind a newly learned skill to the first empty hotbar slot.
   if (cur === 0) autoBind(barOf(p), id);
-  Q.checkPaths(p);
+  Q.tick(p);
   return null;
 }
 

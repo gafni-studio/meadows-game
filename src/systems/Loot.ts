@@ -4,6 +4,9 @@ import { isGear, makeGear, GearInstance } from './Gear';
 import { dropMulFor } from './Passives';
 import * as P from './Player';
 
+/** v0.2.9: the most of any one item (Copper excepted) a single kill can drop. */
+export const MAX_STACK_PER_KILL = 3;
+
 export interface RolledDrop { itemId: string; qty: number; rare: boolean; inst?: GearInstance; instances?: GearInstance[] }
 
 /** Quantity between lo and hi, weighted toward lo (r^skew): with 1-4, P(1) ≈ 50%, P(4) ≈ 13%. */
@@ -41,6 +44,8 @@ export function rollDrops(monsterId: string, rateMul = 1, player?: P.PlayerData)
     const hi = Math.round((row.max_qty ?? lo) * (1 + extra * LOOT.maxQtyPerMul));
     let qty = rollQty(lo, Math.max(lo, hi));
     if (chance > 100 && Math.random() * 100 < chance - 100) qty += rollQty(lo, Math.max(lo, hi));
+    // v0.2.9: nothing but Copper drops more than 3 from one kill (the console's droprate bonus is exempt).
+    if (row.item_id !== 'copper_coin' && rateMul <= 1) qty = Math.min(qty, MAX_STACK_PER_KILL);
     out.push({ itemId: row.item_id, qty, rare: row.drop_rate < 1 });
   }
   return out;

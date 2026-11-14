@@ -1,6 +1,6 @@
 {
   "source": "sheet/Game_Design_DB_v0.xlsx",
-  "exportedAt": "2026-11-13T23:16:42.988Z",
+  "exportedAt": "2026-11-14T08:42:32.006Z",
   "tabs": [
     "material_categories: 4 rows",
     "material_subtypes: 13 rows",
@@ -27,7 +27,7 @@
     "controls: 20 rows",
     "prototype_plan: 10 rows",
     "npcs: 5 rows",
-    "skill_quests: 32 rows",
+    "skill_quests: 40 rows",
     "paths: 2 rows"
   ]
 }

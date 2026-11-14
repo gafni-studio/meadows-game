@@ -257,3 +257,6 @@ table.equip td:first-child { color: #c9b48a; white-space: nowrap; padding-right:
 .eq-slot img { width: 18px; height: 18px; object-fit: contain; image-rendering: pixelated; flex: none; }
 .eq-slot .eq-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .eq-slot .eq-name.empty { color: #8a7a5a; }
 .pv-chain { font-size: 11px; color: #c9b48a; margin: 2px 0 4px; }
+
+.path-none { padding: 26px 20px; font-size: 15px; color: #d8c8a0; text-align: center; }
+.statrow small { white-space: normal; }
