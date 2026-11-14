@@ -1,5 +1,7 @@
 # Meadows: working notes for Claude
 
+**Start every session by reading `STATUS.md` (live version, what is in flight, next step). End every session by updating it.**
+
 A Phaser 3 + TypeScript + Vite browser game. Oded playtests; his notes become a spec in `planning/vX.Y.Z.md`; you implement it.
 
 ## Release workflow (do this, in this order)
@@ -10,7 +12,8 @@ A Phaser 3 + TypeScript + Vite browser game. Oded playtests; his notes become a 
 4. Visual change? Run `npm run build && npm run shots -- <skill|slash>` and look at the one contact sheet per skill. Otherwise skip visual checks: feel is for playtesting.
 5. `npm run verify` (typecheck + tests + build + boot smoke, ~30 s). It must pass.
 6. Bump `"version"` in `package.json` to the release, write `docs/vX.Y.Z.md` (plain words per spec section + judgment calls; short) and add a section at the top of `CHANGELOG.md`.
-7. Commit on the session branch, then release: `git push origin HEAD:<branch>` and `git push origin HEAD:main` (fast-forward; `main` is what deploys to Netlify). You cannot reach the live site from the sandbox; say so, and point to `https://meadows-gafni.netlify.app/version.json`.
+7. Update `STATUS.md` (live version, in flight, next step, any new gaps).
+8. Commit on the session branch, then release: `git push origin HEAD:<branch>` and `git push origin HEAD:main` (fast-forward; `main` is what deploys to Netlify). You cannot reach the live site from the sandbox; say so, and point to `https://meadows-gafni.netlify.app/version.json`.
 
 Do not run long manual playthroughs, write one-off browser scripts, or re-read whole big files when `grep` will do.
 
