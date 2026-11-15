@@ -1,0 +1,61 @@
+name: deploy-itch
+# On every push to main: build the game and push dist/ to itch.io as an HTML5 build
+# (odedgafni/meadows:html5) with butler, through the studio's reusable workflow.
+# Needs the BUTLER_API_KEY repo secret. Without it, the upload is skipped with a clear message.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-itch
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      has_key: ${{ steps.key.outputs.has_key }}
+      version: ${{ steps.ver.outputs.version }}
+    steps:
+      - name: Check for BUTLER_API_KEY
+        id: key
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+        run: |
+          if [ -n "$BUTLER_API_KEY" ]; then
+            echo "has_key=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_key=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=itch.io upload skipped::BUTLER_API_KEY secret is not set on this repo, so the build will not be pushed to itch.io. Add it under Settings > Secrets and variables > Actions."
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run build
+      - name: Read version
+        id: ver
+        run: echo "version=v$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: dist
+          retention-days: 7
+
+  itch:
+    needs: build
+    if: needs.build.outputs.has_key == 'true'
+    uses: gafni-studio/studio/.github/workflows/itch-release.yml@main
+    with:
+      itch_user: odedgafni
+      itch_game: meadows
+      itch_channel: html5
+      build_dir: dist
+      artifact_name: web-build
+      user_version: ${{ needs.build.outputs.version }}
+    secrets:
+      BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
