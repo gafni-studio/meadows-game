@@ -7,7 +7,7 @@ Check, before we pay for anything, that PixelLab can produce our **locked hero**
 
 ## References
 - **The locked hero:** `art-direction/hero/hero-locked-lineup.jpg`, showing the Cloth, Leather, Chain and Plate looks. Crop the look you need from it.
-- **Round 1 concept sheet:** `art-direction/hero/round1-refs.jpg`, showing the sheep, the Wooden Sword, and the Wool, Feather, Health Potion and Copper Coin icons. Crop each one as the reference for that asset.
+- **Round 1 concept sheet:** `art-direction/concepts/round1.jpg`, showing the sheep, the Wooden Sword, and the Wool, Feather, Health Potion and Copper Coin icons. Crop each one as the reference for that asset.
 - These two sheets are our own art and the only images you may feed PixelLab.
 - **Style rules:** the "Style rules" section of `art-direction/README.md`.
 - **Motion feel only:** `art-direction/hero/hero-anim-mock.jpg`. Don't copy its flaws.

@@ -2,7 +2,9 @@
 
 The style target for Meadows. It feeds the style prompt and `planning/art-plan.md`.
 
-> Images in `refs/` belong to their creators. They're for direction only: never shipped, traced or used as generation input. Only our own concepts in `hero/` may be used as PixelLab references.
+> Images in `refs/` belong to their creators. They're for direction only: never shipped, traced or used as generation input. Only our own art in `hero/` and `concepts/` may be used as PixelLab references.
+
+**Concept sheets:** every batch, and any new mob, item, NPC, area or gear, gets an approved sheet in `concepts/` before PixelLab runs. See the process in `planning/art-plan.md`.
 
 ## Style rules
 

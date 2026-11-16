@@ -74,7 +74,8 @@ Phase 3 by area: Meadow West 58 · Meadow Town 176 · Meadow East 64 · Sunny Pa
 3. **Rounds of about 6 generations.** Each round makes about 6 pieces with the approved prompt. Claude composites them into a **960×540 mock in-game screenshot** with the hero, a mob, ground, parallax and HUD at real scale, so they're judged in context and never as loose sprites.
 4. **Oded's feedback.** Notes go into the prompt, and the next round runs. Plan on 1–3 rounds per phase.
 5. **Lock.** Write the style guide (studio template: palette file, sizes, outline, lighting, camera, frame counts, references), and save the PixelLab settings and reference images.
-6. **Production batches.** One area at a time, in the Phase 3 order. Each batch goes into the real game (a playable Netlify or itch build) and gets Oded's OK before the next batch starts. Optional Python cleanup (palette snap, stray pixels, packing) runs only when needed; weak sprites get regenerated, not hand-edited.
+6. **Concept sheet before every batch (standing rule).** Before PixelLab generates any batch, and whenever new content is added to the game (a mob, item, NPC, area or gear), Gamer makes a concept reference sheet in the style of the locked hero. It's free and saved as one sheet per area or batch in `art-direction/concepts/`, for example `concepts/meadow-west.jpg`. Oded approves the sheet, and then Claude feeds it to PixelLab as the image reference. Sheets are made per batch just before production, not all up front.
+7. **Production batches.** One area at a time, in the Phase 3 order. Each batch goes into the real game (a playable Netlify or itch build) and gets Oded's OK before the next batch starts. Optional Python cleanup (palette snap, stray pixels, packing) runs only when needed; weak sprites get regenerated, not hand-edited.
 
 ## Inspiration references (from Oded)
 
@@ -90,7 +91,7 @@ Goal: check that PixelLab can produce the locked hero and the style before payin
 | Hero, Cloth look | Character | locked lineup | 64-128px canvas | idle frame (east) | 2 | same pose and scale as Leather |
 | Wooden Sword layer | Hero gear visual | none yet | ~32-48px | pinned to the hand anchor | 2 | separate sprite, transparent |
 | Wool Sheep | Mob | CC0 Tiny Creatures, 1 static frame | 64px canvas | idle frame (east) | 2 | |
-| Icons: Wool, Health Potion | Item icon | CC0 Kenney | 32-48px src | — | 4 | from art-direction/hero/round1-refs.jpg |
+| Icons: Wool, Health Potion | Item icon | CC0 Kenney | 32-48px src | — | 4 | from art-direction/concepts/round1.jpg |
 | Optional: Feather, Copper Coin icons | Item icon | CC0 Kenney | 32-48px src | — | 4 | only if the budget allows |
 | Optional: hero walk, Leather | Character | — | 64-128px | walk, east | 2 | only if the trial allows animation |
 | **Subtotal** | | | | | **18** | |
