@@ -8,8 +8,8 @@ The style target for Meadows. It feeds the style prompt and `planning/art-plan.m
 
 From Oded: **not heavily pixelated; smooth and sharp, with a cozy, nostalgic feeling; well animated, like PixelLab's animation demos.**
 
-- **Chibi proportions:** about 2.5–3 heads tall. Big head, short limbs, readable face.
-- **Bold, clean, dark outlines** around every character and mob. Not black everywhere: a dark tint of the local color.
+- **Chibi proportions:** big head, short limbs, readable face. The hero is about 4 heads tall; mobs can be chunkier.
+- **Bold, clean, dark outlines** around every character and mob. Dark brown, not black.
 - **Flat, bright colors with one soft shade** per material. No dithering, no noisy texture, no gradients.
 - **Big, readable silhouettes** that read at game size against busy backgrounds.
 - **Cute, chunky monsters:** round bodies, stubby legs, big eyes, even for the "angry" ones.
@@ -61,24 +61,15 @@ From Oded: **not heavily pixelated; smooth and sharp, with a cozy, nostalgic fee
 | --- | --- |
 | <img src="refs/mood-only-pixel-forest-farm-gate-well.jpg" width="200"><br>Forest and farm gate with a well | Town-gate and farm composition, and the nostalgic mood. Pixelated, so don't copy the rendering. |
 
-## Hero candidates
+## Hero (locked)
 
-Our own concepts. **Oded liked both.**
+<img src="hero/hero-locked-lineup.jpg" width="640">
 
-### A — scarf and vest
-<img src="hero/hero-a-concept-scarf-vest.jpg" width="240"> <img src="hero/hero-a-sprite-mock-idle-walk-run-jump.jpg" width="420">
+The locked hero, an A+C mix, in the four armour looks: Cloth, Leather, Chain, Plate.
+- Fluffy white hair, a short orange knotted scarf (no cape), and a simple fitted body. About 4 heads tall.
+- Side view, facing right. Bold dark-brown outlines, smooth and sharp, not pixelated.
+- Each look is a full animation set. Weapons and hats are separate layers pinned to hand and head anchors (see `planning/art-plan.md`).
 
-What we take: the cleanest silhouette, with the red scarf as a readable accent. Vest, belt, gloves and boots map neatly onto our gear slots (torso, gloves, boots). Simple shapes are easy to animate.
-Watch: in the mock the sword vanishes in the run and jump rows. Weapon handling has to be decided (held, sheathed or a separate sprite).
+<img src="hero/hero-anim-mock.jpg" width="640">
 
-### C — cape and long coat
-<img src="hero/hero-c-concept-cape-coat.jpg" width="240"> <img src="hero/hero-c-sprite-mock-idle-walk-run-jump.jpg" width="420">
-
-What we take: more adventure and warmth. The cape adds great follow-through in the run and jump, and the sheathed sword stays consistent across frames.
-Watch: the cape and coat roughly double the animation work, and they cover the torso and legs slots. The last jump frames turn into a crawl on a dirt patch, so the jump needs redoing.
-
-## Open questions
-
-1. **A or C (or A with C's cape as a late-game cosmetic)?** A is cheaper to animate and to show gear on. C has more personality.
-2. **Weapon on the hero:** held in hand in every frame, sheathed when not attacking, or a separate sprite attached in code (cheapest, and it fits the 12 weapons in the art plan)?
-3. **Outline color:** pure dark brown everywhere, or a darker tint per color (warmer, as in A and C)?
+Motion feel only: the bounce, the run lean and the slash arc. Don't copy its flaws: the idle has walking legs, the vest flips to chain mid-walk, and the attack is weak (no wind-up or follow-through).

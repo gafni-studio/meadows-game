@@ -8,21 +8,21 @@ Scanned on 2026-11-16 against `main` at v0.3.1 (the sprite registry, `public/art
 
 | Phase | What | Est. generations (incl. ~2× retries) |
 | --- | --- | ---: |
-| 1 | Free style test (trial) | **24** of the 40 free |
+| 1 | Free style test (trial) | **16** of the 40 free (about 6–8 planned, plus at most one retry each) |
 | 2 | Paid test round (Tier 1) | **90** |
 | 3 | Production, by area then global | **1298** |
-| | **Total** | **1412** |
+| | **Total** | **1404** |
 
 Phase 3 by area: Meadow West 58 · Meadow Town 176 · Meadow East 64 · Sunny Pasture 14 · Dirt Banks 146 · Whisperwood 224 · Global 616.
 
-**Budget fit:** Phases 2 and 3 together (1388) fit inside one Tier 1 month (2,000 generations) with about 610 to spare. Hero gear is now about 188 in total (see the gear approach below).
+**Budget fit:** Phases 2 and 3 together (1388) fit inside one Tier 1 month (2,000 generations) with about 610 to spare. Hero gear is now about 186 in total (see the gear approach below).
 
 **Assets by category** (about 309 individual pieces):
 
 | Category | Pieces | Gens |
 | --- | ---: | ---: |
-| Hero gear visual | 21 | 188 |
-| Mob | 14 | 258 |
+| Hero gear visual | 21 | 186 |
+| Mob | 14 | 254 |
 | Item icon | 105 | 210 |
 | Portrait | 7 | 140 |
 | Effect | 28 | 132 |
@@ -32,7 +32,7 @@ Phase 3 by area: Meadow West 58 · Meadow Town 176 · Meadow East 64 · Sunny Pa
 | UI | 19 | 52 |
 | Skill icon | 22 | 44 |
 | Font | 1 | 40 |
-| Tileset | 16 | 32 |
+| Tileset | 15 | 30 |
 | Character | 1 | 28 |
 | Terrain | 7 | 20 |
 | Building | 6 | 12 |
@@ -45,7 +45,7 @@ Phase 3 by area: Meadow West 58 · Meadow Town 176 · Meadow East 64 · Sunny Pa
 ### Gear on the hero (approved)
 - **Body armour: 4 looks** (Cloth, Leather, Chain, Plate). Each look is a full hero animation set (all 11 clips). The equipped body piece picks the look by its tier and type: Cloth and Linen show Cloth; Hide, Leather and Trail show Leather. Chain and Plate are for later-tier gear. Every item keeps its own icon and stats. Palette tints can add variants later at almost no cost.
 - **Weapons and hats: paper-doll layers.** One sprite per item, pinned to per-frame **hand** and **head** anchor points on every hero frame, MapleStory-style. Claude marks the anchors once per hero clip (no generations), and code places, rotates and flips the layer each frame.
-- **Cost:** about 50 per extra look (re-dress the reference, about 2 for the new base, about 2 per clip) × 3 looks = **150**, since Cloth is the Phase 2 hero set. Plus 12 weapon layers (24), 5 hat layers (10) and the style-test frame (4): **about 188** in all, replacing the earlier ~410 for 5 outfit-transferred sets. Chain and Plate can wait until gear needs them (−100).
+- **Cost:** about 50 per extra look (re-dress the reference, about 2 for the new base, about 2 per clip) × 3 looks = **150**, since Cloth is the Phase 2 hero set. Plus 12 weapon layers (24), 5 hat layers (10) and the style-test sword layer (2): **about 186** in all, replacing the earlier ~410 for 5 outfit-transferred sets. Chain and Plate can wait until gear needs them (−100).
 - **The UI has no art.** Every panel, button, bar, tree node and marker is HTML/CSS in the browser's system font.
 - **Much of the world is code-drawn:** parallax hills, ladders, ropes, vines, root ladders, river and bog water, Whisperwood fog, and nearly all skill and hit effects.
 - **Current art is CC0 placeholder** (Kenney Tiny Dungeon/Town, Pixel Platformer, Tiny Creatures) plus repo-drawn sprites (`scripts/draw-art-v030.py`, `draw-art-v031.py`) for Whisperwood, Old Stump, Angry Bull and Boar.
@@ -78,20 +78,22 @@ Phase 3 by area: Meadow West 58 · Meadow Town 176 · Meadow East 64 · Sunny Pa
 
 ## Inspiration references (from Oded)
 
-The moodboard is in **[art-direction/README.md](../art-direction/README.md)**: style rules, kept references, hero candidates A and C, and discarded ideas. In short: not heavily pixelated; smooth and sharp, cozy and nostalgic; chibi (about 2.5–3 heads); bold clean dark outlines; flat bright colors with one soft shade; big readable silhouettes; cute, chunky monsters; animation quality like PixelLab's demos.
+The moodboard is in **[art-direction/README.md](../art-direction/README.md)**: style rules, references and the locked hero lineup. In short: not heavily pixelated; smooth and sharp, cozy and nostalgic; chibi (the hero is about 4 heads tall); bold clean dark outlines; flat bright colors with one soft shade; big readable silhouettes; cute, chunky monsters; animation quality like PixelLab's demos.
 
-## Phase 1 — Free style test (~25 of the 40 free generations)
+## Phase 1 — Free style test (round 1)
 
-Goal: is PixelLab's look right for Meadows at all? One 960×540 mock with the hero, a sheep, a strip of grass and three icons, plus the hero in the Leather look holding a layered Wooden Sword. That leaves about 15 free generations in reserve for a second round.
+Goal: check that PixelLab can produce the locked hero and the style before paying. The brief Claude runs is [art-direction/style-test-round-1.md](../art-direction/style-test-round-1.md). The results go into one 960×540 mock: the hero, a sheep and icons in a UI slot, on today's Meadow West ground. That leaves at least 24 free generations for round 2.
 
 | Asset | Category | Current source | Size | Animations / directions | Gens (×2) | Notes |
 | --- | --- | --- | --- | --- | ---: | --- |
-| Hero (Club, cloth start) | Character | CC0 Tiny Dungeon, 1 static 16x16 frame | 48x48 slot (canvas 48-64) | idle (side view, east; west = mirror) | 6 | create_character v3 (2) + idle template (1) |
-| Wool Sheep | Mob | CC0 Tiny Creatures, 1 static frame | 48x48 | idle | 6 | base (2) + idle (1); animal needs a reference image |
-| Icons: Strawberry, Wool, Training Scroll | Item icon | CC0 Kenney + hue shifts | 18x18 src / 36 shown | — | 6 | create_image_pixen, 1 each |
-| Hero in Leather look + layered Wooden Sword | Hero gear visual | none yet | 64px+ | idle frame only | 4 | edit_image_pixen re-dress (1) + weapon layer sprite (1), pinned to a hand anchor |
-| Grass tile swatch (for the mock) | Tileset | CC0 Pixel Platformer | 18-32px tile | — | 2 | pixen image; real tileset tool is not on the trial |
-| **Subtotal** | | | | | **24** | |
+| Hero, Leather look | Character | locked lineup | 64-128px canvas | idle frame (east) | 2 | image-to-sprite from the lineup |
+| Hero, Cloth look | Character | locked lineup | 64-128px canvas | idle frame (east) | 2 | same pose and scale as Leather |
+| Wooden Sword layer | Hero gear visual | none yet | ~32-48px | pinned to the hand anchor | 2 | separate sprite, transparent |
+| Wool Sheep | Mob | CC0 Tiny Creatures, 1 static frame | 64px canvas | idle frame (east) | 2 | |
+| Icons: Strawberry, Wool | Item icon | CC0 Kenney | 32-48px src | — | 4 | |
+| Optional: Training Scroll icon | Item icon | CC0 Kenney | 32-48px src | — | 2 | only if the budget allows |
+| Optional: hero walk, Leather | Character | — | 64-128px | walk, east | 2 | only if the trial allows animation |
+| **Subtotal** | | | | | **16** | |
 
 ## Phase 2 — Paid test round (Tier 1)
 
