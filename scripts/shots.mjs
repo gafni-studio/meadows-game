@@ -20,8 +20,9 @@ const TIMES = (process.env.MS ?? '40,90,140,190,260,340').split(',').map(Number)
 const CHROME = process.env.CHROME_PATH ?? ['/usr/bin/google-chrome', '/opt/pw-browsers/chromium'].find(existsSync);
 /** Spots to look at per area: [x tiles, height tiles]. */
 const ALL_SPOTS = {
+  sunny_pasture: [[14, 0], [40, 2], [66, 1], [110, 0]],
   meadow_west: [[10, 0], [46, 0], [80, 0]],
-  meadow_east: [[24, 1.5], [60, 6], [80, 11], [126, 0]],
+  meadow_east: [[24, 1.5], [60, 6], [80, 11], [100, 1.5], [126, 0]],
   dirt_banks_west: [[20, 0], [50, 4], [56, 8]],
   dirt_banks_east: [[20, 4], [70, 0], [96, 9]],
   whisperwood: [[8, 1], [44, 9], [60, 13], [130, 0], [166, 0]],

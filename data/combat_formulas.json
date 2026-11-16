@@ -375,7 +375,7 @@
     },
     {
       "key": "mob_attack_range",
-      "value": "ember_beetle 22; meadow_boar 28; earth_sprite 24; spark_bug 18; bank_cracker 20; others 4 (contact)",
+      "value": "ember_beetle 22; angry_bull 28; earth_sprite 24; spark_bug 18; bank_cracker 20; others 4 (contact)",
       "notes": "v0.2.5: selected melee reaches, in px edge-to-edge. Boar lunges; Ember Beetle and Earth Sprite reach farther; Spark Bug snaps; Bank-Cracker has heavier arms. Source: MONSTER_FEEL.range.",
       "num": 22
     }

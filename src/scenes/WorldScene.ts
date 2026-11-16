@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { DB, f, consumableEffect } from '../data/db';
 import { ASSUME, TILE, ATTACK_FEEL, PLAYER_HIT_KB, HIT_MONSTER, CONTACT, SKILL_SCHOOL, BOLT } from '../data/assumptions';
 import { AREAS, AREA_ALIAS, AreaGeometry } from '../world/areas';
-import { groundAt, zoneBounds, splitCount } from '../world/surface';
+import { maraSlap } from './world/slap';
+import { groundAt, zoneBounds, splitCount, spawnHeight } from '../world/surface';
 import { createMonster } from '../entities/mobs';
 import { buildAmbient } from './world/ambient';
 import { SPRITES, iconKey, DROP_SIZE } from '../art/sprites';
@@ -171,12 +172,15 @@ export class WorldScene extends Phaser.Scene {
       kb.enabled = on;
       if (on) kb.enableGlobalCapture(); else { kb.disableGlobalCapture(); kb.resetKeys(); }
     };
+    const onSlap = (dmg: number) => maraSlap(this, dmg);
     Game.events.on('use-item', onUse);
     Game.events.on('keyboard', onKb);
+    Game.events.on('mara-slap', onSlap);
     Game.scene = this;
     this.events.once('shutdown', () => {
       Game.events.off('use-item', onUse);
       Game.events.off('keyboard', onKb);
+      Game.events.off('mara-slap', onSlap);
       this.monsters.forEach((m) => m.destroy());
       this.monsters = [];
     });
@@ -192,7 +196,7 @@ export class WorldScene extends Phaser.Scene {
     const def = DB.monsters[id];
     if (!def) return null;
     const cx = Phaser.Math.Clamp(x, 40, this.geo.widthTiles * TILE - 40);
-    const yt = opts.y ?? groundAt(this.geo, cx / TILE);
+    const yt = spawnHeight(this.geo, cx / TILE, opts.y);
     const m = createMonster(this, def, cx, this.groundY + 4 - yt * TILE, patrol, { ledge: opts.ledge, fly: opts.fly, arena: this.geo.arena, camp: this.geo.camp, terrain: { geo: this.geo, groundY: this.groundY + 4 } });
     m.strikePlayer = (mult, fromX) => this.monsterSwings(m, fromX, false, mult);
     m.setDepth(8);

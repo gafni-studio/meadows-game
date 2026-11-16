@@ -76,9 +76,9 @@
       "passively_gatherable": false,
       "sellable_only": false,
       "sell_price": 15,
-      "description": "Dense wood from the center of an old stump.",
+      "description": "Dense wood from the heart of an ancient tree.",
       "notes": "DRAFT. Rare boss drop from Old Stump only (~2-5% drop_rate). Rarity is via drop_rate only.",
-      "desc": "Dense wood from the center of an old stump."
+      "desc": "Dense wood from the heart of an ancient tree."
     },
     {
       "id": "pebble",
@@ -869,9 +869,9 @@
       "passively_gatherable": false,
       "sellable_only": true,
       "sell_price": 10,
-      "description": "A sticky drip of sap from an old stump.",
+      "description": "A sticky drip of sap from an ancient tree.",
       "notes": "DRAFT. Mid curiosity / byproduct. Old Stump and Night Stump. Sellable to the vendor.",
-      "desc": "A sticky drip of sap from an old stump."
+      "desc": "A sticky drip of sap from an ancient tree."
     },
     {
       "id": "shiny_stone",
@@ -986,9 +986,9 @@
       "passively_gatherable": false,
       "sellable_only": true,
       "sell_price": 120,
-      "description": "An old ring, once caught in stump roots.",
+      "description": "An old ring, once caught in tree roots.",
       "notes": "DRAFT. Rare sell-only junk. Night Stump and Old Stump. ~0.6-1%.",
-      "desc": "An old ring, once caught in stump roots."
+      "desc": "An old ring, once caught in tree roots."
     },
     {
       "id": "old_key",

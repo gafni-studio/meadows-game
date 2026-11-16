@@ -101,7 +101,7 @@ save(tile('tc161'), 'chars', 'monster_burrow_mole.png')
 for mid, im in {
     'earth_sprite': tile('tc45'), 'ember_beetle': hue(tile('tc140'), 15, 1.5, 1.1),
     'frost_moth': hue(tile('tc13'), 190, 0.7, 1.2), 'spark_bug': tile('tc141'),
-    'shrine_wisp': tile('tc90'), 'dusk_wisp': hue(tile('tc90'), 275, 0.8, 0.8), 'meadow_boar': tile('tc21'),
+    'shrine_wisp': tile('tc90'), 'dusk_wisp': hue(tile('tc90'), 275, 0.8, 0.8), 'angry_bull': tile('tc21'),
 }.items():
     save(im, 'chars', f'monster_{mid}.png')
 

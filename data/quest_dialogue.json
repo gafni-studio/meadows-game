@@ -1,6 +1,6 @@
 {
   "tab": "quest_dialogue",
-  "note": "NOTE: v0.2.9+. Every quest conversation, one row per key \"line:step:kind\". kind: ok (the step's talk), wait (not yet), done (the turn-in that completes the line), need / gate (talk-started quests' item step), start (step 0: Calden offers the quest). lines = one page each, one thought per page. Voices: Pell warm and folksy; Mara practical and dry; Calden gruff and patient; Ila talks in growing things; Tamsin dreamy, exact, counting.  v0.3.0: place names follow the split halves; Whisperwood chain pages (Pell starts, Wren gives the rest).",
+  "note": "NOTE: v0.2.9+. Every quest conversation, one row per key \"line:step:kind\". kind: ok (the step's talk), wait (not yet), done (the turn-in that completes the line), need / gate (talk-started quests' item step), start (step 0: Calden offers the quest). lines = one page each, one thought per page. Voices: Pell warm and folksy; Mara practical and dry; Calden gruff and patient; Ila talks in growing things; Tamsin dreamy, exact, counting.  v0.3.0: place names follow the split halves; Whisperwood chain pages (Pell starts, Wren gives the rest).  v0.3.1: west-first copy; intro chest pages removed, Mara’s slap pages.",
   "columns": [
     "key",
     "lines"
@@ -26,18 +26,18 @@
     {
       "key": "ql_intro:4:ok",
       "lines": [
-        "A berry in the bag does nothing. Put one where your hand can find it and take a bite."
+        "That’s for walking in without wiping your boots.",
+        "Now you’re hurt. Put the berry where your hand can find it and take a bite. Watch the bar."
       ]
     },
     {
       "key": "ql_intro:6:ok",
       "lines": [
-        "That chest is mine, but you can use it. Your bag is not bottomless.",
-        "Put something in. Take it out. Now you know it’s safe."
+        "There. Feel better? Good. Go see Ila. She deals in things that grow."
       ]
     },
     {
-      "key": "ql_intro:8:ok",
+      "key": "ql_intro:7:ok",
       "lines": [
         "Everything out there carries a little of where it came from. Nature. Elemental. Basic, for the plain blows.",
         "Kill enough, and that becomes essence. Essence is how a skill takes root.",
@@ -46,7 +46,7 @@
       ]
     },
     {
-      "key": "ql_intro:9:ok",
+      "key": "ql_intro:8:ok",
       "lines": [
         "Three. You have three. Points, I mean — you haven’t spent them.",
         "Strength for the arm. Intellect for the spell. Agility for the feet. Spirit for the long breath.",
@@ -54,7 +54,7 @@
       ]
     },
     {
-      "key": "ql_intro:11:done",
+      "key": "ql_intro:10:done",
       "lines": [
         "So. You’ve met the town. Now meet the work."
       ]
@@ -71,7 +71,7 @@
       "key": "ql_warrior:3:ok",
       "lines": [
         "Better than I feared.",
-        "Now — the mice outside the gate are in the grain again. Clear five of them.",
+        "Now — the mice outside the west gate are in the grain again. Clear five of them.",
         "And bring me five Twig while you’re out. The post needs mending, and so do my manners."
       ]
     },
@@ -142,8 +142,8 @@
     {
       "key": "ql_dirt_path:1:ok",
       "lines": [
-        "There you are. Level three already — the pasture must be getting small.",
-        "Past the hills of the east meadow the grass gives out and the Banks begin. A river, then a cave.",
+        "There you are. Level three already — the west meadow must be getting small.",
+        "Try the other gate. East of town the grass climbs into hills, and past them the Banks begin. A river, then a cave.",
         "Crows keep the east meadow. Four of them. They steal more than seeds.",
         "Clear them, then walk on through. I’ll be here, pretending not to worry."
       ]
@@ -256,7 +256,7 @@
       "key": "ql_crack:1:ok",
       "lines": [
         "This stone wants to break more than itself.",
-        "The Banks will finish the lesson. Go east through the meadows to the river.",
+        "The Banks will finish the lesson. Go out the east gate and through the hills to the river.",
         "A thing dens in the pit under the cave, past the river. It splits the earth with its shoulders."
       ]
     },

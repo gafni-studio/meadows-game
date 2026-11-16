@@ -33,6 +33,8 @@ export interface PlayerData {
   /** Hotbar slots 1-6: skill id or consumable item id (null = empty). */
   skillBar: (string | null)[];
   questFlags: Record<string, boolean>;
+  /** v0.3.1: skills whose next rank the player is farming for (objectives panel, green). */
+  farm?: { skill: string; rank: number }[];
   /** B-004 skill questlines: step is 1-based, done grants the skill at rank 1. */
   questLog?: import('./Quests').QuestLog;
   /** Passive tree ranks (nature_prod, elemental_prod, efficiency nodes). */

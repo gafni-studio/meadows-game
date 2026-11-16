@@ -26,7 +26,9 @@ export function renderJournalPreview(box: HTMLElement, el: HTMLElement) {
   const e = Q.journal(Game.player).find((x) => x.line === line);
   if (!e) { box.innerHTML = '<p class="muted">Select a quest.</p>'; return; }
   const steps = e.steps.map((st) =>
-    `<li class="${st.done ? 'done' : st.current ? 'current' : 'soon'}"><b>${st.n}.</b> ${esc(st.objective)}${st.progress ? ` <span class="j-prog">(${esc(st.progress)})</span>` : ''}</li>`
+    // v0.3.1: the step's line, then one count line per mob or item underneath.
+  `<li class="${st.done ? 'done' : st.current ? 'current' : 'soon'}"><b>${st.n}.</b> ${esc(st.objective)}${st.counts?.length
+    ? `<ul class="j-counts">${st.counts.map((c) => `<li class="${c.done ? 'ok' : ''}">${c.done ? '✓' : '·'} ${esc(c.label)}: ${c.have}/${c.need}</li>`).join('')}</ul>` : ''}</li>`
   ).join('');
   const status = e.status === 'active' ? 'In progress' : e.status === 'done' ? 'Complete' : 'Not started';
   box.innerHTML = `<div class="pv-name">${esc(e.name)}</div>

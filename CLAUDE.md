@@ -60,6 +60,9 @@ Do not run long manual playthroughs, write one-off browser scripts, or re-read w
 | `src/ui/panels/npc.ts` | E on an NPC: quest talk, else their window, else a greeting |
 | `src/ui/panels/skills.ts` | the Paths window (K): tabs, equip bar, skill tree, skill preview, farm-list button, ready glow |
 | `src/ui/panels/journal.ts` | the journal (J) and its quest preview with count lines |
+| `src/ui/panels/tracker.ts` | the objectives panel (L): quest lines, count lines, ready-to-turn-in, farm entries |
+| `src/systems/Farm.ts` | farm list (skill next-rank recipes as objectives) and ready-to-train |
+| `src/scenes/world/slap.ts` | Mara's slap visual (Welcome to Meadow Town) |
 | `src/world/areas.ts` | area geometry: height, solid blocks, one-way platforms, climbs, water, NPCs, portals, per-level spawn zones |
 | `src/world/surface.ts` | pure geometry queries: ground height, ledge spans, zone bounds, spawn split, slope step-up |
 | `tests/` | `data.test.ts` (invariants), `rules.test.ts`, `quests.test.ts` (flows simulated in Node) |
@@ -82,7 +85,7 @@ Rules:
 - One file per tab: `{ tab, note, columns, rows }`. Edit rows directly (a small `node -e` script for bulk edits). Keep `note` updated with a one-line `vX.Y.Z:` change note.
 - Player-facing text goes in `desc` / dialogue; design reasoning goes in `notes`. Player text is short. The character is the **Hero** (internal class id stays `warrior`).
 - New item: a row in `items` (+ `gear` if equippable) and an icon `public/art/icons/<id>.png` (a data test fails without it).
-- New art for v0.3.0+ is drawn by `scripts/draw-art-v030.py` (Pillow; ASCII grids or shapes, auto outline). Sprite slots and frame sizes live in `src/art/sprites.ts`.
+- New art for v0.3.0+ is drawn by `scripts/draw-art-v030.py` (Pillow; ASCII grids or shapes, auto outline); v0.3.1 adds `scripts/draw-art-v031.py` (Boar, Angry Bull), reusing its helpers. Sprite slots and frame sizes live in `src/art/sprites.ts`.
 - Recipes: explicit per rank 1-10, 10-40 per material, family essence is the main cost, no Heartwood/Log (tests enforce it).
 
 ## Quest engine (`Quests.ts`, maps in `quests/maps.ts`)

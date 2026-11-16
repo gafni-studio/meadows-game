@@ -26,8 +26,9 @@ export function surfaceSpan(geo: AreaGeometry, x: number, y: number): [number, n
  * (or ground run) under the zone's middle. Ground zones (no y) keep their whole range: mobs on the base ground
  * walk the half-tile slopes.
  */
-export function zoneBounds(geo: AreaGeometry, z: SpawnZone): { y: number; x0: number; x1: number; ledge: boolean } {
-  if (z.y == null) return { y: 0, x0: z.x[0], x1: z.x[1], ledge: false };
+/** v0.3.1: a ground zone has no `y`: each mob stands on the solid ground under its own x (hills included). */
+export function zoneBounds(geo: AreaGeometry, z: SpawnZone): { y?: number; x0: number; x1: number; ledge: boolean } {
+  if (z.y == null) return { y: undefined, x0: z.x[0], x1: z.x[1], ledge: false };
   const mid = (z.x[0] + z.x[1]) / 2;
   const span = surfaceSpan(geo, mid, z.y);
   if (!span) return { y: z.y, x0: z.x[0], x1: z.x[1], ledge: true };
@@ -63,4 +64,9 @@ export function stepUpTo(geo: AreaGeometry, groundY: number, aheadX: number, fee
     if (rise > 0.5 && rise <= maxRisePx) best = best == null ? top : Math.min(best, top);
   }
   return best;
+}
+
+/** v0.3.1: the surface height (tiles) a mob spawns on at x: its zone's level, else the solid ground there. */
+export function spawnHeight(geo: AreaGeometry, x: number, y?: number): number {
+  return y ?? groundAt(geo, x);
 }

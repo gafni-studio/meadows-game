@@ -6,6 +6,7 @@ import { describe, it, expect } from 'vitest';
 import * as Q from '../src/systems/Quests';
 import * as P from '../src/systems/Player';
 import { freshHero, talk, step, MATERIALS, bagOf } from './helpers';
+import { tab } from '../src/data/db';
 
 /** Play Welcome to Meadow Town to the end the way a player would. */
 function playIntro(p: P.PlayerData) {
@@ -14,9 +15,7 @@ function playIntro(p: P.PlayerData) {
   Q.onAction(p, 'buy', 'strawberry');
   talk(p, 'mara');
   Q.onAction(p, 'eat_berry', 6);
-  talk(p, 'chest');
-  Q.onAction(p, 'chest_put');
-  Q.onAction(p, 'chest_take');
+  talk(p, 'mara');
   talk(p, 'ila');
   talk(p, 'tamsin');
   Q.onAction(p, 'spend_point');
@@ -52,6 +51,30 @@ describe('a fresh Hero', () => {
     expect(done.name).toBe('Welcome to Meadow Town');
     expect(done.rows).toEqual(['10 XP']);
     expect(Q.isActive(p, 'ql_warrior')).toBe(true);
+  });
+
+  it('v0.3.1: Mara slaps for 18 HP after the strawberry (never lethal); the chain never mentions the chest', () => {
+    const { p } = freshHero();
+    talk(p, 'pell');
+    talk(p, 'mara');
+    const hp = p.hp;
+    Q.onAction(p, 'buy', 'strawberry');
+    expect(p.hp).toBe(hp - Q.MARA_SLAP);
+    expect(Q.MARA_SLAP).toBe(18);
+    const low = freshHero().p;
+    talk(low, 'pell'); talk(low, 'mara');
+    low.hp = 5;
+    Q.onAction(low, 'buy', 'strawberry');
+    expect(low.hp).toBe(1);
+    for (const r of tab<{ line_id: string; objective: string }>('skill_quests').filter((q) => q.line_id === 'ql_intro')) expect(r.objective).not.toMatch(/chest/i);
+  });
+
+  it('an old save partway through the intro moves past the removed chest steps', () => {
+    const { p } = freshHero();
+    p.questLog = { ql_intro: { step: 9, done: false } };
+    p.questFlags = {};
+    Q.migrateQuests(p);
+    expect(step(p, 'ql_intro').step).toBe(8);
   });
 
   it('cannot skip ahead: an action out of turn does nothing', () => {
@@ -238,5 +261,31 @@ describe('the Whisperwood chain (v0.3.0)', () => {
     expect(rewards.at(-1)!.rows).toEqual(['80 XP', '15 Copper', '3× Nature Essence']);
     const gained = Object.keys(p.inventory).filter((id) => (p.inventory[id] ?? 0) > (before[id] ?? 0));
     expect(gained.filter((id) => !['wisp_dust', 'moss_fiber', 'nature_essence', 'meadow_dew'].includes(id))).toEqual([]);
+  });
+});
+
+describe('v0.3.1 objectives and the farm list', () => {
+  it('Path of the Warrior shows one line with Twig and Field Mouse counts, gold-ready once both are full', () => {
+    const { p } = freshHero();
+    playIntro(p);
+    talk(p, 'calden');
+    for (let i = 0; i < 3; i++) Q.onDummyHit(p);
+    talk(p, 'calden');
+    const o = Q.currentObjectives(p).find((x) => x.line === 'ql_warrior')!;
+    expect(o.objective).toBe('Defeat mice and gather twigs outside the west gate.');
+    expect(o.counts.map((c) => `${c.label}: ${c.have}/${c.need}`)).toEqual(['Twig: 0/5', 'Field Mouse: 0/5']);
+    expect(o.ready).toBe(false);
+  });
+  it('a farm entry lists the next rank recipe and goes away once that rank is trained', async () => {
+    const Farm = await import('../src/systems/Farm');
+    const { p } = freshHero();
+    expect(Farm.toggle(p, 'power_strike')).toBe(true);
+    const e = Farm.entries(p)[0];
+    expect(e.rank).toBe(1);
+    expect(e.counts.length).toBeGreaterThan(0);
+    expect(Farm.toggle(p, 'power_strike')).toBe(false);
+    Farm.toggle(p, 'power_strike');
+    p.skillRanks.power_strike = 1;
+    expect(Farm.entries(p)).toEqual([]);
   });
 });

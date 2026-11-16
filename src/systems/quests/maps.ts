@@ -69,7 +69,7 @@ export const DUMMY: Record<string, number> = { 'ql_warrior:2': 3 };
 
 /** Steps completed by a conversation with their NPC (advance, or complete on the last step). */
 export const TALKSTEP = new Set([
-  'ql_intro:1', 'ql_intro:2', 'ql_intro:4', 'ql_intro:6', 'ql_intro:8', 'ql_intro:9', 'ql_intro:11',
+  'ql_intro:1', 'ql_intro:2', 'ql_intro:4', 'ql_intro:6', 'ql_intro:7', 'ql_intro:8', 'ql_intro:10',
   'ql_warrior:1', 'ql_warrior:3', 'ql_magician:1', 'ql_quiet_work:1', 'ql_quiet_work:3',
   'ql_warm_coat:1', 'ql_dirt_path:1', 'ql_blood:1', 'ql_dirt_keeps:1',
   'ql_mist:1', 'ql_mist:3', 'ql_lanterns:1', 'ql_branches:1', 'ql_hollow:1', 'ql_antlers:1',
@@ -79,7 +79,7 @@ export const WAIT_ONLY = new Set(['ql_quiet_work:2', 'ql_magician:2', 'ql_mist:2
 
 /** Steps completed by something the player does. */
 export const ACTION: Record<string, string> = {
-  'ql_intro:3': 'buy_strawberry', 'ql_intro:5': 'eat_berry_q', 'ql_intro:7': 'chest_roundtrip', 'ql_intro:10': 'spend_point',
+  'ql_intro:3': 'buy_strawberry', 'ql_intro:5': 'eat_berry_q', 'ql_intro:9': 'spend_point', // v0.3.1: the chest steps are gone
 };
 
 /** Small gifts, handed over when a step finishes (and shown on the rewards screen). */
@@ -87,9 +87,9 @@ export interface Gift { coins?: number; items?: Record<string, number>; flavor?:
 export const GIFT: Record<string, Gift> = {
   'ql_intro:1': { coins: 5 },
   'ql_intro:2': { items: { blueberry: 2 } },
-  'ql_intro:7': { items: { meadow_dew: 1 }, flavor: 'Go see Ila. She deals in things that grow.' },
-  'ql_intro:8': { items: { clear_dew: 1 } },
-  'ql_intro:10': { items: { strawberry: 2 }, flavor: 'Calden is waiting. He doesn’t like waiting.' },
+  'ql_intro:6': { items: { meadow_dew: 1 }, flavor: 'Go see Ila. She deals in things that grow.' },
+  'ql_intro:7': { items: { clear_dew: 1 } },
+  'ql_intro:9': { items: { strawberry: 2 }, flavor: 'Calden is waiting. He doesn’t like waiting.' },
 };
 
 /** Quests that start by themselves once their condition holds. */

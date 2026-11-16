@@ -16,6 +16,8 @@ import { playSfx } from '../systems/Sfx';
 import { routeNpc } from './panels/npc';
 import { renderSkills, renderSkillPreview } from './panels/skills';
 import { renderJournal, renderJournalPreview } from './panels/journal';
+import { trackerHtml } from './panels/tracker';
+import * as Farm from '../systems/Farm';
 
 /**
  * DOM overlay UI: HUD, hotbar, toasts, windows and the test console.
@@ -36,7 +38,7 @@ import { renderJournal, renderJournalPreview } from './panels/journal';
 const $ = <T extends HTMLElement = HTMLElement>(sel: string) => document.querySelector(sel) as T;
 export const esc = (s: string) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 /** The rewards screen: a quest's name, one flavor line and the rows. `final` = the quest is complete (banner first). */
-interface RewardPayload { name: string; flavor: string; rows: string[]; title?: string; final?: boolean }
+interface RewardPayload { line?: string; name: string; flavor: string; rows: string[]; title?: string; final?: boolean }
 type Panel = 'inventory' | 'stats' | 'shop' | 'storage' | 'skills' | 'journal' | 'passives' | 'exchange' | 'dialog' | 'rewards' | 'pause' | 'confirm' | 'drop';
 const PANELS: Panel[] = ['inventory', 'stats', 'shop', 'storage', 'skills', 'journal', 'passives', 'exchange', 'dialog', 'rewards', 'pause', 'confirm', 'drop'];
 const TYPE_ORDER = ['consumable', 'gear', 'currency', 'material', 'misc'];
@@ -48,6 +50,8 @@ export class Hud {
   shopTab: 'buy' | 'sell' = 'buy';
   private treeTab: 'nature' | 'elemental' = 'nature';
   pathTab = 'warrior';
+  /** v0.3.1: the skill pulsing in the Paths window after its Path quest (cleared on the first click or close). */
+  highlightSkill: string | null = null;
   private lastSettleAt = 0;
   private areaName = '';
   dialogHtml = '';
@@ -306,14 +310,12 @@ export class Hud {
       if (until > now) buffs.push(`${DB.skills[id]?.name ?? DB.items[id]?.name ?? id} ${Math.ceil((until - now) / 1000)}s`);
     }
     $('#buffs').textContent = buffs.join(' · ');
-    const objs = Q.currentObjectives(p);
     const track = $('#quest-track');
     if (track) {
-      track.hidden = this.trackHidden || objs.length === 0;
-      if (!this.trackHidden && objs.length) {
-        track.innerHTML = `<div class="qt-head"><span class="qt-title">Objectives</span><span class="qt-key">L hide</span></div>` +
-          objs.map((o) => `<div class="qt-quest"><div class="qt-name">${esc(o.name)}</div><div class="qt-obj">${esc(o.objective)}</div></div>`).join('');
-      }
+      // v0.3.1: count lines, ready quests and farm entries (panels/tracker.ts). Repaint only on change so ✕ clicks land.
+      const html = this.trackHidden ? '' : trackerHtml(p);
+      track.hidden = !html;
+      if (html && track.dataset.last !== html) { track.innerHTML = html; track.dataset.last = html; }
     }
     const wall = Date.now();
     if (wall - this.lastSettleAt > 4000) {
@@ -503,7 +505,23 @@ export class Hud {
     this.stack.push(p);
     this.renderPanels();
   }
-  private close(p: Panel) { if (p === 'dialog') this.dialogTalk = null; if (p === 'rewards') this.rewards = null; this.stack = this.stack.filter((x) => x !== p); this.renderPanels(); }
+  private close(p: Panel) {
+    if (p === 'dialog') this.dialogTalk = null;
+    if (p === 'skills') this.highlightSkill = null;
+    if (p === 'rewards') { const r = this.rewards; this.rewards = null; if (r) this.afterRewards(r); }
+    this.stack = this.stack.filter((x) => x !== p); this.renderPanels(); }
+  /** v0.3.1: after Path of the Warrior / Magician, open that Path's tree once with its first skill pulsing. */
+  private afterRewards(r: RewardPayload): void {
+    const first: Record<string, [string, string]> = { ql_warrior: ['warrior', 'power_strike'], ql_magician: ['magician', 'magic_bolt'] };
+    const hit = r.final && r.line ? first[r.line] : undefined;
+    const p = Game.player;
+    if (!hit || p.questFlags[`tree_shown_${hit[0]}`]) return;
+    p.questFlags[`tree_shown_${hit[0]}`] = true;
+    this.pathTab = hit[0];
+    this.highlightSkill = hit[1];
+    this.sel.skills = `sk:${hit[1]}`;
+    setTimeout(() => this.open('skills'), 0);
+  }
   private toggle(p: Panel) { if (this.stack.includes(p)) this.close(p); else this.open(p); }
 
   /** Open a multi-page talk. Enter or click advances; the last page runs onFinish. Esc closes without finishing. */
@@ -955,7 +973,8 @@ export class Hud {
 
   private renderStats() {
     const p = Game.player;
-    const desc: Record<string, string> = { STR: `Raises attack and max HP`, INT: '+5 max MP, raises magic attack', AGI: 'Faster attacks, higher crit, +acc/eva', SPI: 'Faster MP and HP regen' };
+    // v0.3.1: plain wording — what a stat raises, not by how much (numbers live on the character screen).
+    const desc: Record<string, string> = { STR: 'Raises attack and max HP.', INT: 'Raises max MP and magic damage.', AGI: 'Raises speed and crit.', SPI: 'Raises HP regen and MP regen.' };
     // v0.2.6: the number is the TOTAL the player has (points + gear), with the gear part named next to it.
     const rows = P.STATS.map((s) => {
       const gearPts = P.affixBonus(p, s);
@@ -1006,6 +1025,7 @@ export class Hud {
     const p = Game.player;
     const d = t.dataset;
     const panel = t.closest('.panel')?.id.replace('p-', '') as Panel | undefined;
+    if (panel === 'skills' && this.highlightSkill) this.highlightSkill = null; // v0.3.1: the pulse ends on the first click
     if (panel && d.key) this.sel[panel] = d.key;
     if (this.held && d.idx !== undefined) { this.placeHeld(t); t.blur(); return; }
     if (d.dlg === 'next') { this.advanceTalk(); t.blur(); return; }
@@ -1034,6 +1054,8 @@ export class Hud {
       this.close('drop');
       if (id) { this.doDrop(id, d.act === 'drop1' ? 1 : (this.dropUid ? 1 : Game.player.inventory[id] ?? 0), this.dropUid); this.dropUid = null; }
     }
+    else if (d.farm) { const on = Farm.toggle(p, d.farm); this.toast(on ? `Added ${DB.skills[d.farm].name} to the farm list` : 'Removed from the farm list', 'info'); Game.save(); }
+    else if (d.farmx) { Farm.remove(p, d.farmx); Game.save(); }
     else if (d.ptab) { this.pathTab = d.ptab; this.sel.skills = undefined; }
     else if (d.invtab) { this.invTab = d.invtab as typeof this.invTab; this.sel.inventory = undefined; }
     else if (d.act === 'askdrop') { this.requestDrop(d.item ?? this.dropItem ?? '', d.uid); }

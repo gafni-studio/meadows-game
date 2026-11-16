@@ -66,36 +66,62 @@ export const AREAS: Record<string, AreaGeometry> = {
       { id: 'mara', name: 'Mara (Shop)', x: 10, role: 'shop' },
       { id: 'calden', name: 'Calden (Trainer)', x: 21, role: 'trainer' },
       { id: 'ila', name: 'Ila (Exchange)', x: 27, role: 'exchange' },
-      { id: 'pell', name: 'Pell', x: 36, role: 'hint' },
+      { id: 'pell', name: 'Pell', x: 5, role: 'hint' }, // v0.3.1: at the west gate
       { id: 'tamsin', name: 'Tamsin (Magician)', x: 32, role: 'path' },
     ],
-    portals: [{ x: 42, dir: 'east', arriveX: 3 }],
+    portals: [{ x: 1, dir: 'west', arriveX: 88 }, { x: 42, dir: 'east', arriveX: 3 }],
     spawnZones: {},
     practicePost: 40,
   },
 
-  // v0.3.0: the gentle starter field. Flat: open grass, a fence and one low ledge. No climbing.
+  // v0.3.1: the far-west pasture (levels 3-5). Wider, gently rolling, one or two low ledges, no climbing.
+  // A dead end on its west side; tougher toward the far end (Boars).
+  sunny_pasture: {
+    widthTiles: 124,
+    sky: 0xb4e6ff,
+    ground: 'grass',
+    ambient: 'meadow',
+    safe: false,
+    spawnX: 120 * 32,
+    blocks: [
+      { x: 14, w: 20, h: 0.5 }, { x: 18, w: 12, h: 1 },
+      { x: 56, w: 22, h: 0.5 }, { x: 60, w: 14, h: 1 },
+      { x: 92, w: 18, h: 0.5 },
+    ],
+    platforms: [{ x: 40, y: 2, w: 7 }, { x: 82, y: 2, w: 6 }],
+    decor: [
+      { slot: 'deco.fence', x: 6 }, { slot: 'deco.bush', x: 10 }, { slot: 'deco.tree_tall', x: 24, y: 1 }, { slot: 'deco.bush', x: 36 },
+      { slot: 'deco.fence', x: 48 }, { slot: 'deco.old_tree', x: 66, y: 1 }, { slot: 'deco.bush', x: 80 }, { slot: 'deco.tree_round', x: 100, y: 0.5 },
+      { slot: 'deco.fence', x: 112 }, { slot: 'deco.sign', x: 118 },
+    ],
+    npcs: [],
+    portals: [{ x: 122, dir: 'east', arriveX: 3 }],
+    spawnZones: { wool_sheep: [{ x: [50, 116] }], crow: [{ x: [20, 96] }], boar: [{ x: [6, 40] }] },
+  },
+
+  // v0.3.1: the gentle starter field, now west of town and mirrored: the town gate is on its east edge.
+  // Mice by the gate, sheep further out, a couple of crows at the far-left end.
   meadow_west: {
     widthTiles: 92,
     sky: 0xaee3ff,
     ground: 'grass',
     ambient: 'meadow',
     safe: false,
-    spawnX: 3 * 32,
-    platforms: [{ x: 48, y: 2, w: 6 }],
+    spawnX: 88 * 32,
+    platforms: [{ x: 38, y: 2, w: 6 }],
     decor: [
-      { slot: 'deco.sign', x: 4 }, { slot: 'deco.tree_round', x: 14 }, { slot: 'deco.bush', x: 18 }, { slot: 'deco.fence', x: 28 },
-      { slot: 'deco.tree_tall', x: 40 }, { slot: 'deco.tree_round', x: 60 }, { slot: 'deco.bush', x: 70 }, { slot: 'deco.fence', x: 78 },
-      { slot: 'deco.tree_round', x: 84 }, { slot: 'deco.sign', x: 88 },
+      { slot: 'deco.sign', x: 87 }, { slot: 'deco.tree_round', x: 77 }, { slot: 'deco.bush', x: 73 }, { slot: 'deco.fence', x: 63 },
+      { slot: 'deco.tree_tall', x: 51 }, { slot: 'deco.tree_round', x: 31 }, { slot: 'deco.bush', x: 21 }, { slot: 'deco.fence', x: 13 },
+      { slot: 'deco.tree_round', x: 7 }, { slot: 'deco.sign', x: 3 },
     ],
     npcs: [],
-    portals: [{ x: 1, dir: 'west', arriveX: 40 }, { x: 90, dir: 'east', arriveX: 3 }],
-    spawnZones: { field_mouse: [{ x: [8, 62] }], wool_sheep: [{ x: [20, 86] }] },
+    portals: [{ x: 1, dir: 'west', arriveX: 120 }, { x: 90, dir: 'east', arriveX: 3 }],
+    spawnZones: { field_mouse: [{ x: [56, 86] }], wool_sheep: [{ x: [18, 62] }], crow: [{ x: [4, 16] }] },
   },
 
-  // v0.3.0: hilly. Ground: rolling slopes (Crows, Wool-Shoulder at the far end). Middle: terraces with
-  // Meadow Boars, short ladders up from the hilltops. Top: the raised grove (rope) with the Old Stump and the
-  // Whisperwood road behind it.
+  // v0.3.0: hilly. Ground: rolling slopes (Crows, Wool-Shoulder at the far end). Middle: terraces, short
+  // ladders up from the hilltops. Top: the raised grove (rope) and the Whisperwood road behind it.
+  // v0.3.1: Crows and Sheep on the ground, Boars on the terraces, one Angry Bull in the grove (no Old Stump).
   meadow_east: {
     widthTiles: 140,
     heightTiles: 22,
@@ -128,13 +154,14 @@ export const AREAS: Record<string, AreaGeometry> = {
     ],
     npcs: [],
     portals: [
-      { x: 1, dir: 'west', arriveX: 88 }, { x: 138, dir: 'east', arriveX: 3 },
+      { x: 1, dir: 'west', arriveX: 40 }, { x: 138, dir: 'east', arriveX: 3 },
       { x: 92, y: 11, dir: 'north', arriveX: 4 },
     ],
     spawnZones: {
       crow: [{ x: [30, 116] }],
-      meadow_boar: [{ x: [19, 33], y: 6, n: 1 }, { x: [55, 75], y: 6, n: 2 }, { x: [95, 111], y: 6, n: 1 }],
-      old_stump: [{ x: [74, 90], y: 11 }],
+      wool_sheep: [{ x: [8, 120] }],
+      boar: [{ x: [19, 33], y: 6, n: 1 }, { x: [55, 75], y: 6, n: 2 }, { x: [95, 111], y: 6, n: 1 }],
+      angry_bull: [{ x: [74, 90], y: 11 }],
     },
     namedSpawns: [{ id: 'wool_shoulder', x: 128 }],
   },
@@ -254,4 +281,5 @@ export const AREAS: Record<string, AreaGeometry> = {
 };
 
 /** Old area ids (before v0.3.0) → the half a save lands in. */
-export const AREA_ALIAS: Record<string, string> = { sunny_pasture: 'meadow_west', dirt_banks: 'dirt_banks_west' };
+// v0.3.1: sunny_pasture is a real area again (far west), so only the old Dirt Banks id is aliased.
+export const AREA_ALIAS: Record<string, string> = { dirt_banks: 'dirt_banks_west' };

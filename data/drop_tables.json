@@ -1,6 +1,6 @@
 {
   "tab": "drop_tables",
-  "note": "NOTE: drop_rate is a percent (25 = 25%, 0.5 = 0.5%). Each row is an independent roll. v0.1.2: every rate doubled after playtest (capped at 90%), relative rarity unchanged. Bands now: copper ~70%; category essences 40-60% (qty 1-3; bosses 80%, 2-5). Monster Essence ~30%; Training Scroll ~12%. Material bands: commons 30-40%; uncommons 2-6%; crystals / Holy Essence / Soul Shard / Log ~0.6-2%; Heartwood boss-only ~4-10%; gear ~0.1-0.4%; ultra-rares ~0.02-0.1%. Healing and MP drinks are NOT on every monster — only overlapping subsets of thematically related ones, at low rates. Quantities (min_qty-max_qty, rolled weighted toward the low end): copper 1-4, essences 1-3, Monster Essence 1-2, common materials 1-3, uncommon materials 1-2, rares/gear/consumables/junk 1. Mid curios and rare high-sell junk are shared by 2-3 related monsters. unlock_requirement_id is optional (e.g. unlock_cursed_dust). v0.1.2-gear: each monster has its own gear pool (class-specific Hide / Linen / Trail sets and mid weapons in Sunny Pasture). Gear quantity is always 1 (an instance with rolled stats); magic (~1/12) is rolled on the instance, not a separate row. v0.1.3: pasture gear is very rare (0.18–0.35% per entry; pool sums ≈1.05/1.50/1.87% for mouse/sheep/crow, ≈1.34% overall ≈ 1 piece per 75 kills, in the 60–100 target). Magic stays 1/12 of gear drops. Monster Essence 36% (1–2) on every mob, above category essence (16–20%, 1–2) so basic-skill fuel is more common and category essence feels earned. Nature/Elemental/Spirit qty capped at 1–2 (bosses 1–3 at 36–40%). Copper, common mats, scrolls, uncommons and rares were already in band and are left (see the v0.1.3 audit). v0.1.3b: pasture gear retargeted to ≈1 piece per 150–200 kills per mob pool (mouse 0.54% / 1 in 185, sheep 0.66% / 1 in 152, crow 0.63% / 1 in 159). Entries 0.06–0.18% (Crow’s 9-item pool has to sit slightly under 0.1% on some mid weapons). Magic stays 1/12 of a gear drop. Boar and Stump pools brought into the same band. v0.2.0: Dirt Banks materials (Dry Root, Tough Root) are shared across pasture and Banks, with better rates in the Banks. Warm Stone is sell-only junk on Ember Beetle / Earth Sprite / Frost Moth. Stone Club is a Warrior mid weapon (mole 0.24% + leather 0.32% = 0.56% pool; sprite 0.60% with cloth; crow 0.06% and hide cap/boots trimmed so the pool stays 0.67%). Ember Beetle first gear pool 0.62%. Cracked Bank Stone and Smoldering Scale are rare quest-start drops (questlines in a later milestone). All new gear pools follow the v0.1.3 1-per-150–200 rule; ME stays more common than category essence.  v0.2.3: Wild Apple drops removed. Field Mouse 6% Strawberry, Wool Sheep 6% Blueberry (was apple 4%). Wool-Shoulder guaranteed 5–15 Copper is handled in on-kill, not as a 100% drop-table row (so droprate bonuses cannot multiply it).  v0.2.3: copper drop chance raised for Crow (60→80) and Dirt Banks regulars (mole/sprite 60→80, ember beetle 64→82, spark bug 50→80). Quantity bands unchanged. Named quest bosses have no copper drop-table row (Wool-Shoulder’s 5–15 is a guaranteed on-kill).  v0.2.4: Spark Bug and Frost Moth retuned for the Dirt Banks — shared Dry Root / Tough Root / Earth Grit / Warm Stone, unique Spark Shell (2.4%) and Pale Wing (2.2%), warrior gear pools 0.56% / 0.62% (≈1 in 179 / 161). ME 36% stays above EE 18%. Frost Moth copper 80. Rogue/mage mid weapons trimmed so the 150–200 band holds.  v0.2.5: berries, Stone Chunk on Earth Sprite, ME/NE/scrolls/roots/Branch rates; Earth Shard on Burrow Mole for the Earthbreaker recipe.  v0.2.6: resource stacks ~1.5-2× larger; junk (Broken Twig, Torn Cloth, Lost Button, Pasture Bell, Cracked Shell) removed from every table; Smoldering Scale 20%/12%; Ice Shard on Spark Bug; named-rate bumps for Warm Grain, Earth Shard, Tough Root, Fire/Lightning Shard, Stone Chunk.  v0.2.9: every drop chance x0.75 (gear and rares included, Copper too); no item other than Copper drops more than 3 from one kill (min and max capped at 3).  v0.3.0: Whisperwood drop tables (Wisp, Thornling, Moss Lurker, Mire Toad, Hollow Stag) at v0.2.9 rates, stacks of 3 or less except Copper.",
+  "note": "NOTE: drop_rate is a percent (25 = 25%, 0.5 = 0.5%). Each row is an independent roll. v0.1.2: every rate doubled after playtest (capped at 90%), relative rarity unchanged. Bands now: copper ~70%; category essences 40-60% (qty 1-3; bosses 80%, 2-5). Monster Essence ~30%; Training Scroll ~12%. Material bands: commons 30-40%; uncommons 2-6%; crystals / Holy Essence / Soul Shard / Log ~0.6-2%; Heartwood boss-only ~4-10%; gear ~0.1-0.4%; ultra-rares ~0.02-0.1%. Healing and MP drinks are NOT on every monster — only overlapping subsets of thematically related ones, at low rates. Quantities (min_qty-max_qty, rolled weighted toward the low end): copper 1-4, essences 1-3, Monster Essence 1-2, common materials 1-3, uncommon materials 1-2, rares/gear/consumables/junk 1. Mid curios and rare high-sell junk are shared by 2-3 related monsters. unlock_requirement_id is optional (e.g. unlock_cursed_dust). v0.1.2-gear: each monster has its own gear pool (class-specific Hide / Linen / Trail sets and mid weapons in Sunny Pasture). Gear quantity is always 1 (an instance with rolled stats); magic (~1/12) is rolled on the instance, not a separate row. v0.1.3: pasture gear is very rare (0.18–0.35% per entry; pool sums ≈1.05/1.50/1.87% for mouse/sheep/crow, ≈1.34% overall ≈ 1 piece per 75 kills, in the 60–100 target). Magic stays 1/12 of gear drops. Monster Essence 36% (1–2) on every mob, above category essence (16–20%, 1–2) so basic-skill fuel is more common and category essence feels earned. Nature/Elemental/Spirit qty capped at 1–2 (bosses 1–3 at 36–40%). Copper, common mats, scrolls, uncommons and rares were already in band and are left (see the v0.1.3 audit). v0.1.3b: pasture gear retargeted to ≈1 piece per 150–200 kills per mob pool (mouse 0.54% / 1 in 185, sheep 0.66% / 1 in 152, crow 0.63% / 1 in 159). Entries 0.06–0.18% (Crow’s 9-item pool has to sit slightly under 0.1% on some mid weapons). Magic stays 1/12 of a gear drop. Boar and Stump pools brought into the same band. v0.2.0: Dirt Banks materials (Dry Root, Tough Root) are shared across pasture and Banks, with better rates in the Banks. Warm Stone is sell-only junk on Ember Beetle / Earth Sprite / Frost Moth. Stone Club is a Warrior mid weapon (mole 0.24% + leather 0.32% = 0.56% pool; sprite 0.60% with cloth; crow 0.06% and hide cap/boots trimmed so the pool stays 0.67%). Ember Beetle first gear pool 0.62%. Cracked Bank Stone and Smoldering Scale are rare quest-start drops (questlines in a later milestone). All new gear pools follow the v0.1.3 1-per-150–200 rule; ME stays more common than category essence.  v0.2.3: Wild Apple drops removed. Field Mouse 6% Strawberry, Wool Sheep 6% Blueberry (was apple 4%). Wool-Shoulder guaranteed 5–15 Copper is handled in on-kill, not as a 100% drop-table row (so droprate bonuses cannot multiply it).  v0.2.3: copper drop chance raised for Crow (60→80) and Dirt Banks regulars (mole/sprite 60→80, ember beetle 64→82, spark bug 50→80). Quantity bands unchanged. Named quest bosses have no copper drop-table row (Wool-Shoulder’s 5–15 is a guaranteed on-kill).  v0.2.4: Spark Bug and Frost Moth retuned for the Dirt Banks — shared Dry Root / Tough Root / Earth Grit / Warm Stone, unique Spark Shell (2.4%) and Pale Wing (2.2%), warrior gear pools 0.56% / 0.62% (≈1 in 179 / 161). ME 36% stays above EE 18%. Frost Moth copper 80. Rogue/mage mid weapons trimmed so the 150–200 band holds.  v0.2.5: berries, Stone Chunk on Earth Sprite, ME/NE/scrolls/roots/Branch rates; Earth Shard on Burrow Mole for the Earthbreaker recipe.  v0.2.6: resource stacks ~1.5-2× larger; junk (Broken Twig, Torn Cloth, Lost Button, Pasture Bell, Cracked Shell) removed from every table; Smoldering Scale 20%/12%; Ice Shard on Spark Bug; named-rate bumps for Warm Grain, Earth Shard, Tough Root, Fire/Lightning Shard, Stone Chunk.  v0.2.9: every drop chance x0.75 (gear and rares included, Copper too); no item other than Copper drops more than 3 from one kill (min and max capped at 3).  v0.3.0: Whisperwood drop tables (Wisp, Thornling, Moss Lurker, Mire Toad, Hollow Stag) at v0.2.9 rates, stacks of 3 or less except Copper.  v0.3.1: drop ranges — level 1-3 mobs 2-3 → 1-2, level 4+ 2-3 → 1-3; Mouse/Sheep scrolls 12%; Crow Feather 40% 1-3; new Boar table.",
   "columns": [
     "monster_id",
     "item_id",
@@ -22,48 +22,48 @@
       "monster_id": "field_mouse",
       "item_id": "nature_essence",
       "drop_rate": 13.5,
-      "min_qty": 2,
-      "max_qty": 3,
+      "min_qty": 1,
+      "max_qty": 2,
       "unlock_requirement_id": null
     },
     {
       "monster_id": "field_mouse",
       "item_id": "twig",
       "drop_rate": 30,
-      "min_qty": 2,
-      "max_qty": 3,
+      "min_qty": 1,
+      "max_qty": 2,
       "unlock_requirement_id": null
     },
     {
       "monster_id": "field_mouse",
       "item_id": "fur",
       "drop_rate": 27,
-      "min_qty": 2,
-      "max_qty": 3,
+      "min_qty": 1,
+      "max_qty": 2,
       "unlock_requirement_id": null
     },
     {
       "monster_id": "field_mouse",
       "item_id": "bark",
       "drop_rate": 22.5,
-      "min_qty": 2,
-      "max_qty": 3,
+      "min_qty": 1,
+      "max_qty": 2,
       "unlock_requirement_id": null
     },
     {
       "monster_id": "field_mouse",
       "item_id": "monster_essence",
       "drop_rate": 27,
-      "min_qty": 2,
-      "max_qty": 3,
+      "min_qty": 1,
+      "max_qty": 2,
       "unlock_requirement_id": null
     },
     {
       "monster_id": "field_mouse",
       "item_id": "training_scroll",
-      "drop_rate": 9,
-      "min_qty": 2,
-      "max_qty": 3,
+      "drop_rate": 12,
+      "min_qty": 1,
+      "max_qty": 2,
       "unlock_requirement_id": null
     },
     {
@@ -86,24 +86,24 @@
       "monster_id": "wool_sheep",
       "item_id": "nature_essence",
       "drop_rate": 18,
-      "min_qty": 2,
-      "max_qty": 3,
+      "min_qty": 1,
+      "max_qty": 2,
       "unlock_requirement_id": null
     },
     {
       "monster_id": "wool_sheep",
       "item_id": "wool",
       "drop_rate": 30,
-      "min_qty": 2,
-      "max_qty": 3,
+      "min_qty": 1,
+      "max_qty": 2,
       "unlock_requirement_id": null
     },
     {
       "monster_id": "wool_sheep",
       "item_id": "fur",
       "drop_rate": 22.5,
-      "min_qty": 2,
-      "max_qty": 3,
+      "min_qty": 1,
+      "max_qty": 2,
       "unlock_requirement_id": null
     },
     {
@@ -126,16 +126,16 @@
       "monster_id": "wool_sheep",
       "item_id": "monster_essence",
       "drop_rate": 27,
-      "min_qty": 2,
-      "max_qty": 3,
+      "min_qty": 1,
+      "max_qty": 2,
       "unlock_requirement_id": null
     },
     {
       "monster_id": "wool_sheep",
       "item_id": "training_scroll",
-      "drop_rate": 9,
-      "min_qty": 2,
-      "max_qty": 3,
+      "drop_rate": 12,
+      "min_qty": 1,
+      "max_qty": 2,
       "unlock_requirement_id": null
     },
     {
@@ -158,15 +158,15 @@
       "monster_id": "crow",
       "item_id": "nature_essence",
       "drop_rate": 22.5,
-      "min_qty": 2,
-      "max_qty": 3,
+      "min_qty": 1,
+      "max_qty": 2,
       "unlock_requirement_id": null
     },
     {
       "monster_id": "crow",
       "item_id": "feather",
-      "drop_rate": 30,
-      "min_qty": 2,
+      "drop_rate": 40,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -174,16 +174,16 @@
       "monster_id": "crow",
       "item_id": "twig",
       "drop_rate": 22.5,
-      "min_qty": 2,
-      "max_qty": 3,
+      "min_qty": 1,
+      "max_qty": 2,
       "unlock_requirement_id": null
     },
     {
       "monster_id": "crow",
       "item_id": "bark",
       "drop_rate": 22.5,
-      "min_qty": 2,
-      "max_qty": 3,
+      "min_qty": 1,
+      "max_qty": 2,
       "unlock_requirement_id": null
     },
     {
@@ -206,16 +206,16 @@
       "monster_id": "crow",
       "item_id": "monster_essence",
       "drop_rate": 30,
-      "min_qty": 2,
-      "max_qty": 3,
+      "min_qty": 1,
+      "max_qty": 2,
       "unlock_requirement_id": null
     },
     {
       "monster_id": "crow",
       "item_id": "training_scroll",
       "drop_rate": 15,
-      "min_qty": 2,
-      "max_qty": 3,
+      "min_qty": 1,
+      "max_qty": 2,
       "unlock_requirement_id": null
     },
     {
@@ -254,7 +254,7 @@
       "monster_id": "burrow_mole",
       "item_id": "nature_essence",
       "drop_rate": 22.5,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -270,7 +270,7 @@
       "monster_id": "burrow_mole",
       "item_id": "pebble",
       "drop_rate": 30,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -278,7 +278,7 @@
       "monster_id": "burrow_mole",
       "item_id": "clay",
       "drop_rate": 27,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -318,7 +318,7 @@
       "monster_id": "burrow_mole",
       "item_id": "monster_essence",
       "drop_rate": 34.5,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -326,7 +326,7 @@
       "monster_id": "burrow_mole",
       "item_id": "training_scroll",
       "drop_rate": 12,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -363,7 +363,7 @@
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "copper_coin",
       "drop_rate": 45,
       "min_qty": 2,
@@ -371,15 +371,15 @@
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "nature_essence",
       "drop_rate": 15,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "old_bone",
       "drop_rate": 7.5,
       "min_qty": 1,
@@ -387,31 +387,31 @@
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "fur",
       "drop_rate": 27,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "bark",
       "drop_rate": 24,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "branch",
       "drop_rate": 6,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "log",
       "drop_rate": 0.75,
       "min_qty": 1,
@@ -419,23 +419,23 @@
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "leather_scrap",
       "drop_rate": 3,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "copper_nail",
       "drop_rate": 3,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "wooden_sword",
       "drop_rate": 0.06,
       "min_qty": 1,
@@ -443,7 +443,7 @@
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "rusty_dagger",
       "drop_rate": 0.06,
       "min_qty": 1,
@@ -451,7 +451,7 @@
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "leather_boots",
       "drop_rate": 0.075,
       "min_qty": 1,
@@ -459,7 +459,7 @@
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "iron_ore",
       "drop_rate": 0.03,
       "min_qty": 1,
@@ -467,7 +467,7 @@
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "steel_sword",
       "drop_rate": 0.022,
       "min_qty": 1,
@@ -475,7 +475,7 @@
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "leather_cap",
       "drop_rate": 0.075,
       "min_qty": 1,
@@ -483,7 +483,7 @@
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "leather_vest",
       "drop_rate": 0.112,
       "min_qty": 1,
@@ -491,7 +491,7 @@
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "leather_pants",
       "drop_rate": 0.075,
       "min_qty": 1,
@@ -499,23 +499,23 @@
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "monster_essence",
       "drop_rate": 28.5,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "training_scroll",
       "drop_rate": 9,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "fence_peg",
       "drop_rate": 9,
       "min_qty": 1,
@@ -523,7 +523,7 @@
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "shiny_stone",
       "drop_rate": 0.75,
       "min_qty": 1,
@@ -531,7 +531,7 @@
       "unlock_requirement_id": null
     },
     {
-      "monster_id": "meadow_boar",
+      "monster_id": "angry_bull",
       "item_id": "old_coin_purse",
       "drop_rate": 1.05,
       "min_qty": 1,
@@ -550,7 +550,7 @@
       "monster_id": "earth_sprite",
       "item_id": "elemental_essence",
       "drop_rate": 13.5,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -558,7 +558,7 @@
       "monster_id": "earth_sprite",
       "item_id": "earth_grit",
       "drop_rate": 30,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -590,7 +590,7 @@
       "monster_id": "earth_sprite",
       "item_id": "monster_essence",
       "drop_rate": 34.5,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -598,7 +598,7 @@
       "monster_id": "earth_sprite",
       "item_id": "training_scroll",
       "drop_rate": 9,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -662,7 +662,7 @@
       "monster_id": "ember_beetle",
       "item_id": "elemental_essence",
       "drop_rate": 13.5,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -670,7 +670,7 @@
       "monster_id": "ember_beetle",
       "item_id": "earth_grit",
       "drop_rate": 24,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -694,7 +694,7 @@
       "monster_id": "ember_beetle",
       "item_id": "monster_essence",
       "drop_rate": 34.5,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -702,7 +702,7 @@
       "monster_id": "ember_beetle",
       "item_id": "training_scroll",
       "drop_rate": 9,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -726,7 +726,7 @@
       "monster_id": "frost_moth",
       "item_id": "elemental_essence",
       "drop_rate": 13.5,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -734,7 +734,7 @@
       "monster_id": "frost_moth",
       "item_id": "earth_grit",
       "drop_rate": 22.5,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -758,7 +758,7 @@
       "monster_id": "frost_moth",
       "item_id": "monster_essence",
       "drop_rate": 27,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -766,7 +766,7 @@
       "monster_id": "frost_moth",
       "item_id": "training_scroll",
       "drop_rate": 9,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -814,7 +814,7 @@
       "monster_id": "spark_bug",
       "item_id": "elemental_essence",
       "drop_rate": 13.5,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -838,7 +838,7 @@
       "monster_id": "spark_bug",
       "item_id": "monster_essence",
       "drop_rate": 27,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -846,7 +846,7 @@
       "monster_id": "spark_bug",
       "item_id": "training_scroll",
       "drop_rate": 9,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -1126,7 +1126,7 @@
       "monster_id": "old_stump",
       "item_id": "nature_essence",
       "drop_rate": 27,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -1134,7 +1134,7 @@
       "monster_id": "old_stump",
       "item_id": "twig",
       "drop_rate": 22.5,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -1142,7 +1142,7 @@
       "monster_id": "old_stump",
       "item_id": "bark",
       "drop_rate": 30,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -1150,7 +1150,7 @@
       "monster_id": "old_stump",
       "item_id": "branch",
       "drop_rate": 7.5,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -1222,7 +1222,7 @@
       "monster_id": "old_stump",
       "item_id": "monster_essence",
       "drop_rate": 30,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -1230,7 +1230,7 @@
       "monster_id": "old_stump",
       "item_id": "training_scroll",
       "drop_rate": 9,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -1526,7 +1526,7 @@
       "monster_id": "burrow_mole",
       "item_id": "dry_root",
       "drop_rate": 24,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -1534,7 +1534,7 @@
       "monster_id": "earth_sprite",
       "item_id": "dry_root",
       "drop_rate": 12,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -1542,23 +1542,23 @@
       "monster_id": "crow",
       "item_id": "dry_root",
       "drop_rate": 9,
-      "min_qty": 2,
-      "max_qty": 3,
+      "min_qty": 1,
+      "max_qty": 2,
       "unlock_requirement_id": null
     },
     {
       "monster_id": "wool_sheep",
       "item_id": "dry_root",
       "drop_rate": 7.5,
-      "min_qty": 2,
-      "max_qty": 3,
+      "min_qty": 1,
+      "max_qty": 2,
       "unlock_requirement_id": null
     },
     {
       "monster_id": "burrow_mole",
       "item_id": "tough_root",
       "drop_rate": 9,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -1566,7 +1566,7 @@
       "monster_id": "earth_sprite",
       "item_id": "tough_root",
       "drop_rate": 4.5,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -1575,7 +1575,7 @@
       "item_id": "tough_root",
       "drop_rate": 1.5,
       "min_qty": 1,
-      "max_qty": 3,
+      "max_qty": 2,
       "unlock_requirement_id": null
     },
     {
@@ -1726,7 +1726,7 @@
       "monster_id": "spark_bug",
       "item_id": "dry_root",
       "drop_rate": 16.5,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -1742,7 +1742,7 @@
       "monster_id": "spark_bug",
       "item_id": "earth_grit",
       "drop_rate": 22.5,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -1790,7 +1790,7 @@
       "monster_id": "frost_moth",
       "item_id": "dry_root",
       "drop_rate": 12,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -1854,7 +1854,7 @@
       "monster_id": "earth_sprite",
       "item_id": "stone_chunk",
       "drop_rate": 7.5,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -2166,7 +2166,7 @@
       "monster_id": "hollow_stag",
       "item_id": "nature_essence",
       "drop_rate": 60,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -2182,7 +2182,7 @@
       "monster_id": "hollow_stag",
       "item_id": "moss_fiber",
       "drop_rate": 40,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -2206,7 +2206,7 @@
       "monster_id": "hollow_stag",
       "item_id": "monster_essence",
       "drop_rate": 60,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -2214,7 +2214,7 @@
       "monster_id": "hollow_stag",
       "item_id": "training_scroll",
       "drop_rate": 30,
-      "min_qty": 2,
+      "min_qty": 1,
       "max_qty": 3,
       "unlock_requirement_id": null
     },
@@ -2238,6 +2238,86 @@
       "monster_id": "hollow_stag",
       "item_id": "hide_vest",
       "drop_rate": 1,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "boar",
+      "item_id": "copper_coin",
+      "drop_rate": 55,
+      "min_qty": 2,
+      "max_qty": 5,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "boar",
+      "item_id": "monster_essence",
+      "drop_rate": 27,
+      "min_qty": 1,
+      "max_qty": 3,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "boar",
+      "item_id": "fur",
+      "drop_rate": 25,
+      "min_qty": 1,
+      "max_qty": 3,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "boar",
+      "item_id": "leather_scrap",
+      "drop_rate": 20,
+      "min_qty": 1,
+      "max_qty": 2,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "boar",
+      "item_id": "nature_essence",
+      "drop_rate": 18,
+      "min_qty": 1,
+      "max_qty": 2,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "boar",
+      "item_id": "bark",
+      "drop_rate": 15,
+      "min_qty": 1,
+      "max_qty": 2,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "boar",
+      "item_id": "training_scroll",
+      "drop_rate": 12,
+      "min_qty": 1,
+      "max_qty": 2,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "boar",
+      "item_id": "old_bone",
+      "drop_rate": 8,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "boar",
+      "item_id": "blueberry",
+      "drop_rate": 6,
+      "min_qty": 1,
+      "max_qty": 1,
+      "unlock_requirement_id": null
+    },
+    {
+      "monster_id": "boar",
+      "item_id": "leather_boots",
+      "drop_rate": 0.12,
       "min_qty": 1,
       "max_qty": 1,
       "unlock_requirement_id": null

@@ -52,7 +52,9 @@ export const SPRITES: Record<string, SpriteSlot> = {
   'monster.spark_bug': char('monster_spark_bug', 36, 36, 0xf0d040, [10, 10, 3, 4]),
   'monster.shrine_wisp': char('monster_shrine_wisp', 36, 36, 0x9fe0ff, [10, 10, 3, 3]),
   'monster.dusk_wisp': char('monster_dusk_wisp', 36, 36, 0x8a5ad0, [10, 10, 3, 3]),
-  'monster.meadow_boar': char('monster_meadow_boar', 52, 52, 0x7a5a40, [14, 11, 1, 4]),
+  // v0.3.1: the Angry Bull (old Meadow Boar art, darker, a bit bigger) and the new Boar (scripts/draw-art-v031.py).
+  'monster.angry_bull': char('monster_angry_bull', 58, 58, 0x5a2a1a, [14, 11, 1, 4]),
+  'monster.boar': char('monster_boar', 44, 44, 0x7a5232, [14, 9, 1, 6], { frameW: 16, frameH: 16 }),
   // v0.3.0 (scripts/draw-art-v030.py). Frames: 0/1 idle-move, 2 wind-up; Lurker 3 = mound; Stag 2-4 = charge/stomp/sweep.
   'monster.old_stump': char('monster_old_stump', 84, 84, 0x7a5a3a, [16, 17, 4, 6], { frameW: 24, frameH: 24 }),
   'monster.wisp': char('monster_wisp', 40, 40, 0xbfefff, [10, 12, 3, 2], { frameW: 16, frameH: 16 }),

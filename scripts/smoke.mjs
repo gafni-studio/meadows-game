@@ -60,14 +60,18 @@ try {
   step('NPC conversation and rewards screen');
 
   // into the pasture and fight with F
-  await page.evaluate(() => { window.__state.scene.travel('meadow_west', 20 * 32); });
+  // v0.3.1: the mice are by Meadow West's east (town) gate
+  await page.evaluate(() => { window.__state.scene.travel('meadow_west', 80 * 32); });
   await page.waitForFunction(() => window.__state.player.area === 'meadow_west' && window.__game?.scene.isActive('World'), null, { timeout: 10000 });
   await page.waitForTimeout(400);
   const xp0 = await page.evaluate(() => window.__state.player.xp);
   for (let i = 0; i < 40; i++) {
     await page.evaluate(() => {
       const w = window.__state.scene;
-      const m = w.monsters.filter((x) => x.alive && x.def.id === 'field_mouse').sort((a, b) => Math.abs(a.x - w.player.x) - Math.abs(b.x - w.player.x))[0];
+      // v0.3.1: the mice stand closer together now; stay on one until it dies (the most hurt one).
+      const m = w.monsters.filter((x) => x.alive && x.def.id === 'field_mouse').sort((a, b) => a.hp - b.hp || Math.abs(a.x - w.player.x) - Math.abs(b.x - w.player.x))[0];
+      // keep the other mice out of the swing so the hits all land on this one
+      for (const o of w.monsters) if (o !== m && o.def.id === 'field_mouse') o.x = 400;
       if (m) { w.player.x = m.x - 50; w.facing = 1; w.player.setFlipX(false); }
       window.__state.player.hp = 100;
     });
@@ -79,7 +83,7 @@ try {
   step('pasture combat');
 
   // v0.3.0: every half and Whisperwood load without errors; the Hero climbs a ladder in Meadow East.
-  for (const area of ['meadow_east', 'dirt_banks_west', 'dirt_banks_east', 'whisperwood']) {
+  for (const area of ['sunny_pasture', 'meadow_east', 'dirt_banks_west', 'dirt_banks_east', 'whisperwood']) {
     await page.evaluate((a) => window.__state.scene.travel(a, 6 * 32), area);
     await page.waitForFunction((a) => window.__state.player.area === a && window.__game?.scene.isActive('World'), area, { timeout: 10000 });
     await page.waitForTimeout(500);

@@ -20,7 +20,7 @@
       "name": "A First Step",
       "giver": "Pell",
       "area_id": "meadow_town",
-      "objective": "Talk to Pell at the east gate, walk and jump to the Sunny Pasture entrance, and return to Pell.",
+      "objective": "Talk to Pell at the west gate, walk and jump to the Sunny Pasture entrance, and return to Pell.",
       "reward_xp": 15,
       "reward_coins": 5,
       "reward_items": "meadow_dew x3",

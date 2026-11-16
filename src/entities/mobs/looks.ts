@@ -80,6 +80,18 @@ export function windup(m: Monster, ms: number): boolean {
       sc.tweens.add({ targets: m, x: m.x + 1.5, duration: 40, yoyo: true, repeat: Math.floor(ms / 90) });
       sc.tweens.add({ targets: m, scaleY: m.baseSY * 0.88, scaleX: m.baseSX * 1.06, duration: ms * 0.6 });
       return true;
+    case 'boar': { // v0.3.1: head down, a little lean back
+      sc.tweens.add({ targets: m, angle: m.flipX ? -10 : 10, scaleX: m.baseSX * 1.06, duration: ms * 0.7 });
+      return true;
+    }
+    case 'angry_bull': { // v0.3.1: a snort and a paw at the ground before the charge
+      const fx = m.flipX ? -1 : 1;
+      const paws = Math.max(1, Math.floor(ms / 180));
+      for (let i = 0; i < paws; i++) sc.time.delayedCall(i * 170, () => { if (m.alive) burst(sc, m.x - fx * m.halfW * 0.3, m.y - 3, 4, 0xb89a70, { size: 2.5, spread: 14, up: 10, ms: 380, rect: true }); });
+      burst(sc, m.x + fx * m.halfW * 0.9, m.y - m.displayHeight * 0.45, 5, 0xeeeeee, { size: 2.5, spread: 10, ms: 420 });
+      sc.tweens.add({ targets: m, x: m.x - fx * 3, duration: 90, yoyo: true, repeat: paws - 1 });
+      return true;
+    }
     case 'wisp': {
       const g = EXTRA.get(m)?.glow;
       if (g) sc.tweens.add({ targets: g, alpha: 0.85, duration: ms * 0.8 });
@@ -102,6 +114,10 @@ export function strike(m: Monster): void {
     sc.tweens.add({ targets: tip, x: tongue.x + fx * len, duration: 90, yoyo: true, hold: 60, onComplete: () => tip.destroy() });
   } else if (m.def.id === 'moss_lurker') {
     burst(sc, m.x + fx * m.halfW, y, 6, 0x6a9a40, { size: 2.5, spread: 24, ms: 380, rect: true });
+  } else if (m.def.id === 'boar' || m.def.id === 'angry_bull') {
+    // v0.3.1: a short charge kicks up a dust puff behind it
+    m.setAngle(0);
+    burst(sc, m.x - fx * m.halfW, m.y - 4, m.def.id === 'boar' ? 6 : 9, 0xc8a878, { size: 3, spread: 18, up: 8, ms: 420, rect: true });
   } else if (m.def.id === 'thornling' && !m.ranged) {
     burst(sc, m.x + fx * m.halfW, y, 4, 0xa8d070, { size: 2, spread: 18, ms: 260 });
   }
@@ -113,6 +129,11 @@ export function hurt(m: Monster): void {
     m.scene.tweens.add({ targets: m, alpha: 0.25, duration: 50, yoyo: true, repeat: 2 });
     const g = EXTRA.get(m)?.glow;
     if (g) m.scene.tweens.add({ targets: g, alpha: 0.05, duration: 60, yoyo: true, repeat: 1 });
+  }
+  if (m.def.id === 'boar') {
+    // v0.3.1: a squeal (the white flash is Monster's own)
+    const t = m.scene.add.text(m.x, m.y - m.displayHeight - 4, 'squee!', { fontFamily: 'monospace', fontSize: '10px', color: '#ffd0d0', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5, 1).setDepth(12);
+    m.scene.tweens.add({ targets: t, y: t.y - 14, alpha: 0, duration: 500, onComplete: () => t.destroy() });
   }
   if (m.def.id === 'moss_lurker' || m.def.id === 'thornling') burst(m.scene, m.x, m.y - m.displayHeight * 0.5, 3, m.def.id === 'thornling' ? 0x7ab04a : 0x5a8a3a, { size: 2, spread: 20, ms: 350, rect: true });
 }
@@ -129,6 +150,11 @@ export function death(m: Monster): boolean {
       burst(sc, cx, cy, 8, 0x9fe0ff, { size: 3.5, spread: 34, ms: 500, add: true });
       if (e?.glow) sc.tweens.add({ targets: e.glow, alpha: 0, radius: 40, duration: 400 });
       sc.tweens.add({ targets: m, alpha: 0, scale: m.scale * 1.4, duration: 260, onComplete: done });
+      return true;
+    case 'boar': // v0.3.1: tips over onto its side
+      sc.tweens.add({ targets: m, angle: m.flipX ? -90 : 90, y: m.y - 4, duration: 260, ease: 'Quad.easeIn' });
+      burst(sc, cx, m.y - 4, 6, 0xc8a878, { size: 3, spread: 24, ms: 500, rect: true });
+      sc.tweens.add({ targets: m, alpha: 0, delay: 600, duration: 450, onComplete: () => { m.setAngle(0); done(); } });
       return true;
     case 'thornling': // bursts into leaves
       burst(sc, cx, cy, 14, 0x6aa040, { size: 3, spread: 50, fall: 30, ms: 900, rect: true });

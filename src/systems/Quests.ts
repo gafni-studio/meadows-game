@@ -186,7 +186,7 @@ function complete(p: P.PlayerData, line: string): void {
     PATH_REVEAL[line] ?? '',
     skillName ? (GRANT_RANK.has(line) ? `${skillName} rank 1` : `${skillName} training is now open`) : ''].filter(Boolean);
   const done = TALK[`${line}:${lastStep(line)}:done`] ?? TALK[`${line}:${lastStep(line)}:ok`];
-  Game.events.emit('quest-rewards', { name: lineName(line), flavor: done?.length ? done[done.length - 1] : `${lineName(line)} is done.`, rows, final: true });
+  Game.events.emit('quest-rewards', { line, name: lineName(line), flavor: done?.length ? done[done.length - 1] : `${lineName(line)} is done.`, rows, final: true });
   offerAll(p, false);
   Game.changed();
   Game.save();
@@ -239,20 +239,21 @@ export function tick(p: P.PlayerData): void {
 }
 
 // ───────────────────────── player actions ─────────────────────────
+/** v0.3.1: Mara's slap after the strawberry purchase (HP). */
+export const MARA_SLAP = 18;
 export function onAction(p: P.PlayerData, action: string, arg?: string | number): void {
   if (!isActive(p, 'ql_intro')) return;
   const s = state(p, 'ql_intro');
   const key = `ql_intro:${s.step}`;
-  if (ACTION[key] === 'buy_strawberry' && action === 'buy' && arg === 'strawberry') advance(p, 'ql_intro');
-  else if (ACTION[key] === 'eat_berry_q' && action === 'eat_berry' && arg === 6) {
-    Game.toast('There. Feel better? Good. Now the chest.', 'rare');
+  if (ACTION[key] === 'buy_strawberry' && action === 'buy' && arg === 'strawberry') {
+    // v0.3.1: Mara slaps the Hero so the berry has something to heal. Never lethal.
+    const dmg = Math.min(MARA_SLAP, Math.max(0, p.hp - 1));
+    p.hp -= dmg;
+    Game.events.emit('mara-slap', dmg);
+    Game.toast('Mara: “That’s for walking in without wiping your boots.”', 'rare');
     advance(p, 'ql_intro');
-  } else if (ACTION[key] === 'chest_roundtrip') {
-    if (action === 'chest_put') { setState(p, 'ql_intro', { ...s, chestIn: true }); Game.save(); }
-    else if (action === 'chest_take' && s.chestIn) {
-      advance(p, 'ql_intro');
-      giveGift(p, 'ql_intro', key, 'Go see Ila.');
-    }
+  } else if (ACTION[key] === 'eat_berry_q' && action === 'eat_berry' && arg === 6) {
+    advance(p, 'ql_intro');
   } else if (ACTION[key] === 'spend_point' && action === 'spend_point') {
     advance(p, 'ql_intro');
     giveGift(p, 'ql_intro', key, '');
@@ -485,8 +486,9 @@ export function greeting(npc: string): TalkResult | null {
   }
   if (npc === 'pell') {
     return say('pell', [
-      'Meadow Town sits easy, for now. The west meadow is honest work — mice and sheep leave you be unless you hit them.',
-      'The east meadow is all hills. Crows on the slopes, boars up on the terraces, and an old stump in the grove that does not like visitors.',
+      'Meadow Town sits easy, for now. Out the west gate is honest work — mice and sheep leave you be unless you hit them. Crows at the far end, though.',
+      'Past the west meadow is Sunny Pasture. Same grass, rougher company. A boar or two.',
+      'Out the east gate it’s all hills. Crows and sheep on the slopes, boars on the terraces, and a bull in the grove with a temper.',
       'Past that, the Banks: moles along the river, and a cave beyond it where the beetles keep a little warmth.',
       'Sell junk to Mara. Train with Calden. If you want something slower than a swing, Ila’s bench is the place.',
     ]);
@@ -589,21 +591,56 @@ export function currentObjective(p: P.PlayerData): string | null {
   return all[0] ? `${all[0].name}: ${all[0].objective}` : null;
 }
 
-export function currentObjectives(p: P.PlayerData): { line: string; name: string; objective: string }[] {
-  const out: { line: string; name: string; objective: string }[] = [];
+/** v0.3.1: one count line per mob or item a step needs ("Field Mouse 3/5"), checked off as each completes. */
+export interface CountLine { label: string; have: number; need: number; done: boolean }
+export function countsOf(p: P.PlayerData, line: string, step: number): CountLine[] {
+  const s = state(p, line);
+  const key = `${line}:${step}`;
+  const out: CountLine[] = [];
+  const items = (need: Record<string, number>) => {
+    for (const [id, n] of Object.entries(need)) {
+      const have = Math.min(n, id === 'copper_coin' ? p.coins : (p.inventory[id] ?? 0));
+      out.push({ label: id === 'copper_coin' ? 'Copper' : (DB.items[id]?.name ?? id), have, need: n, done: have >= n });
+    }
+  };
+  const need = COLLECT[key] ?? PREVIEW[key];
+  if (need) items(need);
+  if (key === 'ql_quiet_work:2') items(NATURE_RANK1);
+  for (const [id, n] of Object.entries(HUNT[key] ?? {})) {
+    const have = Math.min(n, s.kills?.[id] ?? 0);
+    out.push({ label: DB.monsters[id]?.name ?? id, have, need: n, done: have >= n });
+  }
+  return out;
+}
+
+/** v0.3.1: the current step is a turn-in that can be handed in now (shown bold gold with a check). */
+export function readyToTurnIn(p: P.PlayerData, line: string): boolean {
+  if (!isActive(p, line)) return false;
+  const s = state(p, line);
+  const key = `${line}:${s.step}`;
+  if (KILL[key] && !s.killed) return false;
+  const counts = countsOf(p, line, s.step);
+  if (counts.length) return counts.every((c) => c.done) && !WAIT_ONLY.has(key);
+  if (KILL[key]) return true;
+  return TALKSTEP.has(key) && s.step === lastStep(line) && s.step > 1;
+}
+
+export interface Objective { line: string; name: string; objective: string; counts: CountLine[]; ready: boolean }
+export function currentObjectives(p: P.PlayerData): Objective[] {
+  const out: Objective[] = [];
   for (const line of LINES) {
     if (!isActive(p, line)) continue;
     const r = currentRow(p, line);
     if (!r) continue;
-    const prog = progressOf(p, line, state(p, line).step);
-    out.push({ line, name: r.name, objective: prog ? `${r.objective} (${prog})` : r.objective });
+    const step = state(p, line).step;
+    out.push({ line, name: r.name, objective: r.objective, counts: countsOf(p, line, step), ready: readyToTurnIn(p, line) });
   }
   return out;
 }
 
 export interface JournalEntry {
   line: string; name: string; desc: string; status: 'active' | 'done' | 'available';
-  step: number; steps: { n: number; objective: string; current: boolean; done: boolean; progress?: string }[];
+  step: number; steps: { n: number; objective: string; current: boolean; done: boolean; progress?: string; counts?: CountLine[] }[];
   rewards?: string; skill?: string;
 }
 /** v0.2.9: active quests, completed quests, and a quest that can be started right now. Nothing else. */
@@ -635,6 +672,7 @@ export function journal(p: P.PlayerData): JournalEntry[] {
         current: !s.done && r.step === s.step,
         done: s.done || r.step < s.step,
         progress: !s.done && r.step === s.step ? progressOf(p, line, r.step) || undefined : undefined,
+        counts: !s.done && r.step === s.step ? countsOf(p, line, r.step) : undefined,
       })),
       rewards, skill: last?.unlock_skill ?? undefined,
     });
@@ -655,6 +693,14 @@ export function migrateQuests(p: P.PlayerData): void {
   const old = (id: string) => log[id];
   const isOldSave = !!old('ql_weight') || !!old('ql_paths') || !!old('ql_magic') || p.level > 1 || Object.keys(p.skillRanks ?? {}).length > 0;
   if (isOldSave && !log.ql_intro) log.ql_intro = finished('ql_intro');
+  // v0.3.1: the intro lost its two chest steps (6-7). A save partway through moves to the matching new step.
+  p.questFlags ??= {};
+  if (!p.questFlags.intro_v031) {
+    const s = log.ql_intro;
+    if (s && !s.done && s.step >= 7) s.step = s.step === 7 ? 6 : s.step - 1;
+    if (s) delete s.chestIn;
+    p.questFlags.intro_v031 = true;
+  }
   if ((old('ql_weight')?.done || old('ql_paths')?.done || (p.skillRanks.power_strike ?? 0) >= 1) && !log.ql_warrior) log.ql_warrior = finished('ql_warrior');
   if ((old('ql_magic')?.done || (p.skillRanks.magic_bolt ?? 0) >= 1) && !log.ql_magician) log.ql_magician = finished('ql_magician');
   // an old save partway through The Weight of a Swing restarts the new Path of the Warrior at its first step

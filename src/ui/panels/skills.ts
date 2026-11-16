@@ -5,6 +5,7 @@ import { iconUrl, skillIconUrl } from '../../art/sprites';
 import * as Sk from '../../systems/Skills';
 import { SLOT_KEYS, GROUP_SLOTS } from '../../systems/Bar';
 import * as Q from '../../systems/Quests';
+import * as Farm from '../../systems/Farm';
 import { esc, hint } from '../Hud';
 import type { Hud } from '../Hud';
 
@@ -75,8 +76,11 @@ export function renderSkills(hud: Hud) {
       const un = Sk.unlockStatus(p, sk);
       const label = st === 'trained' ? `rank ${r}` : st === 'available' ? (afford ? 'learn' : 'learn…') : 'locked';
       const attr = `data-skill="${sk.id}" data-mode="${st === 'trained' ? 'skill' : 'locked'}"${r < max && un.ok ? ` data-train="${sk.id}"` : ''}`;
-      nodes.push(`<button class="pnode st-${st} fam-${sk.branch}${st === 'available' && !afford ? ' poor' : ''}" style="left:${px(pos.c)}px;top:${py(pos.r)}px" data-nav data-key="sk:${sk.id}" ${attr}>
-        <span class="pn-ico"><img src="${skillIconUrl(sk.id)}" alt=""></span>
+      // v0.3.1: glow + up-arrow when the next rank is affordable; the post-Path-quest pulse on the first skill.
+      const ready = Farm.readyToTrain(p, sk.id);
+      const extra = `${ready ? ' ready' : ''}${hud.highlightSkill === sk.id ? ' hl' : ''}`;
+      nodes.push(`<button class="pnode st-${st} fam-${sk.branch}${st === 'available' && !afford ? ' poor' : ''}${extra}" style="left:${px(pos.c)}px;top:${py(pos.r)}px" data-nav data-key="sk:${sk.id}" ${attr}>
+        ${ready ? '<span class="pn-up">▲</span>' : ''}<span class="pn-ico"><img src="${skillIconUrl(sk.id)}" alt=""></span>
         <span class="pn-name">${esc(sk.name)}</span><span class="pn-state">${label}</span><span class="pn-fam">${FAMILY[sk.branch] ?? sk.branch}</span></button>`);
     }
     const W = px(maxC) + NW + PAD, Hh = py(maxR) + NH + PAD;
@@ -89,7 +93,7 @@ export function renderSkills(hud: Hud) {
     ${hint('←↑↓→ select · Enter train / learn · 1–4 equip an attack · 5–6 equip a buff · Tab switch path · Esc close')}`;
 }
 
-export function renderSkillPreview(_hud: Hud, box: HTMLElement, el: HTMLElement) {
+export function renderSkillPreview(hud: Hud, box: HTMLElement, el: HTMLElement) {
   const id = el.dataset.skill;
   if (!id || !DB.skills[id]) { box.innerHTML = '<p class="muted">Select a skill.</p>'; return; }
   const p = Game.player;
@@ -117,6 +121,7 @@ export function renderSkillPreview(_hud: Hud, box: HTMLElement, el: HTMLElement)
     <p>${esc(descOf(sk))}</p>
     <div class="pv-eff">${esc(sk.effect)}</div>
     <div class="pv-eff">${esc(Sk.rankPreview(id, r))} · ${sk.mp_cost} MP</div>
-    ${r < max ? `<table class="pv-stats"><tr><th colspan="2">Cost for rank ${r + 1}</th></tr>${costRows}</table>` : ''}
+    ${r < max ? `<table class="pv-stats${hud.highlightSkill === id ? ' hl' : ''}"><tr><th colspan="2">Cost for rank ${r + 1}</th></tr>${costRows}</table>` : ''}
+    ${r < max && un.ok ? `<div class="pv-farm"><button data-farm="${id}" class="${Farm.has(p, id) ? 'on' : ''}">${Farm.has(p, id) ? '✓ On the farm list (click to remove)' : 'Add to farm list'}</button></div>` : ''}
     <div class="pv-act">${act}${known ? ` · ${slotsHint}` : ''}</div>`;
 }

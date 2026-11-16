@@ -260,3 +260,26 @@ table.equip td:first-child { color: #c9b48a; white-space: nowrap; padding-right:
 
 .path-none { padding: 26px 20px; font-size: 15px; color: #d8c8a0; text-align: center; }
 .statrow small { white-space: normal; }
+
+/* v0.3.1 objectives: count lines, ready-to-turn-in quests, farm entries */
+#quest-track .qt-counts { list-style: none; margin: 2px 0 0 8px; padding: 0; color: #e8dcc0; }
+#quest-track .qt-counts li.ok { color: #8fd88f; }
+#quest-track .qt-quest.ready .qt-name { color: #ffc934; font-weight: bold; }
+#quest-track .qt-quest.ready .qt-counts li { color: #a8ffa0; }
+#quest-track .qt-quest.farm .qt-name { color: #7fe07f; font-weight: normal; }
+#quest-track .qt-quest.farm .qt-counts li { color: #b8e8b0; }
+#quest-track .qt-quest.farm .qt-counts li.ok { color: #7fff7f; }
+#quest-track .qt-x { pointer-events: auto; margin-left: 6px; background: none; border: 0; color: #d8c8a0; cursor: pointer; font-size: 11px; padding: 0 2px; }
+#quest-track .qt-x:hover { color: #ff8a8a; }
+.j-counts { list-style: none; margin: 2px 0 2px 14px; padding: 0; }
+.j-counts li.ok { color: #8fd88f; }
+/* v0.3.1 Paths: a node whose next rank is affordable glows in its family colour; the first-skill pulse after a Path quest */
+.pnode.ready { box-shadow: 0 0 10px 2px var(--fam, #ffe08a); animation: pnready 1.8s ease-in-out infinite; }
+.pnode.ready .pn-up { position: absolute; top: 2px; right: 4px; color: var(--fam, #ffe08a); font-weight: bold; font-size: 13px; }
+.pnode.fam-basic { --fam: #e8d8a8; } .pnode.fam-nature { --fam: #7fe07f; } .pnode.fam-elemental { --fam: #ff9a50; } .pnode.fam-spiritual { --fam: #c8a0ff; }
+.pnode.hl { outline: 3px solid #ffe08a; animation: pnhl 0.9s ease-in-out infinite; }
+.pv-stats.hl { outline: 2px solid #ffe08a; animation: pnhl 0.9s ease-in-out infinite; }
+@keyframes pnready { 0%, 100% { box-shadow: 0 0 4px 0 var(--fam, #ffe08a); } 50% { box-shadow: 0 0 12px 3px var(--fam, #ffe08a); } }
+@keyframes pnhl { 0%, 100% { outline-color: #ffe08a; } 50% { outline-color: #ffe08a33; } }
+.pv-farm { margin-top: 6px; }
+.pv-farm button.on { background: #2f5a2f; color: #c8ffc8; }

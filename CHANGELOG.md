@@ -2,6 +2,10 @@
 
 One section per release, newest first. The full write-up of each release is `docs/vX.Y.Z.md`; the spec it came from is `planning/vX.Y.Z.md`.
 
+## v0.3.1 (playtest fixes: west of town)
+
+The town gets a **west side**: Meadow West moves left of town (mirrored, mice by the gate) and a new **Sunny Pasture** (3–5) lies beyond it; Pell stands at the west gate and new Heroes go west first. Meadow East loses the Old Stump and its bull pack: the Meadow Boar is now a single **Angry Bull** in the grove, and a new level 5 **Boar** holds the terraces. Mara slaps the Hero (18 HP) so the strawberry visibly heals; the chest steps are gone. The Paths window opens on the new Path after a Path quest with its first skill pulsing; objectives show count lines; a green **farm list**; affordable skills glow; ready quests show bold gold with ✓. Plain stat wording, 1.0 s hit invulnerability, mobs no longer spawn inside hills, and a drop-range pass (1–2 for level 1–3 mobs, 1–3 for 4+). Write-up in `docs/v0.3.1.md`.
+
 ## v0.3.0 (The Split Meadows and Whisperwood)
 
 The Meadows split into **Meadow West** (flat starter field), hilly **Meadow East** (terraces with Meadow Boars, a raised grove with the Old Stump), **Dirt Banks West** (river, mud shelves, root ladders) and **Dirt Banks East** (a cave with galleries and Bank-Cracker's pit), with vertical levels: **Up/Down** climbs ladders, ropes and vines, **Down + Space** drops through a ledge. North of Meadow East opens the **Whisperwood** (5–10): Wren's camp, Wisps, Thornlings, Moss Lurkers, Mire Toads, a three-tier canopy, the bog and the **Hollow Stag** miniboss (charge, sweep, root stomp, phase 2). A five-quest chain from Pell and Wren, three new materials and the Hollow Antler trophy, and every Path skill's rank recipes rewritten to follow the map. Write-up in `docs/v0.3.0.md`.

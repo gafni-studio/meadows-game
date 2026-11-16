@@ -23,10 +23,10 @@ export const ASSUME = {
   cooldownMs: { power_strike: 800, rage: 60000, earthbreaker: 2400, flame_cleave: 2000, soul_guard: 30000, root_lash: 1600, dig_in: 4000, magic_bolt: 700, mana_shield: 20000, fire_bolt: 1600, thorn_volley: 2000, chain_spark: 2400 } as Record<string, number>,
   potionCooldownMs: 400,
   // Not in sheet: hurt invulnerability after taking a hit, monster swing interval and speeds.
-  hurtInvulnMs: 700,
+  hurtInvulnMs: 1000, // v0.3.1: was 700, so a touching mob never lands two hits back to back
   // v0.2.6: travel speed up ~45-50% (animation frame rates are unchanged; they scale off this number).
   // Chase is still 1.6× walk speed; the player stays at 148.
-  monsterSpeed: { field_mouse: 42, wool_sheep: 30, crow: 55, burrow_mole: 32, earth_sprite: 40, ember_beetle: 32, wool_shoulder: 28, bank_cracker: 30, cinderback: 32, spark_bug: 36, frost_moth: 34, meadow_boar: 36, old_stump: 20,
+  monsterSpeed: { field_mouse: 42, wool_sheep: 30, crow: 55, burrow_mole: 32, earth_sprite: 40, ember_beetle: 32, wool_shoulder: 28, bank_cracker: 30, cinderback: 32, spark_bug: 36, frost_moth: 34, boar: 40, angry_bull: 36, old_stump: 20,
     // v0.3.0 Whisperwood: Wisp and Thornling about the Crow's speed; the Lurker is slow (its lunge is not); the Toad hops.
     wisp: 52, thornling: 54, moss_lurker: 22, mire_toad: 34, hollow_stag: 40, default: 36 } as Record<string, number>,
   // Player movement (px/s, px/s², px/s). v0.1.3: 148 (was 190, ≈−22%).
@@ -78,7 +78,8 @@ export const MONSTER_FEEL: Record<string, MonsterFeel> = {
   wool_shoulder: { acc: 11, eva: 7, kbRes: 0.7, range: 24, windupMs: [288, 558] },
   bank_cracker: { acc: 12, eva: 7, kbRes: 0.65, range: 36, windupMs: [324, 612] },
   cinderback: { acc: 12, eva: 9, kbRes: 0.55, range: 34, windupMs: [288, 540] },
-  meadow_boar: { acc: 11, eva: 7, kbRes: 0.55, range: 44, windupMs: [288, 540] },
+  angry_bull: { acc: 11, eva: 7, kbRes: 0.55, range: 44, windupMs: [420, 640] }, // v0.3.1: longer, for the snort and paw
+  boar: { acc: 10, eva: 7, kbRes: 0.45, range: 34, windupMs: [380, 560] }, // v0.3.1: clear head-down wind-up
   old_stump: { acc: 13, eva: 5, kbRes: 0.9, range: 40, windupMs: [500, 800] },
   // v0.3.0 Whisperwood. Lurker: short pause, then a heavy lunge-bite (range ~30). Toad: tongue lash (range ~44).
   wisp: { acc: 11, eva: 12, kbRes: 0.1, range: 18, windupMs: [420, 620] },
@@ -122,6 +123,9 @@ export const MOB_KIND: Record<string, MobKind> = {
   thornling: { hop: { vy: 210, vxMul: 2.2, everyMs: [260, 520] }, meleePx: 26 },
   moss_lurker: { ambushTiles: 3, lungeVx: 260 },
   mire_toad: { hop: { vy: 330, vxMul: 2.6, everyMs: [700, 1200] } },
+  // v0.3.1: short charges
+  boar: { lungeVx: 220 },
+  angry_bull: { lungeVx: 260 },
 };
 
 /**
@@ -243,7 +247,7 @@ export type School = 'basic' | 'nature' | 'elemental';
 export const SKILL_SCHOOL: Record<string, School> = { earthbreaker: 'nature', root_lash: 'nature', flame_cleave: 'elemental', fire_bolt: 'elemental', thorn_volley: 'nature', chain_spark: 'elemental' };
 export const AFFINITY: Record<string, { weak?: School; immune?: School }> = {
   field_mouse: { weak: 'elemental' }, wool_sheep: { weak: 'elemental' }, crow: { weak: 'elemental' },
-  burrow_mole: { weak: 'elemental' }, meadow_boar: { weak: 'elemental' }, old_stump: { weak: 'elemental' },
+  burrow_mole: { weak: 'elemental' }, boar: { weak: 'elemental' }, angry_bull: { weak: 'elemental' }, old_stump: { weak: 'elemental' },
   wool_shoulder: { weak: 'elemental' }, bank_cracker: { weak: 'elemental' },
   earth_sprite: { weak: 'nature', immune: 'elemental' }, ember_beetle: { weak: 'nature', immune: 'elemental' },
   spark_bug: { weak: 'nature', immune: 'elemental' }, cinderback: { weak: 'nature', immune: 'elemental' },

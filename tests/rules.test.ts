@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { xpToNext, DB } from '../src/data/db';
 import { AREAS, AREA_ALIAS } from '../src/world/areas';
-import { splitCount, surfaceSpan } from '../src/world/surface';
+import { splitCount, surfaceSpan, zoneBounds, spawnHeight } from '../src/world/surface';
 import * as P from '../src/systems/Player';
 import * as Sk from '../src/systems/Skills';
 import * as Bar from '../src/systems/Bar';
@@ -91,7 +91,7 @@ describe('combat', () => {
 describe('loot', () => {
   it(`no kill ever drops more than ${MAX_STACK_PER_KILL} of one item except Copper`, () => {
     let maxCopper = 0;
-    for (const mob of ['field_mouse', 'wool_sheep', 'crow', 'burrow_mole', 'earth_sprite', 'ember_beetle', 'spark_bug', 'old_stump']) {
+    for (const mob of ['field_mouse', 'wool_sheep', 'crow', 'boar', 'angry_bull', 'burrow_mole', 'earth_sprite', 'ember_beetle', 'spark_bug', 'old_stump']) {
       for (let i = 0; i < 400; i++) {
         for (const d of rollDrops(mob)) {
           if (d.itemId === 'copper_coin') maxCopper = Math.max(maxCopper, d.qty);
@@ -101,12 +101,19 @@ describe('loot', () => {
     }
     expect(maxCopper).toBeGreaterThan(3); // Copper is exempt
   });
+  it('v0.3.1 ranges: level 1-3 mobs never drop a stack of 3 except Feather; their scrolls are at least 12%', () => {
+    for (const r of DB.drops.filter((d) => ['field_mouse', 'wool_sheep', 'crow'].includes(d.monster_id) && d.item_id !== 'copper_coin' && d.item_id !== 'feather')) {
+      expect(r.max_qty, `${r.monster_id} ${r.item_id}`).toBeLessThanOrEqual(2);
+      if (r.item_id === 'training_scroll') expect(r.drop_rate).toBeGreaterThanOrEqual(12);
+    }
+  });
 });
 
 describe('the split Meadows and Whisperwood (v0.3.0)', () => {
   const HALVES: Record<string, string[]> = {
-    meadow_west: ['field_mouse', 'wool_sheep'],
-    meadow_east: ['crow', 'meadow_boar', 'old_stump'],
+    sunny_pasture: ['wool_sheep', 'crow', 'boar'],
+    meadow_west: ['field_mouse', 'wool_sheep', 'crow'],
+    meadow_east: ['crow', 'wool_sheep', 'boar', 'angry_bull'],
     dirt_banks_west: ['burrow_mole', 'earth_sprite'],
     dirt_banks_east: ['ember_beetle', 'spark_bug'],
     whisperwood: ['wisp', 'thornling', 'mire_toad', 'moss_lurker', 'hollow_stag'],
@@ -120,16 +127,18 @@ describe('the split Meadows and Whisperwood (v0.3.0)', () => {
       }
     }
   });
-  it('the halves link up: town, Meadow West, Meadow East (Whisperwood north), Banks West, Banks East', () => {
-    expect(DB.areas.meadow_town.links.east).toBe('meadow_west');
-    expect(DB.areas.meadow_west.links.east).toBe('meadow_east');
-    expect(DB.areas.meadow_east.links).toMatchObject({ west: 'meadow_west', east: 'dirt_banks_west', north: 'whisperwood' });
+  it('v0.3.1 order: Sunny Pasture, Meadow West, town, Meadow East (Whisperwood north), Banks West, Banks East', () => {
+    expect(DB.areas.sunny_pasture.links).toEqual({ east: 'meadow_west' });
+    expect(DB.areas.meadow_west.links).toMatchObject({ west: 'sunny_pasture', east: 'meadow_town' });
+    expect(DB.areas.meadow_town.links).toMatchObject({ west: 'meadow_west', east: 'meadow_east' });
+    expect(DB.areas.meadow_east.links).toMatchObject({ west: 'meadow_town', east: 'dirt_banks_west', north: 'whisperwood' });
     expect(DB.areas.dirt_banks_west.links).toMatchObject({ west: 'meadow_east', east: 'dirt_banks_east' });
     expect(DB.areas.whisperwood.links.south).toBe('meadow_east');
     for (const id of Object.keys(HALVES)) for (const pt of AREAS[id].portals) expect(DB.areas[id].links[pt.dir], `${id} ${pt.dir}`).toBeTruthy();
   });
-  it('Meadow West has no climbing; every other half has reachable upper levels', () => {
+  it('Meadow West and Sunny Pasture have no climbing; every other half has reachable upper levels', () => {
     expect(AREAS.meadow_west.climbs ?? []).toEqual([]);
+    expect(AREAS.sunny_pasture.climbs ?? []).toEqual([]);
     for (const id of ['meadow_east', 'dirt_banks_west', 'dirt_banks_east', 'whisperwood']) {
       const g = AREAS[id];
       expect(g.climbs!.length, id).toBeGreaterThan(0);
@@ -146,8 +155,15 @@ describe('the split Meadows and Whisperwood (v0.3.0)', () => {
       expect(surfaceSpan(g, (z.x[0] + z.x[1]) / 2, z.y), `${id} ${m} at ${z.x} y${z.y}`).toBeTruthy();
     }
   });
-  it('old saves in Sunny Pasture / Dirt Banks land in the matching half', () => {
-    expect(AREA_ALIAS).toEqual({ sunny_pasture: 'meadow_west', dirt_banks: 'dirt_banks_west' });
+  it('ground spawns stand on the hill under them, not the base ground (v0.3.1 crow fix)', () => {
+    const g = AREAS.meadow_east;
+    const b = zoneBounds(g, { x: [57, 70] });
+    expect(b.y).toBeUndefined();
+    expect(spawnHeight(g, 60, b.y)).toBe(1.5);
+    expect(spawnHeight(g, 60, 6)).toBe(6);
+  });
+  it('old saves in Dirt Banks land in the matching half', () => {
+    expect(AREA_ALIAS).toEqual({ dirt_banks: 'dirt_banks_west' });
     for (const [old, now] of Object.entries(AREA_ALIAS)) {
       const p = P.newPlayer();
       p.area = old;
