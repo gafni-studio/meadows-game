@@ -8,10 +8,10 @@ Scanned on 2026-11-16 against `main` at v0.3.1 (the sprite registry, `public/art
 
 | Phase | What | Est. generations (incl. ~2× retries) |
 | --- | --- | ---: |
-| 1 | Free style test (trial) | **16** of the 40 free (about 6–8 planned, plus at most one retry each) |
+| 1 | Free style test (trial) | **18** of the 40 free (about 6–8 planned, plus at most one retry each) |
 | 2 | Paid test round (Tier 1) | **90** |
 | 3 | Production, by area then global | **1298** |
-| | **Total** | **1404** |
+| | **Total** | **1406** |
 
 Phase 3 by area: Meadow West 58 · Meadow Town 176 · Meadow East 64 · Sunny Pasture 14 · Dirt Banks 146 · Whisperwood 224 · Global 616.
 
@@ -23,7 +23,7 @@ Phase 3 by area: Meadow West 58 · Meadow Town 176 · Meadow East 64 · Sunny Pa
 | --- | ---: | ---: |
 | Hero gear visual | 21 | 186 |
 | Mob | 14 | 254 |
-| Item icon | 105 | 210 |
+| Item icon | 105 | 212 |
 | Portrait | 7 | 140 |
 | Effect | 28 | 132 |
 | Parallax | 15 | 102 |
@@ -82,7 +82,7 @@ The moodboard is in **[art-direction/README.md](../art-direction/README.md)**: s
 
 ## Phase 1 — Free style test (round 1)
 
-Goal: check that PixelLab can produce the locked hero and the style before paying. The brief Claude runs is [art-direction/style-test-round-1.md](../art-direction/style-test-round-1.md). The results go into one 960×540 mock: the hero, a sheep and icons in a UI slot, on today's Meadow West ground. That leaves at least 24 free generations for round 2.
+Goal: check that PixelLab can produce the locked hero and the style before paying. The brief Claude runs is [art-direction/style-test-round-1.md](../art-direction/style-test-round-1.md). The results go into one 960×540 mock: the hero, a sheep and icons in a UI slot, on today's Meadow West ground. That leaves at least 22 free generations for round 2.
 
 | Asset | Category | Current source | Size | Animations / directions | Gens (×2) | Notes |
 | --- | --- | --- | --- | --- | ---: | --- |
@@ -90,10 +90,10 @@ Goal: check that PixelLab can produce the locked hero and the style before payin
 | Hero, Cloth look | Character | locked lineup | 64-128px canvas | idle frame (east) | 2 | same pose and scale as Leather |
 | Wooden Sword layer | Hero gear visual | none yet | ~32-48px | pinned to the hand anchor | 2 | separate sprite, transparent |
 | Wool Sheep | Mob | CC0 Tiny Creatures, 1 static frame | 64px canvas | idle frame (east) | 2 | |
-| Icons: Strawberry, Wool | Item icon | CC0 Kenney | 32-48px src | — | 4 | |
-| Optional: Training Scroll icon | Item icon | CC0 Kenney | 32-48px src | — | 2 | only if the budget allows |
+| Icons: Wool, Health Potion | Item icon | CC0 Kenney | 32-48px src | — | 4 | from art-direction/hero/round1-refs.jpg |
+| Optional: Feather, Copper Coin icons | Item icon | CC0 Kenney | 32-48px src | — | 4 | only if the budget allows |
 | Optional: hero walk, Leather | Character | — | 64-128px | walk, east | 2 | only if the trial allows animation |
-| **Subtotal** | | | | | **16** | |
+| **Subtotal** | | | | | **18** | |
 
 ## Phase 2 — Paid test round (Tier 1)
 
