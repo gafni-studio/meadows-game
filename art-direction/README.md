@@ -1,14 +1,13 @@
-# Meadows — Art direction moodboard
+# Meadows — Art direction
 
-The working portfolio for the Style Lock (see the studio's `STYLE-LOCK.md`). It collects the references Oded kept, our own hero candidates, and what we threw out and why. It feeds the style prompt and `planning/art-plan.md`.
+The style target for Meadows. It feeds the style prompt and `planning/art-plan.md`.
 
-> **Third-party references are for direction only.** Images in `refs/` belong to their creators (PixelLab demos, Creative Market packs, other artists). They are never shipped, traced or used as generation input. Only our own generated concepts (`hero/`) may be used as PixelLab references.
+> Images in `refs/` belong to their creators. They're for direction only: never shipped, traced or used as generation input. Only our own concepts in `hero/` may be used as PixelLab references.
 
 ## Style rules
 
 From Oded: **not heavily pixelated; smooth and sharp, with a cozy, nostalgic feeling; well animated, like PixelLab's animation demos.**
 
-What the kept references share:
 - **Chibi proportions:** about 2.5–3 heads tall. Big head, short limbs, readable face.
 - **Bold, clean, dark outlines** around every character and mob. Not black everywhere: a dark tint of the local color.
 - **Flat, bright colors with one soft shade** per material. No dithering, no noisy texture, no gradients.
@@ -19,16 +18,14 @@ What the kept references share:
 - **Environment:** smooth, vector-like layered parallax backgrounds; a bright, readable foreground ground strip; soft light shafts in forests; a cozy, saturated palette per zone.
 - **Animation is the selling point:** smooth idle breathing, a weighty walk and run, anticipation before attacks, squash on landing, and clear hit reactions.
 
-## Kept references
-
-Third-party images, for direction only (see the note at the top).
+## References
 
 ### Characters & animation
 | Reference | What we take from it |
 | --- | --- |
 | <img src="refs/chibi-hero-sheet-idle-walk-run-jump.jpg" width="200"><br>Chibi hero sheet | Proportions (about 2.5–3 heads) and the core set: idle, walk, run, jump. |
 
-**PixelLab demos — linked, not stored.** The concept-to-sprite hero demo (Oded: **closest to his style**), plus the dragon, panda and golem animation demos, are on [pixellab.ai](https://www.pixellab.ai). They're the **animation quality target**: smooth follow-through, weight and bounce. The dragon is more pixelated than our target, so it counts for motion only.
+**Animation target:** the [PixelLab](https://www.pixellab.ai) demos. The concept-to-sprite hero is closest to Oded's style; the panda, golem and dragon set the motion bar (take the dragon's motion, not its pixels).
 
 ### Mobs
 | Reference | What we take from it |
@@ -59,17 +56,14 @@ Third-party images, for direction only (see the note at the top).
 | <img src="refs/stone-crystal-platform-tiles.jpg" width="200"><br>Stone and crystal platform tiles | Dirt Banks platforms and ore or crystal nodes: take the structure, render it smoother. |
 | <img src="refs/forest-scene-small-hero-mood.jpg" width="200"><br>Forest scene with a small hero | The overall in-game mood target: light, depth, foreground framing. |
 
-### Mood, composition & organization only
-_Don't copy the rendering: the first is pixelated, the second is flat and muted. Take only the idea in the right-hand column._
-
+### Mood & composition
 | Reference | What we take from it |
 | --- | --- |
-| <img src="refs/mood-only-pixel-forest-farm-gate-well.jpg" width="200"><br>Metal-Slug-style forest and farm gate with a well | Town gate and farm composition, and the nostalgic mood. |
-| <img src="refs/enemy-roster-by-element.jpg" width="200"><br>Enemy roster grouped by element | Only the organization idea: group each zone's enemies by family or element on one roster sheet. |
+| <img src="refs/mood-only-pixel-forest-farm-gate-well.jpg" width="200"><br>Forest and farm gate with a well | Town-gate and farm composition, and the nostalgic mood. Pixelated, so don't copy the rendering. |
 
 ## Hero candidates
 
-Our own generated concepts. **Oded liked A and C.**
+Our own concepts. **Oded liked both.**
 
 ### A — scarf and vest
 <img src="hero/hero-a-concept-scarf-vest.jpg" width="240"> <img src="hero/hero-a-sprite-mock-idle-walk-run-jump.jpg" width="420">
@@ -82,16 +76,6 @@ Watch: in the mock the sword vanishes in the run and jump rows. Weapon handling 
 
 What we take: more adventure and warmth. The cape adds great follow-through in the run and jump, and the sheathed sword stays consistent across frames.
 Watch: the cape and coat roughly double the animation work, and they cover the torso and legs slots. The last jump frames turn into a crawl on a dirt patch, so the jump needs redoing.
-
-## Discarded
-
-| Candidate | Why it's out |
-| --- | --- |
-| **B — farm kid** (our hero concept) | Not picked by Oded. The big hood hides the face and is hard to animate cleanly. |
-| Dark gothic monsters | Too grim for a cozy game. |
-| Chibi enemy sheet (cropped copy) | A duplicate of the clean chibi enemy sheet kept above. |
-| Isometric pixel shops | Wrong perspective (isometric, not side view) and heavy pixels. **Idea kept:** shop signage icons hanging out front (Mara's shop, Ila's bench). |
-| Pixel-art forest strips | Heavy pixel rendering. The layering idea is already covered by the vector forest and Green Hills. |
 
 ## Open questions
 
