@@ -1,242 +1,221 @@
-# Meadows — Art plan (DRAFT)
+# Meadows — Art plan
 
-Status: **draft for Oded's review**. Nothing here is generated yet. It inventories every piece of art the game shows today or that the v0.3.1 spec implies, and plans how to replace it all with one locked PixelLab style.
+Every piece of art the game shows today or that the v0.3.1 spec implies, planned with one locked PixelLab style. Scanned on 2026-11-16 against `main` at v0.3.1. Nothing is generated yet.
 
-Scanned on 2026-11-16 against `main` at v0.3.1 (the sprite registry, `public/art/`, `art-src/`, the area definitions, combat FX, the HUD and CSS, the item/skill/passive data, and `planning/v0.3.1.md`).
+**Spending rule (approved):** spend on what players feel all the time: the hero, skills and their effects, mob animation, hit, level-up and pickup feedback, the first area (Meadow West) and portraits. Save everywhere else: static scenery brought to life in code, palette swaps, recolours, icon sheets and CSS UI. Content that isn't settled waits until it's needed.
 
 ## Summary
 
-| Phase | What | Est. generations (incl. ~2× retries) |
-| --- | --- | ---: |
-| 1 | Free style test (trial) | **18** of the 40 free (about 6–8 planned, plus at most one retry each) |
-| 2 | Paid test round (Tier 1) | **90** |
-| 3 | Production, by area then global | **1298** |
-| | **Total** | **1406** |
+| Category | Old plan | New plan | How |
+| --- | ---: | ---: | --- |
+| Hero (Cloth + Leather sets, weapon and hat layers) | 214 | 222 | Full quality at 128 px (about 4 per clip). Chain and Plate deferred. Tiered weapons and hats are recolours. |
+| Mobs and named variants | 262 | 256 | Walk, attack, hurt and die for every mob. Variants are recolours. Small or rare mobs get fewer frames. The boss gets a full set. |
+| Effects (skills, spells, hits, level-up, pickup) | 132 | 130 | Kept in full |
+| Portraits (7) | 140 | 140 | Kept |
+| Skill, passive and buff icons | 44 | 44 | Kept, one at a time |
+| Item icons | 212 | 46 | Sheets of about 4 icons per generation, with tiers as recolours |
+| NPCs | 54 | 52 | Base and idle; talk and gestures in code (Mara's slap is drawn) |
+| Parallax | 102 | 36 | Static layers. Meadow West is unique; other areas palette-swap it, plus one unique layer where needed. |
+| Decor | 92 | 76 | Static images; motion comes from code |
+| Tilesets and terrain | 50 | 36 | One base tileset with palette swaps per area. Caves are unique. |
+| Buildings | 12 | 12 | Static |
+| UI and font | 92 | 10 | CSS plus 5 nine-slice frames, and an open-licence web font |
+| **Total** | **1406** | **1060** | |
 
-Phase 3 by area: Meadow West 58 · Meadow Town 176 · Meadow East 64 · Sunny Pasture 14 · Dirt Banks 146 · Whisperwood 224 · Global 616.
+By phase: **Phase 1** free trial 18 · **Phase 2** paid test 176 · **Phase 3** production 866 (Meadow West 52 · Town 166 · Meadow East 28 · Sunny Pasture 10 · Dirt Banks 94 · Whisperwood 214 · Global 302).
 
-**Budget fit:** Phases 2 and 3 together (1388) fit inside one Tier 1 month (2,000 generations) with about 610 to spare. Hero gear is now about 186 in total (see the gear approach below).
+**Budget fit:** the paid work (1,042) fits in **one Tier 1 month** (2,000 generations), with about 950 to spare. That covers retries, new content, or Chain and Plate (about 190) when they're needed.
 
-**Assets by category** (about 309 individual pieces):
+The hero estimate is higher than in the first draft, because it's now priced at the locked size (128 px canvas, about 4 per clip) instead of 48 px.
 
-| Category | Pieces | Gens |
-| --- | ---: | ---: |
-| Hero gear visual | 21 | 186 |
-| Mob | 14 | 254 |
-| Item icon | 105 | 212 |
-| Portrait | 7 | 140 |
-| Effect | 28 | 132 |
-| Parallax | 15 | 102 |
-| Decor | 41 | 92 |
-| NPC | 6 | 54 |
-| UI | 19 | 52 |
-| Skill icon | 22 | 44 |
-| Font | 1 | 40 |
-| Tileset | 15 | 30 |
-| Character | 1 | 28 |
-| Terrain | 7 | 20 |
-| Building | 6 | 12 |
-| Named variant | 3 | 8 |
+## Approach
 
-### What the scan found
-- **No sprite animates today.** The hero and most mobs are one static 16×16 frame (Crow 2 frames, the Whisperwood mobs 3–5). Walking, wind-ups, hits and deaths are all code tweens: squash, bob, flip, flash. Every animation in this plan is new work.
-- **Gear isn't drawn on the hero today.** Equipping changes stats only.
+### Gear on the hero
+- **Body armour looks:** Cloth (the Phase 2 set) and Leather are full hero animation sets (11 clips). The equipped body piece picks the look by tier: Cloth and Linen show Cloth; Hide, Leather and Trail show Leather. **Chain and Plate are deferred** until gear of that tier exists.
+- **Weapons and hats are paper-doll layers**, pinned to per-frame hand and head anchors. Claude marks the anchors once per clip, which costs no generations. Items of the same type in higher tiers are recolours: for example, the Steel Sword is a recoloured Short Sword, and Steel and Rusty Dagger share one shape.
 
-### Gear on the hero (approved)
-- **Body armour: 4 looks** (Cloth, Leather, Chain, Plate). Each look is a full hero animation set (all 11 clips). The equipped body piece picks the look by its tier and type: Cloth and Linen show Cloth; Hide, Leather and Trail show Leather. Chain and Plate are for later-tier gear. Every item keeps its own icon and stats. Palette tints can add variants later at almost no cost.
-- **Weapons and hats: paper-doll layers.** One sprite per item, pinned to per-frame **hand** and **head** anchor points on every hero frame, MapleStory-style. Claude marks the anchors once per hero clip (no generations), and code places, rotates and flips the layer each frame.
-- **Cost:** about 50 per extra look (re-dress the reference, about 2 for the new base, about 2 per clip) × 3 looks = **150**, since Cloth is the Phase 2 hero set. Plus 12 weapon layers (24), 5 hat layers (10) and the style-test sword layer (2): **about 186** in all, replacing the earlier ~410 for 5 outfit-transferred sets. Chain and Plate can wait until gear needs them (−100).
-- **The UI has no art.** Every panel, button, bar, tree node and marker is HTML/CSS in the browser's system font.
-- **Much of the world is code-drawn:** parallax hills, ladders, ropes, vines, root ladders, river and bog water, Whisperwood fog, and nearly all skill and hit effects.
-- **Current art is CC0 placeholder** (Kenney Tiny Dungeon/Town, Pixel Platformer, Tiny Creatures) plus repo-drawn sprites (`scripts/draw-art-v030.py`, `draw-art-v031.py`) for Whisperwood, Old Stump, Angry Bull and Boar.
-- **The named mobs (Wool-Shoulder, Bank-Cracker, Cinderback) reuse their base mob's sprite.** This plan gives each a cheap distinguishing edit, not a full set.
-- **Skipped, because they're parked:** Frost Moth, Shrine Wisp, Dusk Wisp, Old Stump, Night Stump, Soul Guard and the other 6 parked skills, and 6 unused junk items. Existing icon files for these stay as they are.
-- **Pixel density (decided):** finer detail. Smooth, sharp sprites drawn at **64 px or more** and shown **1:1** in the 960×540 game, **not** chunky pixel art. Today's 16–18 px art is scaled 2–3×; that look is retired. Sizes in the tables below are today's slot sizes. In production, character and mob canvases are at least 64 px (the hero is about 64–96 px tall), and slots grow to match. At those sizes animation clips cost about 1–3 generations each (they're 1 at 64 px), so the estimates may rise about 10–20% for the largest sprites.
-- **Side view only.** Every character and mob faces east, and west is a mirror. No top-down or 3/4 views.
+### Mobs
+- Every mob gets **walk, attack, hurt and die**, plus idle. Small mobs (canvas 64 px or less) cost about 1 per clip, medium mobs (about 96 px) about 2, and bosses (128 px) about 4.
+- **Variants are recolours** with a code scale: Angry Bull is a recoloured, larger Boar with one extra wind-up clip, and so are Wool-Shoulder, Bank-Cracker and Cinderback.
+- Small or rare mobs (Spark Bug) skip the hurt clip and use the code flash instead. The Hollow Stag boss gets all 8 clips.
+
+### Static art brought to life in code (for the dev)
+Decor, buildings, parallax layers, climbs and water are single static images. The motion comes from code:
+- **Parallax** at several scroll speeds, with **drifting clouds** (tweened sprites with wrap-around).
+- **Swaying grass, flowers, vines and ropes:** a sine skew or rotation tween around the base, with per-instance phase offsets.
+- **Water and bog:** a UV-scroll or wave shader on the strip, plus occasional ripple rings.
+- **Glow** (mushrooms, portal, lanterns): an alpha and scale pulse, an additive glow sprite and a few floating particles.
+- **Fire** (torch, campfire): flicker tweens on a glow sprite plus ember particles. The campfire keeps a short drawn loop.
+- **Props:** a squash wobble for the practice post on hit, a 2-frame chest open, and an NPC idle bob with a talk bounce.
+- **Light shafts and fog** in Whisperwood: additive gradient sprites that drift slowly.
+
+### Tiles, icons and UI
+- **One base sidescroller tileset** (grass ground and plank platform) is made in Meadow West. The other areas get a **palette swap** of it. Unique pieces are made only where the shape differs: slope edges, mud shelf, bog edge, and a **unique cave set**.
+- **Item icons** are generated as sheets of about 4 on one canvas, then sliced. Tiered items of the same type are recolours. If sheets lose quality, fall back to one icon per generation (about +70).
+- **UI** is HTML/CSS. Five 9-slice frames give it texture: a panel, a button, a slot, a tooltip/dialogue box and a bar frame. Markers, nodes and banners stay CSS.
+- **Font:** use an open-licence web font in the locked look, with no generation.
+
+### Style
+- **Pixel density:** finer detail. Smooth, sharp sprites at **64 px or more**, shown **1:1** in the 960×540 game, and not chunky pixel art. The hero canvas is about 128 px.
+- **Side view only.** Everything faces east, and west is a mirror.
 
 ## PixelLab constraints and cost assumptions
-
-- **Free trial:** 40 generations, canvas up to **200×200**, standard tools only, **no map or room tools**, and no pro modes. That's enough for a style test, not for production.
-- **Tier 1 ($12/mo):** **2,000 generations a month**, canvas up to **320×320**, plus pro modes (tiles pro, building kit, rooms, outfit transfer).
-- **Tier 2 and above:** needed for PixelLab music and sound effects. Not in this plan.
-- **A "generation" isn't one image.** From PixelLab's MCP tool guide, read 2026-11-16:
-  - **1 generation:** standard character (v3 from text is 2 at 16–90 px), template animation per direction, standard sidescroller tileset, pixen/pixflux image, pixen edit.
-  - **About 4 per clip** for v3 animation at 128 px.
-  - **10 or more:** portrait (10), outfit transfer (10 per batch of up to 15 frames at 64 px or less), pro tiles (15–25), Pro Flash images (5–9).
-- **Side view only:** every character is drawn facing **east**, and west is a mirror. Directions in the table mean "east, mirrored".
-- **Large backgrounds:** a 960-wide parallax layer is assembled from 3 tileable strips of 320 px or less.
-- **Estimates:** every figure is a base cost × 2 for retries, rounded. Numbers are planning estimates, not quotes. `get_balance` and PixelLab's free price checks should be used before each batch.
+- **Free trial:** 40 generations, canvas up to **200×200**, standard tools only, and no map tools.
+- **Tier 1 ($12/mo):** **2,000 generations a month**, canvas up to **320×320**, and pro modes.
+- **Costs** (from PixelLab's MCP tool guide, read 2026-11-16): **1** for a standard character, a template animation, a standard sidescroller tileset or a pixen image or edit. **About 4 per clip** for a v3 animation at 128 px. **About 10** for a portrait.
+- **Estimates:** every figure is the base cost × 2 for retries, rounded. Check `get_balance` and PixelLab's price check before each batch.
 
 ## Process
+1. **Inspiration.** Oded shares references, and they're kept on the moodboard.
+2. **Style prompt.** Gamer drafts one style prompt (palette, outline, light, density, camera, banned traits), and Oded approves it.
+3. **Rounds of about 6 generations.** Claude composites each round into a **960×540 in-game mock** at real scale.
+4. **Oded's feedback.** It goes into the prompt, and the next round runs. Plan on 1–3 rounds per phase.
+5. **Lock.** Write the style guide, and save the PixelLab settings and reference images.
+6. **Concept sheet before every batch (standing rule).** Before PixelLab generates any batch, and whenever new content (mob, item, NPC, area or gear) is added, Gamer makes a free concept reference sheet in the style of the locked hero. It's saved as one sheet per area or batch in `art-direction/concepts/`, for example `concepts/meadow-west.jpg`. Oded approves it, and then Claude feeds it to PixelLab as the image reference. Sheets are made per batch just before production, not all up front.
+7. **Production batches.** One area at a time, in the Phase 3 order. Each batch goes into a playable build and gets Oded's OK before the next. Optional Python cleanup runs only when needed. Weak sprites are regenerated, not hand-edited.
 
-1. **Inspiration.** Oded shares references (below). Gamer turns them into 3–5 named mood directions, and Oded picks one or two.
-2. **Draft style prompt.** Gamer writes one style prompt: palette, outline, light direction, pixel density, camera, and a few banned traits. Oded approves it before anything is generated.
-3. **Rounds of about 6 generations.** Each round makes about 6 pieces with the approved prompt. Claude composites them into a **960×540 mock in-game screenshot** with the hero, a mob, ground, parallax and HUD at real scale, so they're judged in context and never as loose sprites.
-4. **Oded's feedback.** Notes go into the prompt, and the next round runs. Plan on 1–3 rounds per phase.
-5. **Lock.** Write the style guide (studio template: palette file, sizes, outline, lighting, camera, frame counts, references), and save the PixelLab settings and reference images.
-6. **Concept sheet before every batch (standing rule).** Before PixelLab generates any batch, and whenever new content is added to the game (a mob, item, NPC, area or gear), Gamer makes a concept reference sheet in the style of the locked hero. It's free and saved as one sheet per area or batch in `art-direction/concepts/`, for example `concepts/meadow-west.jpg`. Oded approves the sheet, and then Claude feeds it to PixelLab as the image reference. Sheets are made per batch just before production, not all up front.
-7. **Production batches.** One area at a time, in the Phase 3 order. Each batch goes into the real game (a playable Netlify or itch build) and gets Oded's OK before the next batch starts. Optional Python cleanup (palette snap, stray pixels, packing) runs only when needed; weak sprites get regenerated, not hand-edited.
-
-## Inspiration references (from Oded)
-
-The moodboard is in **[art-direction/README.md](../art-direction/README.md)**: style rules, references and the locked hero lineup. In short: not heavily pixelated; smooth and sharp, cozy and nostalgic; chibi (the hero is about 4 heads tall); bold clean dark outlines; flat bright colors with one soft shade; big readable silhouettes; cute, chunky monsters; animation quality like PixelLab's demos.
+## Inspiration references
+The moodboard is in **[art-direction/README.md](../art-direction/README.md)**: style rules, references and the locked hero.
 
 ## Phase 1 — Free style test (round 1)
 
-Goal: check that PixelLab can produce the locked hero and the style before paying. The brief Claude runs is [art-direction/style-test-round-1.md](../art-direction/style-test-round-1.md). The results go into one 960×540 mock: the hero, a sheep and icons in a UI slot, on today's Meadow West ground. That leaves at least 22 free generations for round 2.
+The brief Claude runs: [art-direction/style-test-round-1.md](../art-direction/style-test-round-1.md). It leaves at least 22 free generations for round 2.
 
-| Asset | Category | Current source | Size | Animations / directions | Gens (×2) | Notes |
-| --- | --- | --- | --- | --- | ---: | --- |
-| Hero, Leather look | Character | locked lineup | 64-128px canvas | idle frame (east) | 2 | image-to-sprite from the lineup |
-| Hero, Cloth look | Character | locked lineup | 64-128px canvas | idle frame (east) | 2 | same pose and scale as Leather |
-| Wooden Sword layer | Hero gear visual | none yet | ~32-48px | pinned to the hand anchor | 2 | separate sprite, transparent |
-| Wool Sheep | Mob | CC0 Tiny Creatures, 1 static frame | 64px canvas | idle frame (east) | 2 | |
-| Icons: Wool, Health Potion | Item icon | CC0 Kenney | 32-48px src | — | 4 | from art-direction/concepts/round1.jpg |
-| Optional: Feather, Copper Coin icons | Item icon | CC0 Kenney | 32-48px src | — | 4 | only if the budget allows |
-| Optional: hero walk, Leather | Character | — | 64-128px | walk, east | 2 | only if the trial allows animation |
-| **Subtotal** | | | | | **18** | |
+| Asset | Size | Animation | Gens | Notes |
+| --- | --- | --- | ---: | --- |
+| Hero, Leather look | 64-128px | idle frame | 2 | image-to-sprite from the lineup |
+| Hero, Cloth look | 64-128px | idle frame | 2 | same pose and scale |
+| Wooden Sword layer | ~32-48px | pinned at the hand | 2 | from `concepts/round1.jpg` |
+| Wool Sheep | 64px | idle frame | 2 | from `concepts/round1.jpg` |
+| Icons: Wool, Health Potion | 32-48px | — | 4 | from `concepts/round1.jpg` |
+| Optional: Feather, Copper Coin icons | 32-48px | — | 4 | if the budget allows |
+| Optional: hero walk, Leather | 64-128px | walk | 2 | if the trial allows |
+| **Subtotal** | | | **18** | |
 
 ## Phase 2 — Paid test round (Tier 1)
 
-Goal: prove the full pipeline on one of everything before production: one full hero animation set, one mob's walk and attack, Meadow West's tileset and parallax, one NPC, one UI piece, one effect, one portrait and one building. All of it goes into a playable Meadow West build.
+One of each key thing, playable in a Meadow West build: the hero set, a mob, a tileset, parallax, an NPC, a portrait, a building, a UI frame, a skill icon and a skill effect.
 
-| Asset | Category | Current source | Size | Animations / directions | Gens (×2) | Notes |
-| --- | --- | --- | --- | --- | ---: | --- |
-| Hero full animation set | Character | see Phase 1 | 48x48 | idle, walk, run, jump, fall, climb, basic slash, overhead smash, cast, hurt, death (11 clips, east only) | 22 | reuses Phase 1 base; ~1 gen per clip (template or v3 at <=64px) |
-| Boar (lvl 5) | Mob | placeholder (draw-art-v031.py) | 44x44 | walk, attack (charge) | 8 | base (2) + 2 clips |
-| Meadow tileset: grass ground + plank platform | Tileset | CC0 Pixel Platformer | 32px tiles (36 shown) | — | 4 | create_sidescroller_tileset standard (1) x2 pieces; pro = 15 each if wanted |
-| Meadow parallax (sky, far hills, near hills) | Parallax | code-drawn (Phaser graphics) | 960x540 layers, tiled from 320-wide strips | slow scroll (code) | 18 | 3 layers x 3 strips, pixflux/pixen 1 each |
-| Pell (NPC) | NPC | CC0 Tiny Dungeon | 48x48 | idle, talk | 8 | base (2) + 2 clips |
-| UI panel frame (9-slice) + button | UI | HTML/CSS only | 9-slice, 48-96px source | button: normal/hover/pressed | 4 | pixen |
-| Basic slash effect | Effect | code-drawn (Phaser graphics) | 64x40 | 4-6 frames | 4 | pixen strip + animate_image_pixminimax (1) |
-| Pell portrait | Portrait | none yet | 64x64 (or 128) | static (talk mouth optional +3) | 20 | create_portrait_character |
-| House (red roof) | Building | CC0 Tiny Town 64x48 | 192x144 | — | 2 | pixen |
-| **Subtotal** | | | | | **90** | |
+| Asset | Size | Animation | Gens | Notes |
+| --- | --- | --- | ---: | --- |
+| Hero, Cloth: full set | 128px | idle, walk, run, jump, fall, climb, basic slash, overhead smash, cast, hurt, death (11) | 96 | base 4 + 4 per clip, ×2 |
+| Boar (lvl 5) | 96px | idle, walk, attack (charge), hurt, die | 20 | the mob template for all others |
+| Base tileset: grass ground + plank platform | 32px tiles | — | 4 | palette-swapped for later areas |
+| Meadow West parallax: far hills, near hills, clouds | 960 wide | static (code scroll and drift) | 18 | unique, first area; sky is a code gradient |
+| Pell (NPC) | 96px | idle | 8 | talk bounce in code |
+| Pell portrait | 128px | static | 20 | |
+| House (red roof) | 192x144 | static | 2 | |
+| UI panel 9-slice frame | 48-96px | — | 2 | |
+| Power Strike skill icon | 36-48px | — | 2 | |
+| Basic slash effect | 64x40 | 4-6 frames | 4 | code adds hit-stop, shake and particles |
+| **Subtotal** | | | **176** | |
 
 ## Phase 3 — Production
 
-One batch per area, in this order. Each batch is shown in the game before the next one starts. Mobs that appear in several areas are made once, in the first area they appear.
+One batch per area, in this order, each with its approved concept sheet. A mob that appears in several areas is made once, where it first appears.
 
-### 3.1 Meadow West
+### 3.1 Meadow West (first area: full quality)
 
-| Asset | Category | Current source | Size | Animations / directions | Gens (×2) | Notes |
-| --- | --- | --- | --- | --- | ---: | --- |
-| Field Mouse | Mob | CC0 Tiny Creatures (weasel), 1 frame | 36x36 | idle, walk, attack, hit, death | 14 |  |
-| Wool Sheep (rest of set) | Mob | see Phase 1 | 48x48 | walk, attack (headbutt), hit, death | 8 |  |
-| Crow (also Sunny Pasture, Meadow East) | Mob | CC0 Tiny Creatures, 2 wing frames | 36x36 | fly idle, fly move, throw pebble, hit, death | 14 | flying; hovers above the surface |
-| Crow pebble projectile | Effect | CC0 Tiny Dungeon | 22x22 | spin (code) + impact puff | 4 |  |
-| Decor: round tree, tall tree, bush, fence, sign, flower tuft, grass tuft | Decor | CC0 Kenney / Tiny Creatures | 32-96px | grass sway optional | 14 |  |
-| Portal / area exit marker | Terrain | CC0 Kenney / Tiny Creatures | 40x80 | glow loop | 4 | pixen + animate_image (1) |
-| **Subtotal** | | | | | **58** | |
+| Asset | Size | Animation | Gens | Notes |
+| --- | --- | --- | ---: | --- |
+| Field Mouse | 64px | idle, walk, attack, hurt, die | 14 | |
+| Wool Sheep (rest of set) | 64px | walk, headbutt, hurt, die | 8 | |
+| Crow (also Sunny Pasture, Meadow East) | 64px | fly, throw pebble, hurt, die | 12 | hovers above the surface |
+| Crow pebble | 22px | static (code spin, impact puff) | 2 | |
+| Decor: round tree, tall tree, bush, fence, sign, flower tuft, grass tuft | 32-96px | static (code sway) | 14 | unique pieces |
+| Portal / exit marker | 40x80 | static (code glow) | 2 | |
+| **Subtotal** | | | **52** | |
 
 ### 3.2 Meadow Town
 
-| Asset | Category | Current source | Size | Animations / directions | Gens (×2) | Notes |
-| --- | --- | --- | --- | --- | ---: | --- |
-| Mara (shop) | NPC | CC0 Tiny Dungeon | 48x48 | idle, talk, slap | 10 |  |
-| Calden (trainer) | NPC | CC0 Tiny Dungeon | 48x48 | idle, talk, demo swing | 10 |  |
-| Ila (exchange) | NPC | CC0 Tiny Dungeon | 48x48 | idle, talk | 8 |  |
-| Tamsin (magician) | NPC | CC0 Tiny Dungeon | 48x48 | idle, talk, small cast | 10 |  |
-| Mara portrait | Portrait | none yet | 64x64 | static | 20 | create_portrait_character; optional, dialogue does not show portraits yet |
-| Calden portrait | Portrait | none yet | 64x64 | static | 20 | create_portrait_character; optional, dialogue does not show portraits yet |
-| Ila portrait | Portrait | none yet | 64x64 | static | 20 | create_portrait_character; optional, dialogue does not show portraits yet |
-| Tamsin portrait | Portrait | none yet | 64x64 | static | 20 | create_portrait_character; optional, dialogue does not show portraits yet |
-| Hero portrait | Portrait | none yet | 64x64 | static | 20 | create_portrait_character; optional, dialogue does not show portraits yet |
-| Buildings: stone house, third house, Mara's stall, Ila's bench, Calden's training rack | Building | CC0 Kenney / Tiny Creatures | 96-192px | — | 10 |  |
-| Town props: well, hive, lamp post, west + east gate | Decor | none yet / CC0 | 32-128px | — | 10 | the west gate is new in 0.3.1 |
-| Storage chest (closed / open) | Decor | CC0 Tiny Dungeon | 40x40 | open (2-3 frames) | 6 |  |
-| Practice post (dummy) | Decor | CC0 Tiny Dungeon | 40x72 | hit wobble | 4 |  |
-| Town ground tiles (path / cobble) | Tileset | CC0 Pixel Platformer grass | 32px | — | 2 |  |
-| Town parallax far layer (rooftops, trees) | Parallax | code-drawn (Phaser graphics) | 960 wide | — | 6 |  |
-| **Subtotal** | | | | | **176** | |
+| Asset | Size | Animation | Gens | Notes |
+| --- | --- | --- | ---: | --- |
+| Mara, Calden, Ila, Tamsin (NPCs) | 96px | idle (+ Mara's slap) | 36 | 8 each, slap +4 |
+| Portraits: Mara, Calden, Ila, Tamsin, Hero | 128px | static | 100 | needs a dialogue portrait slot (dev) |
+| Buildings: stone house, third house, Mara's stall, Ila's bench, Calden's rack | 96-192px | static | 10 | |
+| Props: well, hive, lamp post, west + east gate | 32-128px | static | 10 | |
+| Storage chest, closed + open | 40px | 2 frames | 4 | |
+| Practice post | 40x72 | static (code wobble) | 2 | |
+| Path tile + base tileset swap | 32px | — | 2 | |
+| Far parallax: rooftops and trees | 960 wide | static | 2 | near layers reuse Meadow West |
+| **Subtotal** | | | **166** | |
 
 ### 3.3 Meadow East
 
-| Asset | Category | Current source | Size | Animations / directions | Gens (×2) | Notes |
-| --- | --- | --- | --- | --- | ---: | --- |
-| Boar (rest of set) | Mob | see Phase 2 | 44x44 | idle, hit, death | 6 |  |
-| Angry Bull | Mob | placeholder (old Meadow Boar recolour) | 58x58 | idle, walk, paw + charge, attack, hit, death | 16 | snort / ground-paw wind-up |
-| Wool-Shoulder (named sheep) | Named variant | reuses Wool Sheep | ~56x56 | reuse sheep clips | 2 | bigger, triple fleece: one pixen edit + palette/scale in code; full set would be ~14 |
-| Hill tiles: slope edges, terrace ledge, grove top | Tileset | CC0 grass + code blocks | 32px | — | 6 |  |
-| Climbs: wooden ladder, knotted rope | Terrain | code-drawn (Phaser graphics) | 32px wide, tiled | rope sway (code) | 4 |  |
-| Hills parallax (3 layers) | Parallax | code-drawn (Phaser graphics) | 960x540 | — | 18 |  |
-| Decor: hill tree, grove trees, rocks, old stump (prop) | Decor | CC0 Kenney / Tiny Creatures | 32-160px | — | 8 |  |
-| Charge dust puff | Effect | code-drawn (Phaser graphics) | 32x24 | 4 frames | 4 |  |
-| **Subtotal** | | | | | **64** | |
+| Asset | Size | Animation | Gens | Notes |
+| --- | --- | --- | ---: | --- |
+| Boar (rest of set) | 96px | idle | 4 | |
+| Angry Bull | Boar recolour, scaled | + paw-and-snort wind-up | 4 | |
+| Wool-Shoulder (named sheep) | sheep recolour, scaled | reuses sheep clips | 2 | one edit for the triple fleece |
+| Hill tiles: slope edges, terrace ledge | 32px | — | 4 | on top of the base swap |
+| Climbs: wooden ladder, knotted rope | 32px wide | static (code sway) | 4 | |
+| Hills parallax | 960 wide | static | 2 | Meadow West swap + one far layer |
+| Decor: rocks, old stump prop | 32-160px | static | 4 | trees are Meadow West recolours |
+| Charge dust puff | 32x24 | 4 frames | 4 | |
+| **Subtotal** | | | **28** | |
 
 ### 3.4 Sunny Pasture
 
-| Asset | Category | Current source | Size | Animations / directions | Gens (×2) | Notes |
-| --- | --- | --- | --- | --- | ---: | --- |
-| Decor: wildflower patch, broken fence, lone big tree, hay bale | Decor | none yet | 32-160px | flower sway optional | 8 | named in the 0.3.1 spec |
-| Pasture parallax far layer (open fields) | Parallax | code-drawn (Phaser graphics) | 960 wide | — | 6 | reuses the Meadow sky and near layer |
-| **Subtotal** | | | | | **14** | |
+| Asset | Size | Animation | Gens | Notes |
+| --- | --- | --- | ---: | --- |
+| Decor: wildflower patch, broken fence, lone big tree, hay bale | 32-160px | static (code sway) | 8 | |
+| Far parallax: open fields | 960 wide | static | 2 | the rest is the Meadow West swap |
+| **Subtotal** | | | **10** | |
 
 ### 3.5 Dirt Banks
 
-| Asset | Category | Current source | Size | Animations / directions | Gens (×2) | Notes |
-| --- | --- | --- | --- | --- | ---: | --- |
-| Burrow Mole | Mob | CC0 Tiny Creatures | 40x40 | idle, walk, burrow/pop-up, attack, hit, death | 16 |  |
-| Earth Sprite | Mob | CC0 Tiny Creatures | 44x44 | idle (float), move, attack, hit, death | 14 |  |
-| Ember Beetle | Mob | CC0 Tiny Creatures (recolour) | 40x40 | idle, walk, attack, hit, death | 14 |  |
-| Spark Bug | Mob | CC0 Tiny Creatures | 36x36 | idle, move, zap attack, hit, death | 14 |  |
-| Bank-Cracker (named mole) | Named variant | reuses Burrow Mole | ~52x52 | reuse mole clips + shoulder slam | 4 | edit + 1 extra clip |
-| Cinderback (named beetle) | Named variant | reuses Ember Beetle | ~48x48 | reuse beetle clips | 2 | smouldering shell edit |
-| Banks tiles: dirt ground, mud shelf, high bank ledge | Tileset | CC0 Pixel Platformer dirt | 32px | — | 6 |  |
-| Cave tiles: rock floor, gallery ledge, wall/ceiling | Tileset | code-drawn (Phaser graphics) + dirt tiles | 32px | — | 6 |  |
-| Climbs: root ladder | Terrain | code-drawn (Phaser graphics) | 32px wide | — | 2 |  |
-| River surface strip | Terrain | code-drawn (Phaser graphics) | tiling 64-128px | ripple loop | 4 |  |
-| Riverbank parallax (3 layers) | Parallax | code-drawn (Phaser graphics) | 960x540 | — | 18 |  |
-| Cave parallax (3 layers, dark) | Parallax | code-drawn (Phaser graphics) | 960x540 | — | 18 |  |
-| Decor: rock, clod, river reeds, driftwood, stalagmite, stalactite, crystal cluster, den bones | Decor | CC0 / repo-drawn | 16-96px | — | 16 |  |
-| Wall torch | Decor | none yet | 16x32 | flame loop | 4 |  |
-| Spark zap + ember spit | Effect | code-drawn (Phaser graphics) | 24-48px | 4 frames each | 8 |  |
-| **Subtotal** | | | | | **146** | |
+| Asset | Size | Animation | Gens | Notes |
+| --- | --- | --- | ---: | --- |
+| Burrow Mole | 64px | idle, walk, burrow/pop-up, attack, hurt, die | 14 | |
+| Earth Sprite | 64px | float, attack, hurt, die | 12 | |
+| Ember Beetle | 64px | walk, attack, hurt, die | 12 | |
+| Spark Bug (small, rare) | 48px | move, zap, die | 10 | hurt = code flash |
+| Bank-Cracker (named mole) | mole recolour, scaled | + shoulder slam | 4 | |
+| Cinderback (named beetle) | beetle recolour | reuses beetle clips | 0 | smoulder glow in code |
+| Banks tiles: mud shelf, high bank ledge | 32px | — | 4 | on top of the base swap |
+| Cave tileset (unique): rock floor, gallery ledge, wall/ceiling | 32px | — | 6 | |
+| Root ladder, river surface strip | 32-128px | static (code ripple shader) | 4 | |
+| Parallax: riverbank (1 layer + swap), cave (2 layers) | 960 wide | static | 6 | |
+| Decor: rock, river reeds, driftwood, stalagmite, crystal cluster, den bones | 16-96px | static | 12 | clod and stalactite are recolours or flips |
+| Wall torch | 16x32 | static (code flicker, embers) | 2 | |
+| Spark zap + ember spit | 24-48px | 4 frames each | 8 | |
+| **Subtotal** | | | **94** | |
 
 ### 3.6 Whisperwood
 
-| Asset | Category | Current source | Size | Animations / directions | Gens (×2) | Notes |
-| --- | --- | --- | --- | --- | ---: | --- |
-| Wisp | Mob | repo-drawn (draw-art-v030.py), 3 frames | 40x40 | idle bob, move, shoot mote, hit flicker, death dissolve | 14 | flying |
-| Thornling | Mob | repo-drawn, 3 frames | 42x42 | idle jitter, hop, arm-back throw, hit, death (leaf burst) | 14 |  |
-| Moss Lurker | Mob | repo-drawn, 4 frames | 60x48 | mound (rest), ambush pop-up, walk, lunge-bite, hit, death | 16 |  |
-| Mire Toad | Mob | repo-drawn, 3 frames | 60x48 | idle throat pulse, hop + splash, cheek puff + tongue, hit, death belly-flop | 14 |  |
-| Hollow Stag (miniboss) | Mob | repo-drawn, 5 frames 32x32 | 128x128 | idle, walk, charge, antler sweep, root stomp, phase-2 glow, hit, kneel death (8 clips) | 70 | v3 base (3) + ~4 per clip at 128px |
-| Wren (woodwarden NPC) | NPC | recolour of Pell | 48x48 | idle, talk | 8 |  |
-| Wren portrait | Portrait | none yet | 64x64 | static | 20 | optional |
-| Forest tiles: moss ground, branch ledge, bog edge | Tileset | recolours of grass / plank | 32px | — | 6 |  |
-| Climbs: hanging vine | Terrain | code-drawn (Phaser graphics) | 32px wide | sway (code) | 2 |  |
-| Bog pool surface | Terrain | code-drawn (Phaser graphics) | tiling | ripple loop | 4 |  |
-| Forest parallax (3 trunk layers; fog stays code) | Parallax | code-drawn (Phaser graphics) | 960x540 | — | 18 |  |
-| Decor: old tree, dead tree, tent, fern, mushroom, glow mushroom, reeds, lantern, Hollow arch | Decor | repo-drawn (draw-art-v030.py) | 12-165px | glow pulse (code) | 18 |  |
-| Campfire | Decor | repo-drawn | 44x44 | flame loop | 4 |  |
-| Mob FX: wisp mote, thorn, root spikes, stag shockwave | Effect | repo-drawn / code | 12-96px | 3-6 frames each | 16 |  |
-| **Subtotal** | | | | | **224** | |
+| Asset | Size | Animation | Gens | Notes |
+| --- | --- | --- | ---: | --- |
+| Wisp | 64px | float, shoot mote, hurt, die | 12 | |
+| Thornling | 64px | hop, throw, hurt, die | 12 | |
+| Moss Lurker | 96px | ambush pop-up, walk, lunge-bite, hurt, die | 24 | |
+| Mire Toad | 96px | hop, tongue, hurt, die | 20 | |
+| Hollow Stag (miniboss) | 128px | idle, walk, charge, antler sweep, root stomp, phase-2, hurt, kneel death (8) | 70 | full set |
+| Wren (NPC) | 96px | idle | 8 | |
+| Wren portrait | 128px | static | 20 | |
+| Forest tiles: bog edge | 32px | — | 2 | moss ground and branch ledge are swaps |
+| Hanging vine, bog surface | 32-128px | static (code sway, ripple) | 4 | |
+| Forest parallax: 3 trunk layers | 960 wide | static | 6 | unique; fog and light shafts in code |
+| Decor: old tree, dead tree, tent, fern, mushroom, reeds, lantern, Hollow arch | 12-165px | static (code glow) | 16 | glow mushroom is a recolour |
+| Campfire | 44px | short flame loop | 4 | |
+| Mob FX: wisp mote, thorn, root spikes, stag shockwave | 12-96px | 3-6 frames each | 16 | |
+| **Subtotal** | | | **214** | |
 
-### 3.7 Global (hero gear, icons, effects, UI, font)
+### 3.7 Global
 
-| Asset | Category | Current source | Size | Animations / directions | Gens (×2) | Notes |
-| --- | --- | --- | --- | --- | ---: | --- |
-| Weapon layers (12): Club, Wooden Sword, Short Sword, Steel Sword, Meadow Blade, Stone Club, Rusty Dagger, Steel Dagger, Bone Knife, Worn Staff, Steel Staff, Grove Staff | Hero gear visual | none yet (gear not drawn on the hero) | ~24-40px | pinned to the per-frame hand anchor | 24 | paper-doll layer; code rotates it with the swing |
-| Armour looks (3 beyond the Phase 2 Cloth set): Leather, Chain, Plate | Hero gear visual | none yet | 64px+ per frame | all 11 hero clips per look | 150 | ~25 per look ×2; Chain and Plate can wait for later-tier gear |
-| Hat layers (5): Cloth Cap, Linen Hood, Hide Cap, Leather Cap, Trail Cap | Hero gear visual | none yet | ~32px | pinned to the per-frame head anchor | 10 | paper-doll layer |
-| Item icons: gear (37) | Item icon | CC0 Kenney + hue shifts | 18x18 src | — | 74 |  |
-| Item icons: materials (33, minus 2 done in Phase 1) | Item icon | CC0 Kenney / Tiny Creatures | 18x18 | — | 62 |  |
-| Item icons: junk / quest items (22 live, incl. Live Ember) | Item icon | CC0 Kenney / Tiny Creatures | 18x18 | — | 44 |  |
-| Item icons: consumables (8, minus Strawberry) and currencies (5 incl. 4 essences) | Item icon | CC0 Kenney / Tiny Creatures | 18x18 | — | 24 |  |
-| Skill icons (11 live): Power Strike, Rage, Dig In, Earthbreaker, Root Lash, Flame Cleave, Magic Bolt, Mana Shield, Fire Bolt, Thorn Volley, Chain Spark | Skill icon | CC0 hue shifts | 18x18 src / 36+ shown | ready-to-train glow (code) | 22 |  |
-| Passive icons (7 families) + buff/status icons (Rage, Dig In, Mana Shield, Burn) | Skill icon | CC0 hue shifts / none | 18x18 | — | 22 |  |
-| Skill FX: side slash, overhead smash, Power Strike axe cut, Earthbreaker shock, Flame Cleave fan, Root Lash whip, Rage burst, Dig In stamp, Mana Shield ward | Effect | code-drawn (Phaser graphics) | 32-160px | 4-8 frames each | 36 | 2 each; keep code hit-stop, shake and particles on top |
-| Spell FX: Magic Bolt, Fire Bolt, Thorn Volley, Chain Spark (projectile + impact each) | Effect | code-drawn (Phaser graphics) | 16-64px | loop + 4-6 frame impact | 32 |  |
-| General FX: hit spark, crit spark, death poof, heal sparkle, level-up burst, loot sparkle, Mara slap swipe | Effect | code-drawn (Phaser graphics) | 24-96px | 4-8 frames | 28 |  |
-| UI kit: buttons (4 states), tabs, hotbar slot, inventory slot, tooltip, dialogue box, close/back | UI | HTML/CSS only | 9-slice sources | hover/pressed states | 20 |  |
-| UI: HP/MP/XP bar frames + fills | UI | HTML/CSS only | 9-slice | — | 6 |  |
-| UI: skill-tree node frames (locked, available, trained, ready) + family colour trims | UI | HTML/CSS only | 40-56px | ready pulse (code) | 8 |  |
-| UI: quest markers ! and ?, objective check, farm-list leaf, completion banner, rewards ribbon, level-up banner | UI | HTML/CSS only / text glyphs | 16-320px | bob (code) | 14 |  |
-| Pixel font (Regular + Bold) | Font | system-ui (browser font) | 8-16px glyphs | — | 40 | create_font is a pro tool; cost not published, assumed ~10 per weight |
-| **Subtotal** | | | | | **616** | |
+| Asset | Size | Animation | Gens | Notes |
+| --- | --- | --- | ---: | --- |
+| Hero, Leather: full set | 128px | 11 clips | 96 | re-dress + 4 per clip, ×2 |
+| Weapon layers: 8 shapes cover all 12 (Club, Stone Club, Short Sword, Meadow Blade, Dagger, Bone Knife, Staff, Grove Staff) | ~24-48px | pinned at the hand | 16 | Steel Sword, Rusty and Steel Dagger, Worn and Steel Staff are recolours |
+| Hat layers: Cap, Linen Hood, Trail Cap (cover all 5) | ~32px | pinned at the head | 6 | Cloth, Hide and Leather Cap are recolours |
+| Item icons: about 100 live, about 75 unique shapes | 32-48px | — | 38 | sheets of about 4, with tiers recoloured |
+| Skill icons (10 more live skills) | 36-48px | ready glow in code | 20 | one at a time |
+| Passive icons (7) + buff/status icons (4) | 32-48px | — | 22 | |
+| Skill FX: side slash, overhead smash, Power Strike, Earthbreaker, Flame Cleave, Root Lash, Rage, Dig In, Mana Shield | 32-160px | 4-8 frames each | 36 | code hit-stop, shake and particles on top |
+| Spell FX: Magic Bolt, Fire Bolt, Thorn Volley, Chain Spark (projectile + impact) | 16-64px | loop + impact | 32 | |
+| General FX: hit spark, crit spark, death poof, heal sparkle, level-up burst, pickup sparkle, Mara slap swipe | 24-96px | 4-8 frames | 28 | |
+| UI 9-slice frames: button, slot, tooltip/dialogue, bar frame | 48-96px | — | 8 | everything else is CSS |
+| **Subtotal** | | | **302** | |
 
-## Open questions for Oded
-
-1. **Chain and Plate:** make them now, with the Leather look, or wait until gear of that tier exists?
-2. **Portraits:** there's no portrait UI today. Keep them in the plan (about 140 generations for 7 portraits) and add them to dialogue, or drop them for now?
+## Deferred until needed
+- **Chain and Plate hero looks** (about 96 each), when gear of that tier is added.
+- **Later zones and parked content** (Old Stump, Night Stump, Frost Moth, the Shrine and Dusk Wisps, Soul Guard and the parked skills). They get their own concept sheet and batch once they're designed.
