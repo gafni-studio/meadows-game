@@ -10,18 +10,18 @@ Scanned on 2026-11-16 against `main` at v0.3.1 (the sprite registry, `public/art
 | --- | --- | ---: |
 | 1 | Free style test (trial) | **24** of the 40 free |
 | 2 | Paid test round (Tier 1) | **90** |
-| 3 | Production, by area then global | **1548** |
-| | **Total** | **1662** |
+| 3 | Production, by area then global | **1298** |
+| | **Total** | **1412** |
 
-Phase 3 by area: Meadow West 58 · Meadow Town 176 · Meadow East 64 · Sunny Pasture 14 · Dirt Banks 146 · Whisperwood 224 · Global 866.
+Phase 3 by area: Meadow West 58 · Meadow Town 176 · Meadow East 64 · Sunny Pasture 14 · Dirt Banks 146 · Whisperwood 224 · Global 616.
 
-**Budget fit:** Phases 2 and 3 together (1638) fit inside one Tier 1 month (2,000 generations) with about 362 to spare. The biggest single line is **hero armour looks (410)**. Deferring it, or switching to the cheaper method in its note, brings Phase 3 down to about 1258.
+**Budget fit:** Phases 2 and 3 together (1388) fit inside one Tier 1 month (2,000 generations) with about 610 to spare. Hero gear is now about 188 in total (see the gear approach below).
 
 **Assets by category** (about 309 individual pieces):
 
 | Category | Pieces | Gens |
 | --- | ---: | ---: |
-| Hero gear visual | 18 | 438 |
+| Hero gear visual | 21 | 188 |
 | Mob | 14 | 258 |
 | Item icon | 105 | 210 |
 | Portrait | 7 | 140 |
@@ -40,7 +40,12 @@ Phase 3 by area: Meadow West 58 · Meadow Town 176 · Meadow East 64 · Sunny Pa
 
 ### What the scan found
 - **No sprite animates today.** The hero and most mobs are one static 16×16 frame (Crow 2 frames, the Whisperwood mobs 3–5). Walking, wind-ups, hits and deaths are all code tweens: squash, bob, flip, flash. Every animation in this plan is new work.
-- **Gear isn't drawn on the hero.** Equipping changes stats only. Showing gear (weapons in hand, armour looks) is new, and it's the most expensive part of the plan.
+- **Gear isn't drawn on the hero today.** Equipping changes stats only.
+
+### Gear on the hero (approved)
+- **Body armour: 4 looks** (Cloth, Leather, Chain, Plate). Each look is a full hero animation set (all 11 clips). The equipped body piece picks the look by its tier and type: Cloth and Linen show Cloth; Hide, Leather and Trail show Leather. Chain and Plate are for later-tier gear. Every item keeps its own icon and stats. Palette tints can add variants later at almost no cost.
+- **Weapons and hats: paper-doll layers.** One sprite per item, pinned to per-frame **hand** and **head** anchor points on every hero frame, MapleStory-style. Claude marks the anchors once per hero clip (no generations), and code places, rotates and flips the layer each frame.
+- **Cost:** about 50 per extra look (re-dress the reference, about 2 for the new base, about 2 per clip) × 3 looks = **150**, since Cloth is the Phase 2 hero set. Plus 12 weapon layers (24), 5 hat layers (10) and the style-test frame (4): **about 188** in all, replacing the earlier ~410 for 5 outfit-transferred sets. Chain and Plate can wait until gear needs them (−100).
 - **The UI has no art.** Every panel, button, bar, tree node and marker is HTML/CSS in the browser's system font.
 - **Much of the world is code-drawn:** parallax hills, ladders, ropes, vines, root ladders, river and bog water, Whisperwood fog, and nearly all skill and hit effects.
 - **Current art is CC0 placeholder** (Kenney Tiny Dungeon/Town, Pixel Platformer, Tiny Creatures) plus repo-drawn sprites (`scripts/draw-art-v030.py`, `draw-art-v031.py`) for Whisperwood, Old Stump, Angry Bull and Boar.
@@ -77,14 +82,14 @@ The moodboard is in **[art-direction/README.md](../art-direction/README.md)**: s
 
 ## Phase 1 — Free style test (~25 of the 40 free generations)
 
-Goal: is PixelLab's look right for Meadows at all? One 960×540 mock with the hero, a sheep, a strip of grass and three icons, plus a second hero frame wearing boots. That leaves about 15 free generations in reserve for a second round.
+Goal: is PixelLab's look right for Meadows at all? One 960×540 mock with the hero, a sheep, a strip of grass and three icons, plus the hero in the Leather look holding a layered Wooden Sword. That leaves about 15 free generations in reserve for a second round.
 
 | Asset | Category | Current source | Size | Animations / directions | Gens (×2) | Notes |
 | --- | --- | --- | --- | --- | ---: | --- |
 | Hero (Club, cloth start) | Character | CC0 Tiny Dungeon, 1 static 16x16 frame | 48x48 slot (canvas 48-64) | idle (side view, east; west = mirror) | 6 | create_character v3 (2) + idle template (1) |
 | Wool Sheep | Mob | CC0 Tiny Creatures, 1 static frame | 48x48 | idle | 6 | base (2) + idle (1); animal needs a reference image |
 | Icons: Strawberry, Wool, Training Scroll | Item icon | CC0 Kenney + hue shifts | 18x18 src / 36 shown | — | 6 | create_image_pixen, 1 each |
-| Hero wearing Leather Boots | Hero gear visual | none yet | 48x48 | idle frame only | 4 | edit_image_pixen on the idle frame |
+| Hero in Leather look + layered Wooden Sword | Hero gear visual | none yet | 64px+ | idle frame only | 4 | edit_image_pixen re-dress (1) + weapon layer sprite (1), pinned to a hand anchor |
 | Grass tile swatch (for the mock) | Tileset | CC0 Pixel Platformer | 18-32px tile | — | 2 | pixen image; real tileset tool is not on the trial |
 | **Subtotal** | | | | | **24** | |
 
@@ -209,8 +214,9 @@ One batch per area, in this order. Each batch is shown in the game before the ne
 
 | Asset | Category | Current source | Size | Animations / directions | Gens (×2) | Notes |
 | --- | --- | --- | --- | --- | ---: | --- |
-| Hero weapons held in hand (12): Club, Wooden Sword, Short Sword, Steel Sword, Meadow Blade, Stone Club, Rusty Dagger, Steel Dagger, Bone Knife, Worn Staff, Steel Staff, Grove Staff | Hero gear visual | none yet (gear not drawn on the hero) | ~24-40px, hand-anchored | follows the hero clips (code attaches it) | 24 | one sprite each; code rotates it with the swing |
-| Hero armour looks, 5 sets (Cloth, Linen, Hide, Leather, Trail): cap, torso, pants, gloves, boots | Hero gear visual | none yet | 48x48 per frame | all 11 hero clips per set | 410 | per set: 1 re-dress edit + ~4 transfer_outfit calls (10 each, 15 frames per call). Cheaper alt: new character per set + template clips (~12/set) at a consistency risk |
+| Weapon layers (12): Club, Wooden Sword, Short Sword, Steel Sword, Meadow Blade, Stone Club, Rusty Dagger, Steel Dagger, Bone Knife, Worn Staff, Steel Staff, Grove Staff | Hero gear visual | none yet (gear not drawn on the hero) | ~24-40px | pinned to the per-frame hand anchor | 24 | paper-doll layer; code rotates it with the swing |
+| Armour looks (3 beyond the Phase 2 Cloth set): Leather, Chain, Plate | Hero gear visual | none yet | 64px+ per frame | all 11 hero clips per look | 150 | ~25 per look ×2; Chain and Plate can wait for later-tier gear |
+| Hat layers (5): Cloth Cap, Linen Hood, Hide Cap, Leather Cap, Trail Cap | Hero gear visual | none yet | ~32px | pinned to the per-frame head anchor | 10 | paper-doll layer |
 | Item icons: gear (37) | Item icon | CC0 Kenney + hue shifts | 18x18 src | — | 74 |  |
 | Item icons: materials (33, minus 2 done in Phase 1) | Item icon | CC0 Kenney / Tiny Creatures | 18x18 | — | 62 |  |
 | Item icons: junk / quest items (22 live, incl. Live Ember) | Item icon | CC0 Kenney / Tiny Creatures | 18x18 | — | 44 |  |
@@ -225,9 +231,9 @@ One batch per area, in this order. Each batch is shown in the game before the ne
 | UI: skill-tree node frames (locked, available, trained, ready) + family colour trims | UI | HTML/CSS only | 40-56px | ready pulse (code) | 8 |  |
 | UI: quest markers ! and ?, objective check, farm-list leaf, completion banner, rewards ribbon, level-up banner | UI | HTML/CSS only / text glyphs | 16-320px | bob (code) | 14 |  |
 | Pixel font (Regular + Bold) | Font | system-ui (browser font) | 8-16px glyphs | — | 40 | create_font is a pro tool; cost not published, assumed ~10 per weight |
-| **Subtotal** | | | | | **866** | |
+| **Subtotal** | | | | | **616** | |
 
 ## Open questions for Oded
 
-1. **Gear on the hero:** do equipped pieces need to show individually (cap, boots and so on, mix and match), or is one look per armour set enough? This plan budgets weapons in hand plus 5 set looks. Mixing per slot would multiply the outfit work about 5×.
+1. **Chain and Plate:** make them now, with the Leather look, or wait until gear of that tier exists?
 2. **Portraits:** there's no portrait UI today. Keep them in the plan (about 140 generations for 7 portraits) and add them to dialogue, or drop them for now?
