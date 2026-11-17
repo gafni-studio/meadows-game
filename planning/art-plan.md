@@ -10,7 +10,7 @@ Costs were updated after round 1: animations made at 2× cost about 3 generation
 
 | Category | Before | Now | How |
 | --- | ---: | ---: | --- |
-| Hero (Cloth + Leather sets, weapon and hat layers) | 214 | 214 | Full quality, about 4 per clip. Chain and Plate deferred. Tiered weapons and hats are recolours. |
+| Hero (Cloth + Leather sets, weapon and hat layers) | 214 | 198 | Full quality, about 4 per clip; run replaces walk. One-handed attacks first. Chain and Plate deferred. |
 | Mobs and named variants | 254 | 420 | Walk, attack, hurt and die for every mob, at about 3 per clip. Variants are recolours. Small or rare mobs get fewer frames. The boss gets a full set. |
 | Effects (skills, spells, hits, level-up, pickup) | 130 | 258 | Kept in full, about 3 per animated effect |
 | Portraits (7) | 140 | 140 | Kept |
@@ -22,18 +22,23 @@ Costs were updated after round 1: animations made at 2× cost about 3 generation
 | Tilesets and terrain | 36 | 36 | One base tileset with palette swaps. Caves are unique. |
 | Buildings | 12 | 12 | Static |
 | UI and font | 10 | 10 | CSS plus 5 nine-slice frames, and an open-licence web font |
-| **Paid total** | **1042** | **1342** | |
-| Style tests (free trial) | 18 | 25 | 15 used in round 1, and about 10 planned for round 2 |
+| **Paid total** | **1042** | **1326** | |
+| Style tests (free trial) | 18 | 32 | Round 1 used 15 and round 2 used 9; round 3 plans about 8 |
 
-By phase: **Phase 2** paid test 192 · **Phase 3** production 1,150 (Meadow West 100 · Town 168 · Meadow East 30 · Sunny Pasture 10 · Dirt Banks 168 · Whisperwood 276 · Global 398).
+By phase: **Phase 2** paid test 184 · **Phase 3** production 1,142 (Meadow West 100 · Town 168 · Meadow East 30 · Sunny Pasture 10 · Dirt Banks 168 · Whisperwood 276 · Global 390).
 
-**Budget fit:** 1,342 fits in **one Tier 1 month** (2,000 generations), with about 650 to spare. That covers retries, new content, or Chain and Plate (about 190) when they're needed. Moving to 1920×1080 art (see below) would add about 36 for wider parallax, and hero clips may cost more on bigger canvases. Run PixelLab's price check before Phase 2.
+**Budget fit:** 1,326 fits in **one Tier 1 month** (2,000 generations), with about 670 to spare. That covers retries, new content, the later grip-type attacks (about 16 per grip type for both looks), or Chain and Plate (about 180) when they're needed. Hero clips from the 320 px source may cost more than 4, and wider parallax may add about 36, so run PixelLab's price check before Phase 2.
+
+**After round 2:** run replaces walk (−8 per look) and attacks belong to grip types (one-handed only for now), for a net change of **−16** (1,342 → 1,326).
 
 ## Approach
 
 ### Gear on the hero
-- **Body armour looks:** Cloth (the Phase 2 set) and Leather are full hero animation sets (11 clips). The equipped body piece picks the look by tier: Cloth and Linen show Cloth; Hide, Leather and Trail show Leather. **Chain and Plate are deferred** until gear of that tier exists.
-- **Weapons and hats are paper-doll layers**, pinned to per-frame hand and head anchors. Claude marks the anchors once per clip, which costs no generations. Items of the same type in higher tiers are recolours: for example, the Steel Sword is a recoloured Short Sword, and Steel and Rusty Dagger share one shape.
+- **Body armour looks:** Cloth (the Phase 2 set) and Leather are full hero animation sets (10 clips). The equipped body piece picks the look by tier: Cloth and Linen show Cloth; Hide, Leather and Trail show Leather. **Chain and Plate are deferred** until gear of that tier exists.
+- **Weapons are paper-doll layers that move with the hero.** Every hero frame records a **hand point and angle**, and the weapon is pinned and rotated to it in idle, run and attacks. Hats use a **head point** the same way. Recording the points costs no generations.
+- **Grip types:** one-handed (sword, club, dagger), two-handed, staff and bow. Each grip type has its own attack animations; idle, run and the other clips are shared. A new weapon costs 1 sprite, and only a new grip type needs new hero animation. **Only one-handed is planned now**; the others come when that gear exists.
+- **Tiers are recolours:** for example, the Steel Sword is a recoloured Short Sword, and Steel and Rusty Dagger share one shape.
+- **Run is the default movement cycle.** Check it for frame timing, leg alternation, body bob and foot sliding.
 
 ### Mobs
 - Every mob gets **walk, attack, hurt and die**, plus idle. Each clip costs about 3 at 2×; boss clips cost about 4.
@@ -65,10 +70,7 @@ Decor, buildings, parallax layers, climbs and water are single static images. Th
 ### Game canvas: 1920×1080 (dev task, needed before production)
 - Today the game is drawn at 960×540 and then scaled up with nearest-neighbour, which turns fine pixel art chunky. Switch the Phaser config to **1920×1080**, keeping `Scale.FIT` and `roundPixels`, so art shows crisp at 1:1.
 - Until the new art lands, scale today's placeholder textures 2× at load so nothing breaks. New art loads at 1:1.
-- **Open question: hero size on the new canvas.** At today's scale the hero is about 125 px tall, about 23% of the screen height.
-  - Keeping 125 px on a 1080-tall screen halves the hero on screen. Everything gets smaller and more of the map shows.
-  - Doubling the hero to about 250 px would need a 500 px source, but Tier 1 caps the canvas at 320 px. The 2×-then-half rule therefore caps final sprites at about 160 px.
-  - **Recommendation:** make the hero about **160 px** on the 1920×1080 canvas, the largest the recipe allows on Tier 1. The hero reads slightly smaller than today and more of each area shows. Scale mobs and props in proportion, about 1.3× the sizes in the tables below. Decide after round 2's 1920×1080 mock.
+- **Size:** generate from the largest converter source (a hero about **320 px** tall) and halve it, so the hero is about **160 px** in game. All other assets use the same scale, about 1.3× the sizes in the tables below.
 
 ## PixelLab constraints and cost assumptions
 - **Free trial:** 40 generations, canvas up to **200×200**, standard tools only, and no map tools.
@@ -91,7 +93,8 @@ The moodboard is in **[art-direction/README.md](../art-direction/README.md)**: s
 ## Phase 1 — Free style tests
 
 - **Round 1 (done):** 15 of 40 generations used. Outputs and the comparison are in `art-direction/tests/round-1/`. Oded chose hero 3.
-- **Round 2:** [art-direction/style-test-round-2.md](../art-direction/style-test-round-2.md). The recipe is applied to the hero (Leather and Cloth), the sheep and the Wooden Sword (about 4), plus one Leather walk at 2× (about 3). It also commits the finishing script and runs the canvas check. That's about 7 generations, at most 10 with retries.
+- **Round 2 (done, on Claude's branch `claude/stoic-pasteur-ehwb9l`, not merged):** 9 used. The look is approved, but the sprites were too small (the hero was 96 px).
+- **Round 3:** [art-direction/style-test-round-3.md](../art-direction/style-test-round-3.md): full size, the run cycle, and the sword pinned to the hand. About 8 or fewer of the 16 left.
 
 ## Phase 2 — Paid test round (Tier 1)
 
@@ -99,7 +102,7 @@ One of each key thing, playable in a Meadow West build: the hero set, a mob, a t
 
 | Asset | Size | Animation | Gens | Notes |
 | --- | --- | --- | ---: | --- |
-| Hero, Cloth: full set | 128px | idle, walk, run, jump, fall, climb, basic slash, overhead smash, cast, hurt, death (11) | 96 | base 4 + 4 per clip, ×2 |
+| Hero, Cloth: full set | 160px (320 source) | idle, run, jump, fall, climb, one-handed slash, one-handed overhead smash, cast, hurt, death (10) | 88 | base 4 + 4 per clip, ×2 |
 | Boar (lvl 5) | 96px | idle, walk, attack (charge), hurt, die | 32 | the mob template for all others |
 | Base tileset: grass ground + plank platform | 32px tiles | — | 4 | palette-swapped for later areas |
 | Meadow West parallax: far hills, near hills, clouds | screen wide | static (code scroll and drift) | 18 | unique, first area; sky is a code gradient |
@@ -109,7 +112,7 @@ One of each key thing, playable in a Meadow West build: the hero set, a mob, a t
 | UI panel 9-slice frame | 48-96px | — | 2 | |
 | Power Strike skill icon | 36-48px | — | 2 | |
 | Basic slash effect | 64x40 | 4-6 frames | 8 | code adds hit-stop, shake and particles |
-| **Subtotal** | | | **192** | |
+| **Subtotal** | | | **184** | |
 
 ## Phase 3 — Production
 
@@ -204,8 +207,8 @@ One batch per area, in this order, each with its approved concept sheet. A mob t
 
 | Asset | Size | Animation | Gens | Notes |
 | --- | --- | --- | ---: | --- |
-| Hero, Leather: full set | 128px | 11 clips | 96 | re-dress + 4 per clip, ×2 |
-| Weapon layers: 8 shapes cover all 12 (Club, Stone Club, Short Sword, Meadow Blade, Dagger, Bone Knife, Staff, Grove Staff) | ~24-48px | pinned at the hand | 16 | Steel Sword, Rusty and Steel Dagger, Worn and Steel Staff are recolours |
+| Hero, Leather: full set | 160px (320 source) | the same 10 clips | 88 | re-dress + 4 per clip, ×2 |
+| Weapon layers (pinned to the hand point and angle): 8 shapes cover all 12 (Club, Stone Club, Short Sword, Meadow Blade, Dagger, Bone Knife, Staff, Grove Staff) | ~24-48px | pinned at the hand | 16 | Steel Sword, Rusty and Steel Dagger, Worn and Steel Staff are recolours |
 | Hat layers: Cap, Linen Hood, Trail Cap (cover all 5) | ~32px | pinned at the head | 6 | Cloth, Hide and Leather Cap are recolours |
 | Item icons: about 100 live, about 75 unique shapes | 32-48px | — | 38 | sheets of about 4, with tiers recoloured |
 | Skill icons (10 more live skills) | 36-48px | ready glow in code | 20 | one at a time |
@@ -214,7 +217,7 @@ One batch per area, in this order, each with its approved concept sheet. A mob t
 | Spell FX: Magic Bolt, Fire Bolt, Thorn Volley, Chain Spark (projectile + impact) | 16-64px | loop + impact | 64 | |
 | General FX: hit spark, crit spark, death poof, heal sparkle, level-up burst, pickup sparkle, Mara slap swipe | 24-96px | 4-8 frames | 56 | |
 | UI 9-slice frames: button, slot, tooltip/dialogue, bar frame | 48-96px | — | 8 | everything else is CSS |
-| **Subtotal** | | | **398** | |
+| **Subtotal** | | | **390** | |
 
 ## Deferred until needed
 - **Chain and Plate hero looks** (about 96 each), when gear of that tier is added.
