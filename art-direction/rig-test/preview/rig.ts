@@ -1,8 +1,9 @@
 // Light custom bone rig for the hero (rig test, not game code).
 //
-// Why custom and not DragonBones/Spine: the hero is 14 cut-out parts on ~18
-// bones; plain forward kinematics is ~150 lines, needs no editor, no runtime
-// dependency, and poses are code (easy to tune and to drive from game state).
+// Why custom and not DragonBones/Spine: the hero is 15 cut-out parts on ~21
+// bones; forward kinematics + two-bone leg IK is ~200 lines, needs no editor,
+// no runtime dependency, and poses are code (easy to tune and to drive from
+// game state).
 //
 // Layout: one root Container at the feet (squash & stretch scales it, so it
 // squashes about the ground). Every part is a flat Image inside it, positioned
@@ -11,9 +12,9 @@
 import Phaser from 'phaser';
 
 export type Bone =
-  | 'root' | 'hips' | 'torso' | 'neck' | 'head' | 'hair' | 'scarf' | 'scarf_tail'
+  | 'root' | 'hips' | 'pelvis' | 'torso' | 'neck' | 'head' | 'hair' | 'scarf' | 'scarf_tail'
   | 'shoulder_f' | 'elbow_f' | 'hand_f' | 'shoulder_b' | 'elbow_b' | 'hand_b'
-  | 'hip_f' | 'knee_f' | 'hip_b' | 'knee_b';
+  | 'hip_f' | 'knee_f' | 'hip_b' | 'knee_b' | 'ankle_f' | 'ankle_b';
 
 /** A pose: bone angles in degrees (positive = clockwise on screen, so a hanging
  *  limb swings backward), plus hip offset and squash. Missing = 0 / 1. */
@@ -21,6 +22,12 @@ export interface Pose {
   a: Partial<Record<Bone, number>>;
   hipX?: number; hipY?: number; // base px
   sx?: number; sy?: number;     // squash & stretch about the feet
+  /** Leg IK: ankle offset (base px) from its rest spot. A leg with a target
+   *  ignores its hip/knee angles, so a planted foot never slides. */
+  feet?: { f?: [number, number]; b?: [number, number] };
+  /** Sword: apparent length (1 = full, <1 = foreshortened, pointing at or
+   *  away from the camera) and whether it is in front of the body. */
+  sword?: { len?: number; front?: boolean };
 }
 
 interface RigJson {
@@ -40,6 +47,8 @@ export class HeroRig {
   private local: Record<string, [number, number]> = {};
   private world: Record<string, { x: number; y: number; r: number }> = {};
   private imgs: { img: Phaser.GameObjects.Image; bone: Bone }[] = [];
+  private swordImg?: Phaser.GameObjects.Image;
+  private swordSlot = 0;
   private springs: Spring[];
   private prev = new Map<Bone, { x: number; y: number; vx: number; vy: number; r: number; w: number }>();
   /** world speed the rig is moving at (base px/s): drives hair/scarf drag. */
@@ -68,6 +77,7 @@ export class HeroRig {
       img.setOrigin(piv.pivotX, piv.pivotY);
       this.root.add(img);
       this.imgs.push({ img, bone: this.rig.parts[part].bone });
+      if (part === 'sword') { this.swordImg = img; this.swordSlot = this.root.length - 1; }
     }
     // Secondary motion: damped angular springs. `com` is the centre of mass
     // of the hanging part relative to its joint (base px); the spring feels
@@ -87,6 +97,51 @@ export class HeroRig {
 
   /** Apply a pose, then step secondary motion by dt seconds. */
   apply(p: Pose, dt: number) {
+    this.solve(p);
+    if (p.feet) {
+      for (const side of ['f', 'b'] as const) {
+        const off = p.feet[side];
+        if (off) this.legIK(p, side, off);
+      }
+      this.solve(p);
+    }
+    for (const { img, bone } of this.imgs) {
+      const w = this.world[bone];
+      img.setPosition(w.x, w.y).setRotation(w.r);
+    }
+    const sw = this.swordImg;
+    if (sw) {
+      sw.setScale(1, p.sword?.len ?? 1);
+      this.root.moveTo(sw, p.sword?.front ? this.root.length - 1 : this.swordSlot);
+    }
+    this.setScale(p.sx ?? 1, p.sy ?? 1);
+    if (dt > 0) this.stepSprings(dt);
+  }
+
+  /** Two-bone IK: set hip/knee so the ankle reaches rest + off, knee forward. */
+  private legIK(p: Pose, side: 'f' | 'b', off: [number, number]) {
+    const b = this.rig.bones;
+    const hip = `hip_${side}` as Bone, knee = `knee_${side}` as Bone, ank = `ankle_${side}` as Bone;
+    const rootAt = b.root.at;
+    const thighRest = [b[knee].at[0] - b[hip].at[0], b[knee].at[1] - b[hip].at[1]];
+    const shinRest = [b[ank].at[0] - b[knee].at[0], b[ank].at[1] - b[knee].at[1]];
+    const L1 = Math.hypot(thighRest[0], thighRest[1]), L2 = Math.hypot(shinRest[0], shinRest[1]);
+    const H = this.world[hip];
+    const tx = b[ank].at[0] - rootAt[0] + off[0], ty = b[ank].at[1] - rootAt[1] + off[1];
+    const d = Phaser.Math.Clamp(Math.hypot(tx - H.x, ty - H.y), Math.abs(L1 - L2) + 1, L1 + L2 - 0.5);
+    const phi = Math.atan2(ty - H.y, tx - H.x);
+    const A = Math.acos(Phaser.Math.Clamp((L1 * L1 + d * d - L2 * L2) / (2 * L1 * d), -1, 1));
+    const t1 = phi - A;                                   // knee bends forward (+x)
+    const kx = H.x + L1 * Math.cos(t1), ky = H.y + L1 * Math.sin(t1);
+    const t2 = Math.atan2(ty - ky, tx - kx);
+    const thighWorld = t1 - Math.atan2(thighRest[1], thighRest[0]);
+    const shinWorld = t2 - Math.atan2(shinRest[1], shinRest[0]);
+    const parentR = this.world[b[hip].parent!].r;
+    p.a[hip] = (thighWorld - parentR) / D2R;
+    p.a[knee] = (shinWorld - thighWorld) / D2R;
+  }
+
+  private solve(p: Pose) {
     const b = this.rig.bones;
     const sp = new Map(this.springs.map(s => [s.bone, s]));
     for (const n of this.order) {
@@ -99,12 +154,6 @@ export class HeroRig {
       const c = Math.cos(pw.r), s = Math.sin(pw.r);
       this.world[n] = { x: pw.x + lx * c - ly * s, y: pw.y + lx * s + ly * c, r: pw.r + ang * D2R };
     }
-    for (const { img, bone } of this.imgs) {
-      const w = this.world[bone];
-      img.setPosition(w.x, w.y).setRotation(w.r);
-    }
-    this.setScale(p.sx ?? 1, p.sy ?? 1);
-    if (dt > 0) this.stepSprings(dt);
   }
 
   private stepSprings(dt: number) {

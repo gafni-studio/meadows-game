@@ -1,6 +1,7 @@
-// Hero poses for the rig test: idle, run, one-handed attack.
+// Hero poses for the rig test (polish 1): idle, run, 2-hit combo.
 // Angles in degrees, positive = clockwise on screen (a hanging limb swings
-// back, a raised torso leans forward). Base px for offsets (hero ~1000 px).
+// back, a raised torso leans forward). Offsets in base px (hero ~1000 px).
+// Feet are placed with IK (`feet`), so they stay planted or follow a path.
 import type { Bone, Pose } from './rig';
 
 const TAU = Math.PI * 2;
@@ -10,14 +11,25 @@ const ease = {
   out: (t: number) => 1 - (1 - t) ** 3,
   in: (t: number) => t * t * t,
   // overshoots then settles: weight at the end of a fast move
-  back: (t: number) => { const c = 1.9; return 1 + (c + 1) * (t - 1) ** 3 + c * (t - 1) ** 2; },
+  back: (t: number) => { const c = 1.7; return 1 + (c + 1) * (t - 1) ** 3 + c * (t - 1) ** 2; },
 };
 type Ease = keyof typeof ease;
 
-/** The hand angle that puts the sword at a world angle (0 = blade up). */
-function sword(p: Pose, world: number) {
+// ---------- the sword as a 3D direction ----------
+// yaw: 0 = pointing forward, 180 = back, 90 = at the camera (in front of the
+// body); tilt: up from horizontal. A flat swing turns yaw, so the blade
+// foreshortens as it comes round: that is what makes a side slash read in 2D.
+export interface Blade { yaw: number; tilt: number }
+/** A blade in the picture plane, by screen angle (0 = up, 90 = forward). */
+const planar = (a: number): Blade => a >= 0 ? { yaw: 0, tilt: 90 - a } : { yaw: 180, tilt: 90 + a };
+
+function aim(p: Pose, bl: Blade) {
+  const y = bl.yaw * Math.PI / 180, t = bl.tilt * Math.PI / 180;
+  const x = Math.cos(y) * Math.cos(t), up = Math.sin(t), z = Math.sin(y) * Math.cos(t);
+  const world = Math.atan2(x, up) * 180 / Math.PI;
   const a = p.a;
-  p.a.hand_f = world - (a.torso ?? 0) - (a.shoulder_f ?? 0) - (a.elbow_f ?? 0);
+  a.hand_f = world - (a.pelvis ?? 0) - (a.torso ?? 0) - (a.shoulder_f ?? 0) - (a.elbow_f ?? 0);
+  p.sword = { len: Math.max(0.16, Math.hypot(x, up)), front: z > 0.05 };
   return p;
 }
 
@@ -26,109 +38,122 @@ export function idle(t: number): Pose {
   const br = Math.sin(t * TAU / 2.6);            // breath
   const sway = Math.sin(t * TAU / 5.2 + 0.6);   // slow weight shift
   const p: Pose = {
-    hipY: 3 + br * 3, hipX: sway * 3,
+    hipY: 7 + br * 3, hipX: sway * 4,
     sy: 1 + br * 0.008, sx: 1 - br * 0.006,
+    feet: { f: [0, 0], b: [0, 0] },               // planted: knees take the bob
     a: {
-      torso: 1.5 + br * 1.2 + sway * 0.6,
+      pelvis: 1 + sway * 0.6, torso: 0.8 + br * 1.4,
       neck: -br * 1.0, head: -0.5 + Math.sin(t * TAU / 2.6 - 0.7) * 1.4,
       shoulder_f: -3 + Math.sin(t * TAU / 2.6 - 0.5) * 2.2, elbow_f: -16 - br * 2,
-      shoulder_b: -6 + Math.sin(t * TAU / 2.6 - 0.9) * 2, elbow_b: -14,
-      hip_f: -2 - sway * 0.5, knee_f: 2, hip_b: 2 + sway * 0.5, knee_b: 1,
-      hand_b: 0,
+      shoulder_b: -4 + Math.sin(t * TAU / 2.6 - 0.9) * 2, elbow_b: -10,
     },
   };
-  // legs keep the feet planted while the hips dip: bend knees with the bob
-  const dip = (p.hipY ?? 0) - 3;
-  p.a.hip_f! -= dip * 0.35; p.a.knee_f! += dip * 0.7;
-  p.a.hip_b! -= dip * 0.35; p.a.knee_b! += dip * 0.7;
-  return sword(p, 128 + br * 2);
+  return aim(p, planar(128 + br * 2));
 }
 
-// ---------- run: weighty, 0.6 s cycle ----------
-export const RUN_CYCLE = 0.6;
+// ---------- run: low bounce, both legs on one foot path half a cycle apart ----------
+export const RUN_CYCLE = 0.62;
+const STRIDE = 230;          // base px the foot travels while on the ground
+const STANCE = 0.42;         // fraction of the cycle a foot is down
+/** Ground speed that keeps a planted foot still (scrolling ground uses it). */
+export const RUN_SPEED = STRIDE / (STANCE * RUN_CYCLE);
+
+function footPath(u: number): [number, number] {
+  u = ((u % 1) + 1) % 1;
+  const c = 14;                                   // stride centre, a little ahead
+  if (u < STANCE) return [c + STRIDE / 2 - STRIDE * (u / STANCE), 0];
+  const s = (u - STANCE) / (1 - STANCE);
+  const x = c - STRIDE / 2 + STRIDE * (s * s * (3 - 2 * s));
+  // lift early (heel kicks up behind), reach and lower to land
+  return [x, -78 * Math.sin(Math.PI * s ** 0.75)];
+}
+
 export function run(t: number): Pose {
-  const ph = (t / RUN_CYCLE) * TAU;
-  const s = Math.sin(ph), c = Math.cos(ph);
-  // contacts at ph = 0 and π: body lowest just after contact, highest mid-stride
-  const bounce = Math.abs(Math.sin(ph + 0.35));
-  const contact = Math.max(0, Math.cos(2 * ph + 0.5)) ** 3; // squash pulse
-  const legSwing = (p: number) => {
-    const sw = Math.sin(p), cw = Math.cos(p);
-    const hip = -34 * sw - 6;                      // forward is negative
-    // knee folds most while the leg swings through (thigh moving forward)
-    const knee = 12 + 78 * Math.max(0, cw) ** 1.4 + 10 * Math.max(0, sw);
-    return [hip, knee];
-  };
-  const [hf, kf] = legSwing(ph);
-  const [hb, kb] = legSwing(ph + Math.PI);
+  const u = t / RUN_CYCLE;
+  const ph = u * TAU;
+  // body lowest at mid-stance of either foot, highest in the float: small
+  const bob = Math.cos(2 * TAU * (u - STANCE / 2));
+  const land = Math.max(0, Math.cos(2 * TAU * (u - 0.04))) ** 6;
   const p: Pose = {
-    hipY: 6 - 30 * bounce + 14 * contact,
-    hipX: 8,
-    sy: 1 - 0.055 * contact + 0.03 * bounce, sx: 1 + 0.045 * contact - 0.015 * bounce,
+    hipY: 44 + 7 * bob, hipX: 6,
+    sy: 1 - 0.022 * land + 0.008 * (1 - bob), sx: 1 + 0.018 * land,
+    feet: { f: footPath(u), b: footPath(u + 0.5) },
     a: {
-      torso: 9 + 2.5 * Math.sin(2 * ph - 0.6),
-      neck: -4 - 1.5 * Math.sin(2 * ph - 1.1), head: -2 - 1.2 * Math.sin(2 * ph - 1.6),
-      // arms counter-swing the legs; the sword arm swings less (it's carrying)
-      shoulder_f: 26 * s + 6, elbow_f: -48 - 14 * Math.max(0, s),
-      shoulder_b: -34 * s + 4, elbow_b: -55 - 18 * Math.max(0, -s),
-      hip_f: hf, knee_f: kf, hip_b: hb, knee_b: kb,
+      pelvis: 5 + 1.5 * Math.sin(2 * ph), torso: 6 + 1.5 * Math.sin(2 * ph - 0.8),
+      neck: -4 - Math.sin(2 * ph - 1.2), head: -2 - Math.sin(2 * ph - 1.6),
+      // arms counter-swing the legs (front foot is forward at u = 0)
+      shoulder_f: 6 + 22 * Math.cos(ph), elbow_f: -58 - 10 * Math.max(0, Math.cos(ph)),
+      shoulder_b: -6 - 30 * Math.cos(ph), elbow_b: -64 - 14 * Math.max(0, -Math.cos(ph)),
     },
   };
-  void c;
-  return sword(p, 62 + 10 * s);
+  return aim(p, planar(64 + 8 * Math.cos(ph)));
 }
 
-// ---------- attack: anticipation, fast slash, follow-through, recover ----------
-interface Key { t: number; p: Pose; sw: number; e: Ease }
-const k = (t: number, sw: number, e: Ease, p: Pose): Key => ({ t, p, sw, e });
-export const ATTACK_LEN = 0.86;
-const KEYS: Key[] = [
-  k(0.00, 128, 'inOut', { hipY: 3, a: { torso: 1.5, shoulder_f: -3, elbow_f: -16, shoulder_b: -6, elbow_b: -14, hip_f: -2, knee_f: 2, hip_b: 2, knee_b: 1 } }),
-  // wind-up: crouch, lean back, sword cocked high behind the head
-  k(0.24, -158, 'inOut', { hipY: 20, hipX: -14, sy: 0.95, sx: 1.04,
-    a: { torso: -9, neck: 4, head: 2, shoulder_f: 140, elbow_f: -92, shoulder_b: -38, elbow_b: -50,
-      hip_f: -12, knee_f: 22, hip_b: 10, knee_b: 18 } }),
-  // hang at the top a beat (anticipation reads)
-  k(0.30, -166, 'inOut', { hipY: 22, hipX: -16, sy: 0.94, sx: 1.05,
-    a: { torso: -10, neck: 5, head: 2, shoulder_f: 146, elbow_f: -98, shoulder_b: -40, elbow_b: -52,
-      hip_f: -12, knee_f: 24, hip_b: 10, knee_b: 20 } }),
-  // strike: 0.09 s. The arm goes over the top (146 -> 282 = -78 + 360), lunge forward, stretch on the swing
-  k(0.39, 100, 'out', { hipY: 10, hipX: 34, sy: 1.04, sx: 0.97,
-    a: { torso: 15, neck: -5, head: -4, shoulder_f: 282, elbow_f: -6, shoulder_b: 34, elbow_b: -30,
-      hip_f: -34, knee_f: 26, hip_b: 26, knee_b: 6 } }),
-  // follow-through: weight lands, squash, blade carries down
-  k(0.50, 150, 'back', { hipY: 24, hipX: 40, sy: 0.95, sx: 1.05,
-    a: { torso: 18, neck: -6, head: -3, shoulder_f: 318, elbow_f: -10, shoulder_b: 40, elbow_b: -34,
-      hip_f: -36, knee_f: 34, hip_b: 28, knee_b: 12 } }),
-  k(0.62, 146, 'inOut', { hipY: 14, hipX: 30, sy: 0.99, sx: 1.01,
-    a: { torso: 11, neck: -3, head: -2, shoulder_f: 330, elbow_f: -16, shoulder_b: 24, elbow_b: -24,
-      hip_f: -26, knee_f: 22, hip_b: 18, knee_b: 8 } }),
-  // recover to idle
-  k(ATTACK_LEN, 128, 'inOut', { hipY: 3, a: { torso: 1.5, shoulder_f: 357, elbow_f: -16, shoulder_b: -6, elbow_b: -14, hip_f: -2, knee_f: 2, hip_b: 2, knee_b: 1 } }),
+// ---------- 2-hit combo: horizontal side slash, rising backhand, pause ----------
+interface Key { t: number; e: Ease; p: Pose; bl: Blade }
+const IDLE_KEY: Pose = { hipY: 7, feet: { f: [0, 0], b: [0, 0] }, a: { pelvis: 1, torso: 0.8, shoulder_f: -3, elbow_f: -16, shoulder_b: -4, elbow_b: -10 } };
+const key = (t: number, e: Ease, bl: Blade, p: Pose): Key => ({ t, e, bl, p });
+
+export const HITS = [
+  // when each hit lands (s) and the slash arc it draws
+  { t: 0.27, arc: 'side' as const },
+  { t: 0.62, arc: 'rise' as const },
 ];
-const BONES: Bone[] = ['torso', 'neck', 'head', 'shoulder_f', 'elbow_f', 'shoulder_b', 'elbow_b', 'hip_f', 'knee_f', 'hip_b', 'knee_b'];
+export const COMBO_LEN = 1.08;   // then idle for the pause
+export const COMBO_PAUSE = 0.62;
+
+const KEYS: Key[] = [
+  key(0.00, 'inOut', planar(128), IDLE_KEY),
+  // hit 1 wind-up: sink, turn the shoulders away, draw the blade back at
+  // chest height (elbow bent, hand by the back hip), back arm forward
+  key(0.17, 'inOut', { yaw: 172, tilt: 14 }, { hipY: 20, hipX: -10, sy: 0.97, sx: 1.02, feet: { f: [0, 0], b: [0, 0] },
+    a: { pelvis: -3, torso: -9, neck: 5, head: 2, shoulder_f: 58, elbow_f: -72, shoulder_b: -36, elbow_b: -40 } }),
+  key(0.21, 'inOut', { yaw: 176, tilt: 16 }, { hipY: 22, hipX: -12, sy: 0.965, sx: 1.025, feet: { f: [0, 0], b: [0, 0] },
+    a: { pelvis: -4, torso: -10, neck: 5, head: 2, shoulder_f: 62, elbow_f: -76, shoulder_b: -38, elbow_b: -42 } }),
+  // hit 1 strike: step in, shoulders whip round, blade sweeps flat across
+  // the front (yaw 176 -> -30: it foreshortens as it comes round)
+  key(0.27, 'out', { yaw: 20, tilt: 4 }, { hipY: 16, hipX: 30, sy: 1.03, sx: 0.98, feet: { f: [44, -30], b: [0, 0] },
+    a: { pelvis: 6, torso: 14, neck: -5, head: -3, shoulder_f: -84, elbow_f: -12, shoulder_b: 30, elbow_b: -30 } }),
+  key(0.33, 'out', { yaw: -32, tilt: 0 }, { hipY: 22, hipX: 40, sy: 0.96, sx: 1.04, feet: { f: [64, 0], b: [0, 0] },
+    a: { pelvis: 7, torso: 16, neck: -6, head: -3, shoulder_f: -76, elbow_f: -16, shoulder_b: 36, elbow_b: -34 } }),
+  // settle (follow-through carries the blade on round, behind)
+  key(0.44, 'back', { yaw: -48, tilt: -6 }, { hipY: 20, hipX: 36, sy: 0.99, sx: 1.01, feet: { f: [64, 0], b: [0, 0] },
+    a: { pelvis: 6, torso: 12, neck: -4, head: -2, shoulder_f: -62, elbow_f: -26, shoulder_b: 28, elbow_b: -36 } }),
+  // hit 2 gather: blade drops low in front, knees load
+  key(0.55, 'inOut', planar(158), { hipY: 30, hipX: 34, sy: 0.955, sx: 1.03, feet: { f: [64, 0], b: [0, 0] },
+    a: { pelvis: 8, torso: 12, neck: -3, head: 0, shoulder_f: -18, elbow_f: -24, shoulder_b: 22, elbow_b: -40 } }),
+  // hit 2 strike: rise and rip the blade up and forward (rising backhand)
+  key(0.62, 'out', planar(44), { hipY: 8, hipX: 46, sy: 1.045, sx: 0.975, feet: { f: [64, 0], b: [10, 0] },
+    a: { pelvis: 2, torso: 2, neck: -6, head: -5, shoulder_f: -128, elbow_f: -22, shoulder_b: 34, elbow_b: -26 } }),
+  key(0.72, 'back', planar(26), { hipY: 12, hipX: 42, sy: 1.0, sx: 1.0, feet: { f: [64, 0], b: [10, 0] },
+    a: { pelvis: 1, torso: -2, neck: -4, head: -4, shoulder_f: -138, elbow_f: -30, shoulder_b: 26, elbow_b: -30 } }),
+  // recover: step back to the idle spot (front foot lifts on the way)
+  key(0.90, 'inOut', planar(96), { hipY: 12, hipX: 16, feet: { f: [30, -26], b: [4, 0] },
+    a: { pelvis: 1, torso: 2, shoulder_f: -30, elbow_f: -30, shoulder_b: 6, elbow_b: -18 } }),
+  key(COMBO_LEN, 'inOut', planar(128), IDLE_KEY),
+];
+const BONES: Bone[] = ['pelvis', 'torso', 'neck', 'head', 'shoulder_f', 'elbow_f', 'shoulder_b', 'elbow_b'];
 
 function lerpPose(a: Key, b: Key, u: number): Pose {
   const m = (x: number | undefined, y: number | undefined, d: number) => (x ?? d) + ((y ?? d) - (x ?? d)) * u;
+  const ff = (k: Key, s: 'f' | 'b') => k.p.feet?.[s] ?? [0, 0];
+  const v2 = (s: 'f' | 'b'): [number, number] => [m(ff(a, s)[0], ff(b, s)[0], 0), m(ff(a, s)[1], ff(b, s)[1], 0)];
   const p: Pose = {
     hipX: m(a.p.hipX, b.p.hipX, 0), hipY: m(a.p.hipY, b.p.hipY, 0),
     sx: m(a.p.sx, b.p.sx, 1), sy: m(a.p.sy, b.p.sy, 1), a: {},
+    feet: { f: v2('f'), b: v2('b') },
   };
   for (const n of BONES) p.a[n] = m(a.p.a[n], b.p.a[n], 0);
-  return sword(p, a.sw + (b.sw - a.sw) * u);
+  return aim(p, { yaw: m(a.bl.yaw, b.bl.yaw, 0), tilt: m(a.bl.tilt, b.bl.tilt, 0) });
 }
 
-/** Attack pose at t seconds (0..ATTACK_LEN); `strike` is 0..1 while the blade is fast. */
-export function attack(t: number): Pose & { strike: number } {
-  t = Math.max(0, Math.min(ATTACK_LEN, t));
+/** Combo pose at t seconds into the loop (combo, then the pause in idle). */
+export function combo(t: number): Pose {
+  if (t >= COMBO_LEN) return idle(t);
   let i = 0;
   while (i < KEYS.length - 2 && t > KEYS[i + 1].t) i++;
   const a = KEYS[i], b = KEYS[i + 1];
-  const u = ease[b.e]((t - a.t) / (b.t - a.t));
-  const p = lerpPose(a, b, u);
-  // small idle life layered on top so holds never freeze
-  const br = Math.sin(t * TAU / 2.6);
-  p.a.torso! += br * 0.8;
-  const strike = t > 0.3 && t < 0.52 ? 1 : 0;
-  return Object.assign(p, { strike });
+  const p = lerpPose(a, b, ease[b.e](Math.min(1, (t - a.t) / (b.t - a.t))));
+  p.a.torso! += Math.sin(t * TAU / 2.6) * 0.8;   // a little life in the holds
+  return p;
 }

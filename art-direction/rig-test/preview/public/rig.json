@@ -14,11 +14,18 @@
     718
    ]
   },
-  "torso": {
+  "pelvis": {
    "parent": "hips",
    "at": [
     440,
     718
+   ]
+  },
+  "torso": {
+   "parent": "pelvis",
+   "at": [
+    445,
+    590
    ]
   },
   "neck": {
@@ -87,19 +94,19 @@
   "elbow_b": {
    "parent": "shoulder_b",
    "at": [
-    456,
-    590
+    463,
+    577
    ]
   },
   "hand_b": {
    "parent": "elbow_b",
    "at": [
-    460,
-    702
+    486,
+    672
    ]
   },
   "hip_f": {
-   "parent": "hips",
+   "parent": "pelvis",
    "at": [
     396,
     722
@@ -113,7 +120,7 @@
    ]
   },
   "hip_b": {
-   "parent": "hips",
+   "parent": "pelvis",
    "at": [
     482,
     722
@@ -124,6 +131,20 @@
    "at": [
     474,
     876
+   ]
+  },
+  "ankle_f": {
+   "parent": "knee_f",
+   "at": [
+    372,
+    1002
+   ]
+  },
+  "ankle_b": {
+   "parent": "knee_b",
+   "at": [
+    468,
+    988
    ]
   }
  },
@@ -146,7 +167,10 @@
   "shin_f": {
    "bone": "knee_f"
   },
-  "torso": {
+  "hips": {
+   "bone": "pelvis"
+  },
+  "chest": {
    "bone": "torso"
   },
   "scarf_tail": {
@@ -178,7 +202,8 @@
   "shin_b",
   "thigh_f",
   "shin_f",
-  "torso",
+  "hips",
+  "chest",
   "scarf_tail",
   "head",
   "hair",

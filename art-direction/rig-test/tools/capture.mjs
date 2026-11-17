@@ -14,7 +14,7 @@ const CHROME = process.env.CHROME_PATH ?? ['/usr/bin/google-chrome', '/opt/pw-br
 const RIG = dirname(dirname(fileURLToPath(import.meta.url)));
 const OUT = join(RIG, 'out');
 const SECONDS = Number(process.argv[2] ?? 6.8);
-const STILL_AT = Number(process.env.STILL_AT ?? 1.05); // s: the attack strike frame
+const STILL_AT = Number(process.env.STILL_AT ?? 0.97); // s: hit 1, slash arc mid-sweep
 
 execSync(`npx vite build ${join(RIG, 'preview')} --outDir ${join(RIG, 'build')} --emptyOutDir --base ./ --logLevel warn`, { stdio: 'inherit' });
 const server = spawn(process.execPath, [join(RIG, '../../node_modules/vite/bin/vite.js'), 'preview', '--outDir', join(RIG, 'build'), '--port', '4188', '--strictPort'], { cwd: join(RIG, 'preview') });

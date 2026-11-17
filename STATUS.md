@@ -11,7 +11,7 @@ Hero (internal id `warrior`) walks two Paths: Warrior (Power Strike → Earthbre
 
 ## In flight
 - v0.3.1 is released; waiting for Oded's playtest notes.
-- Hero rig test (`art-direction/rig-test/`, branch `claude/meadows-rig-test-brief-flyi1i`, not on main): parts cut from `hero/base.jpg`, a light custom bone rig in Phaser (idle, run, attack, spring hair/scarf), mock + MP4/GIF in `out/`. Waiting for Oded's verdict; see `art-direction/rig-test/REPORT.md`. No game code changed.
+- Hero rig test (`art-direction/rig-test/`, branch `claude/meadows-rig-test-brief-flyi1i`, not on main). Polish 1 is done: chest/hips split, leg IK, the drawn back arm and bigger sword, a calmer run, and a 2-hit combo (side slash, rising backhand) with slash arc, spark and shake. Mock and MP4 are in `out/`, notes in `REPORT.md`. Waiting for Oded's verdict; next is a sheep rig. No game code changed.
 
 ## Next
 - Playtest v0.3.1: Boar and Angry Bull timings (`MONSTER_FEEL` / `MOB_KIND` in `assumptions.ts`), Sunny Pasture pacing 3–5, the slap, farm list and tracker readability.

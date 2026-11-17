@@ -232,25 +232,70 @@ hair_alpha = np.minimum(soft_alpha(hair_mask), feather)
 parts["hair"] = (src.copy(), hair_mask, hair_alpha)
 ORDER.insert(ORDER.index("head") + 1, "hair")
 
-# back arm: the base hides it, so it is the front arm, re-used and darkened
-for f, b in (("upperarm_f", "upperarm_b"), ("forearm_f", "forearm_b")):
-    rgb, m = parts[f][:2]
-    dark = (rgb.astype(np.float32) * np.array([0.80, 0.73, 0.66])).astype(np.int32)
-    parts[b] = (dark, m)
+# polish-1: torso splits at the belt so the body bends. The chest keeps
+# everything down to the belt's lower outline; the hips start 44 px higher,
+# under the chest, so a bend never opens a gap (the overlap is real pixels).
+BELT_BOTTOM = 601
+t_rgb, t_mask = parts.pop("torso")
+parts["chest"] = (t_rgb, t_mask & (yy <= BELT_BOTTOM))
+parts["hips"] = (t_rgb, t_mask & (yy >= BELT_BOTTOM - 44))
+ORDER[ORDER.index("torso"):ORDER.index("torso") + 1] = ["hips", "chest"]
 
-# ---------- sword (Wooden Sword, from concepts/round1.jpg) ----------
-c = np.array(Image.open(os.path.join(ROOT, "art-direction", "concepts", "round1.jpg")).convert("RGB")).astype(np.int32)
-c = c[285:415, 410:755]
-cbg = flood_bg(c, (np.abs(c - np.array([253, 237, 212])).sum(2) < 40))
-sword_rgb = c
-sword_mask = ~cbg
+# ---------- polish-1: back arm and sword from hero/backarm-sword.jpg ----------
+ba = np.array(Image.open(os.path.join(RIG, "hero", "backarm-sword.jpg")).convert("RGB")).astype(np.int32)
+ba_ch = ba.max(2) - ba.min(2)
+ba_fg = ~flood_bg(None, (ba_ch < 10) & (ba.mean(2) > 180) & (ba.mean(2) < 215))
+
+
+def cut_sheet(box, scale, shade=1.0, cap_at=None, cap_r=0, cap_col=None, top=0):
+    """Cut a piece from backarm-sword.jpg; returns RGBA scaled to the hero.
+    `top`: sheet rows above it belong to another piece."""
+    x0, y0, x1, y1 = box
+    rgb = ba[y0:y1, x0:x1].copy()
+    m = ba_fg[y0:y1, x0:x1].copy()
+    m[:max(0, top - y0)] = False
+    if cap_at is not None:  # painted joint cap (hidden under the parent's end)
+        cm = np.zeros_like(m)
+        cy_, cx_ = np.mgrid[0:y1 - y0, 0:x1 - x0]
+        cm = ((cx_ - (cap_at[0] - x0)) ** 2 + (cy_ - (cap_at[1] - y0)) ** 2 <= cap_r ** 2) & ~m
+        rgb[cm] = cap_col
+        edge = cm & morph_local(~(m | cm), 3)
+        rgb[edge] = OUTLINE
+        m = m | cm
+    rgb = (rgb * shade).astype(np.int32)
+    a = np.where(m, 255, 0)
+    a = np.minimum(a, np.array(Image.fromarray(a.astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.7))) + 0)
+    a = np.where(m, np.maximum(a, 0), 0)
+    img = Image.fromarray(np.dstack([np.clip(rgb, 0, 255), a]).astype(np.uint8), "RGBA")
+    return img.resize((round(img.width * scale), round(img.height * scale)), Image.LANCZOS), (x0, y0)
+
+
+def morph_local(mask, r):
+    img = Image.fromarray((mask * 255).astype(np.uint8))
+    return np.array(img.filter(ImageFilter.MaxFilter(2 * r + 1))) > 127
+
+
+# sleeve: scale matches the front sleeve's length (shoulder 418 -> elbow 590)
+S_UA, S_FA = 0.82, 0.74
+UA_SHOULDER, UA_ELBOW = (322, 104), (304, 300)      # in backarm-sword.jpg px
+FA_ELBOW, FA_HAND = (305, 372), (336, 500)
+BACK_SHADE = 0.9                                     # it sits behind the body
+ua_img, ua_o = cut_sheet((225, 55, 395, 345), S_UA, BACK_SHADE)
+fa_img, fa_o = cut_sheet((235, 320, 440, 625), S_FA, BACK_SHADE, cap_at=FA_ELBOW, cap_r=46, cap_col=(96, 56, 28), top=345)
+
+sw_img, sw_o = cut_sheet((615, 250, 1200, 450), 1.0)
+SWORD_LEN = 350                                      # about the hero's leg (hip 722 -> sole 1062)
+SWORD_GRIP = 0.184                                   # grip centre, as a fraction from the pommel
+sw_scale = SWORD_LEN / (1182 - 630)
+sword_img = sw_img.resize((round(sw_img.width * sw_scale), round(sw_img.height * sw_scale)), Image.LANCZOS).rotate(90, expand=True)
 
 # ---------- rig (pivots in base.jpg pixels) ----------
 # parent, joint position, layer (low = behind)
 BONES = {
     "root":       {"parent": None,         "at": [440, 1062]},
     "hips":       {"parent": "root",       "at": [440, 718]},
-    "torso":      {"parent": "hips",       "at": [440, 718]},
+    "pelvis":     {"parent": "hips",       "at": [440, 718]},
+    "torso":      {"parent": "pelvis",     "at": [445, 590]},
     "neck":       {"parent": "torso",      "at": [452, 362]},
     "head":       {"parent": "neck",       "at": [452, 362]},
     "hair":       {"parent": "head",       "at": [410, 210]},
@@ -260,25 +305,32 @@ BONES = {
     "elbow_f":    {"parent": "shoulder_f", "at": [352, 590]},
     "hand_f":     {"parent": "elbow_f",    "at": [356, 702]},
     "shoulder_b": {"parent": "torso",      "at": [478, 416]},
-    "elbow_b":    {"parent": "shoulder_b", "at": [456, 590]},
-    "hand_b":     {"parent": "elbow_b",    "at": [460, 702]},
-    "hip_f":      {"parent": "hips",       "at": [396, 722]},
+    "elbow_b":    {"parent": "shoulder_b", "at": [478 + round((UA_ELBOW[0] - UA_SHOULDER[0]) * S_UA),
+                                              416 + round((UA_ELBOW[1] - UA_SHOULDER[1]) * S_UA)]},
+    "hand_b":     {"parent": "elbow_b",    "at": [0, 0]},
+    "hip_f":      {"parent": "pelvis",     "at": [396, 722]},
     "knee_f":     {"parent": "hip_f",      "at": [380, 880]},
-    "hip_b":      {"parent": "hips",       "at": [482, 722]},
+    "hip_b":      {"parent": "pelvis",     "at": [482, 722]},
     "knee_b":     {"parent": "hip_b",      "at": [474, 876]},
+    # IK end points (no art): the ankle inside each boot
+    "ankle_f":    {"parent": "knee_f",     "at": [372, 1002]},
+    "ankle_b":    {"parent": "knee_b",     "at": [468, 988]},
 }
-# part -> bone, offset of the back-arm copies (they are cut at the front arm)
+eb = BONES["elbow_b"]["at"]
+BONES["hand_b"]["at"] = [eb[0] + round((FA_HAND[0] - FA_ELBOW[0]) * S_FA), eb[1] + round((FA_HAND[1] - FA_ELBOW[1]) * S_FA)]
+# part -> bone, offset of the art from its joint (unused now; kept for copies)
 PART_BONE = {
-    "upperarm_b": ("shoulder_b", [104, -2]), "forearm_b": ("elbow_b", [104, -2]),
+    "upperarm_b": ("shoulder_b", [0, 0]), "forearm_b": ("elbow_b", [0, 0]),
+    "chest": ("torso", [0, 0]), "hips": ("pelvis", [0, 0]),
     "thigh_b": ("hip_b", [0, 0]), "shin_b": ("knee_b", [0, 0]),
     "thigh_f": ("hip_f", [0, 0]), "shin_f": ("knee_f", [0, 0]),
-    "torso": ("torso", [0, 0]), "scarf_tail": ("scarf_tail", [0, 0]),
+    "scarf_tail": ("scarf_tail", [0, 0]),
     "head": ("head", [0, 0]), "hair": ("hair", [0, 0]),
     "sword": ("hand_f", [0, 0]),
     "forearm_f": ("elbow_f", [0, 0]), "upperarm_f": ("shoulder_f", [0, 0]),
     "scarf": ("scarf", [0, 0]),
 }
-DRAW = ["upperarm_b", "forearm_b", "thigh_b", "shin_b", "thigh_f", "shin_f", "torso",
+DRAW = ["upperarm_b", "forearm_b", "thigh_b", "shin_b", "thigh_f", "shin_f", "hips", "chest",
         "scarf_tail", "head", "hair", "sword", "forearm_f", "upperarm_f", "scarf"]
 
 # ---------- export ----------
@@ -294,16 +346,19 @@ for name, val in parts.items():
     rgba = np.dstack([np.clip(rgb, 0, 255), a]).astype(np.uint8)[y0:y1, x0:x1]
     images[name] = (Image.fromarray(rgba, "RGBA"), (int(x0), int(y0)))
 
-ys, xs = np.where(sword_mask)
-s = np.dstack([sword_rgb, soft_alpha(sword_mask)]).astype(np.uint8)[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
-sword = Image.fromarray(s, "RGBA")
-# sized to the hero: blade ~1.5 head heights; grip centre on the hand point,
-# blade pointing up (the rig rotates it).
-sw = 300 / sword.width
-sword = sword.resize((round(sword.width * sw), round(sword.height * sw)), Image.LANCZOS).rotate(90, expand=True)
-grip_from_top = int(sword.height * 0.86)  # grip centre (pommel at the bottom)
+def place_on(img, origin, scale, pivot, bone):
+    """Offset (base px) that puts `pivot` (sheet px) on the bone's joint."""
+    bx, by = BONES[bone]["at"]
+    return (img, (round(bx - (pivot[0] - origin[0]) * scale), round(by - (pivot[1] - origin[1]) * scale)))
+
+
+images["upperarm_b"] = place_on(ua_img, ua_o, S_UA, UA_SHOULDER, "shoulder_b")
+images["forearm_b"] = place_on(fa_img, fa_o, S_FA, FA_ELBOW, "elbow_b")
+# sword: blade up after the rotation; grip centre on the hand point
+# (the trimmed sheet box starts 15 px before the pommel)
+grip_from_top = round(sword_img.height - (15 + (1182 - 630) * SWORD_GRIP) * sw_scale)
 hx, hy = BONES["hand_f"]["at"]
-images["sword"] = (sword, (hx - sword.width // 2, hy - grip_from_top))
+images["sword"] = (sword_img, (hx - sword_img.width // 2, hy - grip_from_top))
 
 for name, (img, _) in images.items():
     img.save(os.path.join(OUT_PARTS, f"{name}.png"))
@@ -351,15 +406,13 @@ json.dump(rig, open(os.path.join(OUT_PUB, "rig.json"), "w"), indent=1)
 canvas = Image.new("RGBA", (W, H), (197, 197, 197, 255))
 for n in DRAW:
     img, (ox, oy) = images[n]
-    if n.endswith("_b") and n.startswith(("upper", "fore")):
-        ox += PART_BONE[n][1][0]; oy += PART_BONE[n][1][1]
     canvas.alpha_composite(img, (ox, oy))
 canvas.convert("RGB").save(os.path.join(OUT_PARTS, "_rest.png"))
 
 ex = Image.new("RGBA", (1500, 1250), (197, 197, 197, 255))
 spots = {"head": (40, 20), "hair": (420, 20), "scarf": (760, 40), "scarf_tail": (1020, 40),
-         "torso": (40, 420), "upperarm_f": (420, 420), "forearm_f": (600, 420),
-         "upperarm_b": (760, 420), "forearm_b": (940, 420), "sword": (1120, 380),
+         "chest": (40, 400), "hips": (220, 560), "upperarm_f": (420, 420), "forearm_f": (600, 420),
+         "upperarm_b": (760, 420), "forearm_b": (940, 420), "sword": (1120, 300),
          "thigh_f": (420, 800), "shin_f": (600, 800), "thigh_b": (820, 800), "shin_b": (1000, 800)}
 for n, p in spots.items():
     ex.alpha_composite(images[n][0], p)

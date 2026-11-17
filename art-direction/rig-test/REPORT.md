@@ -1,5 +1,37 @@
 # Rig test: hero, report
 
+## Polish 1 (`polish-1.md`)
+
+Outputs, updated in place:
+- **Mock:** `out/mock-1920x1080.png`, frozen on hit 1 with its slash arc and spark.
+- **Recording:** `out/rig-test.mp4`, 6.8 s, plus `out/rig-test.gif`. Idle, run and the 2-hit combo loop together; the combo has its pause before repeating.
+- **Contact sheets:** `out/sheet-run.png` and `out/sheet-combo.png`.
+
+| Fix | What changed |
+| --- | --- |
+| **Torso split** | Chest and hips are separate parts, split at the belt. The chest keeps everything down to the belt's lower outline. The hips start 44 px higher, underneath, so the overlap is real pixels and bending never opens a gap. A new `pelvis` bone carries the hips and legs, and the chest turns on its own `torso` bone at the waist. |
+| **Leg IK** | Two-bone IK on both legs with knees bending forward, using new ankle end bones. Idle and the combo plant both feet; the hips bob, shift and lunge while the knees take it. The lunge foot steps forward on a lifted arc, plants, then steps back. There's no sliding. |
+| **Back arm** | The drawn sleeve and open gloved hand from `backarm-sword.jpg`, scaled to the front arm (sleeve ×0.82, glove ×0.74) and shaded 10 % darker because it sits behind the body. The glove gets a painted cap that hides under the sleeve roll. |
+| **Sword** | The new wooden sword, 350 px long (the hero's leg is 340 px, hip to sole). The grip centre sits on the hand point. |
+| **Run** | Rebuilt on the IK. Both feet follow one foot path, half a cycle apart, so stride and timing match and there's no limp. Bounce is cut from 30 px to ±7 px, with a 2 % squash on landing. The scrolling ground moves at the planted foot's speed (stride ÷ stance time), so the feet don't skate. |
+| **Attack** | Hit 1 is a horizontal side slash. The wind-up sinks, turns the shoulders away and draws the blade back at chest height with the elbow bent. The blade then sweeps flat round the front: its direction is 3D (yaw and tilt), so it foreshortens as it comes round, and it draws in front of the body on the near half of the swing. |
+| **Combo** | Hit 1 (side slash) at 0.27 s, then hit 2 at 0.62 s: a rising backhand from low in front. Recovery steps back to the idle spot, then a 0.62 s pause, then the loop repeats (1.7 s in all). |
+| **Impact** | `fx.ts`: a procedural crescent along each hit's path, in three layers (warm glow, bright core, white edge). The head races out, the tail catches up and the width peaks just behind the head, as in the cyclic-slash shader. Each hit also gets a spark (flash plus 9 rays) and a 90 ms light camera shake, on the big hero only. |
+
+**Judgment calls**
+- **Graphics, not a shader:** the slash is drawn with Graphics rather than a WebGL shader. It's cheap, easy to tune, and fine until the fuller effects pass.
+- **"Right leg":** I read it as the far (back) leg, but the fix makes both legs identical anyway.
+- **Hit 2's shape:** a rising backhand, so the two hits differ in both direction and plane: flat, then vertical.
+
+**Still not perfect**
+- **Boot tilt:** each boot is one piece with its shin, so a planted boot tilts slightly as the knee bends. A separate foot bone would fix it.
+- **Side slash, mid-sweep:** the foreshortened blade is short and reads mainly through the arc. That's normal for 2D, but a wider blade-on frame could sell it more.
+- **Run arms:** the front arm still carries the sword fairly rigidly.
+
+---
+
+## Round 1 (original brief)
+
 Brief: [`brief.md`](brief.md). Branch: `claude/meadows-rig-test-brief-flyi1i` (main is untouched).
 
 ## What was made
@@ -8,7 +40,7 @@ Brief: [`brief.md`](brief.md). Branch: `claude/meadows-rig-test-brief-flyi1i` (m
 | --- | --- |
 | **Mock, 1920×1080** | [`out/mock-1920x1080.png`](out/mock-1920x1080.png): idle, run and attack (strike frame) at inspection size, with all three at game scale (160 px) underneath |
 | **Recording** | [`out/rig-test.mp4`](out/rig-test.mp4) (1920×1080, 30 fps, 6.8 s), [`out/rig-test.gif`](out/rig-test.gif) (960 px, 25 fps) |
-| **Contact sheets** | [`out/sheet-run.png`](out/sheet-run.png) (one 0.6 s cycle), [`out/sheet-attack.png`](out/sheet-attack.png) (0.86 s attack) |
+| **Contact sheets** | superseded by polish 1 (see above) |
 | **Parts** | [`parts/`](parts/): 14 PNGs cut from `base.jpg`. `_rest.png` is all the parts put back together at rest, and it matches `base.jpg`. `_exploded.png` shows the painted joints |
 | **Rig + preview** | [`preview/`](preview/): `rig.ts` (the bone rig), `anims.ts` (poses), `main.ts` (the mock scene), `public/hero.png` + `hero.json` (one 2048×512 atlas) + `rig.json` (bones) |
 | **Tools** | `tools/cut_parts.py` (base.jpg → parts + atlas), `tools/capture.mjs` (exact frame-stepped recording), `tools/sheet.py` (contact sheets) |

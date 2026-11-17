@@ -1,6 +1,6 @@
 """Contact sheets from out/rig-test.mp4: one row per animation, frames left to right.
 Run after capture.mjs: python3 art-direction/rig-test/tools/sheet.py
-Writes out/sheet-run.png and out/sheet-attack.png.
+Writes out/sheet-run.png and out/sheet-combo.png.
 The capture starts at scene clock 1.0 s (30 settle frames), at 30 fps.
 """
 import os
@@ -34,6 +34,6 @@ with tempfile.TemporaryDirectory() as tmp:
             d.text((x + 6, y + th + 4), f"{c - clocks[0]:.2f}s", fill=(60, 40, 20))
         img.save(os.path.join(OUT, f"sheet-{name}.png"))
 
-    sheet("run", (770, 230, 1170, 740), [2.0 + i / FPS * 2 for i in range(10)], 10)
-    sheet("attack", (1240, 180, 1820, 740), [1.7 + i / FPS * 2 for i in range(14)], 7)
+    sheet("run", (700, 260, 1100, 740), [2.0 + i / FPS * 2 for i in range(10)], 10)
+    sheet("combo", (1130, 160, 1860, 740), [1.7 + i / FPS * 2 for i in range(18)], 9)
 print("sheets in", OUT)

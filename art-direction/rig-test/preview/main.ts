@@ -1,24 +1,24 @@
-// Rig test preview: a 1920x1080 mock with the hero idling, running and
-// attacking, big for inspection and at game scale (160 px) underneath.
+// Rig test preview: a 1920x1080 mock with the hero idling, running and doing
+// a 2-hit combo, big for inspection and at game scale (160 px) underneath.
 // `?capture=1` stops the clock so tools/capture.mjs can step frames exactly.
 import Phaser from 'phaser';
 import { HeroRig } from './rig';
-import { idle, run, attack, ATTACK_LEN } from './anims';
+import { idle, run, combo, HITS, COMBO_LEN, COMBO_PAUSE, RUN_SPEED } from './anims';
+import { HitFx, type ArcSpec } from './fx';
 
 const HERO_PX = 994;           // hero height in base.jpg px (hair to sole)
 const BIG = 440 / HERO_PX;     // inspection size
 const GAME = 160 / HERO_PX;    // in-game size (art-direction/README.md)
-const RUN_SPEED = 1150;        // base px/s, drives scrolling ground + hair drag
-const ATTACK_EVERY = 1.7;      // s: attack, then idle until the next one
+const COMBO_LOOP = COMBO_LEN + COMBO_PAUSE;  // hit, hit, pause, repeat
 
-type Mode = 'idle' | 'run' | 'attack';
+type Mode = 'idle' | 'run' | 'combo';
 
 class Mock extends Phaser.Scene {
-  private rigs: { rig: HeroRig; mode: Mode; offset: number }[] = [];
+  private rigs: { rig: HeroRig; mode: Mode; offset: number; shake: boolean; last: number }[] = [];
   clock = 0;
   private marks: { g: Phaser.GameObjects.Graphics; speed: number; y0: number; x0: number; x1: number }[] = [];
-  private trails = new Map<HeroRig, { pts: Phaser.Math.Vector2[]; ages: number[] }>();
-  private fx!: Phaser.GameObjects.Graphics;
+  private fx!: HitFx;
+  private fxG!: Phaser.GameObjects.Graphics;
 
   preload() {
     this.load.atlas('hero', 'hero.png', 'hero.json');
@@ -39,25 +39,26 @@ class Mock extends Phaser.Scene {
     const label = (x: number, y: number, t: string, size = 30) =>
       this.add.text(x, y, t, { fontFamily: 'Georgia, serif', fontSize: `${size}px`, color: '#4a3220' }).setOrigin(0.5, 0);
     this.add.text(40, 28, 'Hero rig test: bone rig in Phaser', { fontFamily: 'Georgia, serif', fontSize: '34px', color: '#4a3220' });
-    this.add.text(40, 72, '14 parts cut from base.jpg · 18 bones · spring hair & scarf · squash & stretch', { fontFamily: 'Georgia, serif', fontSize: '20px', color: '#6b5440' });
+    this.add.text(40, 72, '15 parts · chest/hips bend · leg IK (planted feet) · spring hair & scarf · squash & stretch · slash arc, spark, shake', { fontFamily: 'Georgia, serif', fontSize: '20px', color: '#6b5440' });
 
     // scrolling tufts under the runners, so the run reads as travel
     const tufts = (x0: number, x1: number, y: number, scale: number) => {
       const t = this.add.graphics();
       this.marks.push({ g: t, speed: RUN_SPEED * scale, y0: y, x0, x1 });
     };
-    tufts(760, 1160, 732, BIG);
-    tufts(860, 1060, 992, GAME);
+    tufts(700, 1100, 732, BIG);
+    tufts(840, 1040, 992, GAME);
 
-    const big: [number, Mode][] = [[380, 'idle'], [960, 'run'], [1530, 'attack']];
-    big.forEach(([x, mode]) => {
-      this.rigs.push({ rig: new HeroRig(this, x, 732, BIG), mode, offset: 0 });
-      label(x, 760, mode[0].toUpperCase() + mode.slice(1));
+    const big: [number, Mode, string][] = [[330, 'idle', 'Idle'], [900, 'run', 'Run'], [1440, 'combo', '2-hit combo']];
+    big.forEach(([x, mode, name]) => {
+      this.rigs.push({ rig: new HeroRig(this, x, 732, BIG), mode, offset: 0, shake: true, last: -1 });
+      label(mode === 'combo' ? x + 60 : x, 760, name);
     });
-    const small: [number, Mode][] = [[760, 'idle'], [960, 'run'], [1170, 'attack']];
-    small.forEach(([x, mode]) => this.rigs.push({ rig: new HeroRig(this, x, 994, GAME), mode, offset: 0.4 }));
+    const small: [number, Mode][] = [[740, 'idle'], [940, 'run'], [1140, 'combo']];
+    small.forEach(([x, mode]) => this.rigs.push({ rig: new HeroRig(this, x, 994, GAME), mode, offset: 0.4, shake: false, last: -1 }));
     label(960, 1020, 'game scale: 160 px', 22).setColor('#f3e6cf');
-    this.fx = this.add.graphics();
+    this.fxG = this.add.graphics();
+    this.fx = new HitFx(this.fxG);
     this.tick(0);
   }
 
@@ -68,16 +69,20 @@ class Mock extends Phaser.Scene {
   private tick(dt: number) {
     this.clock += dt;
     const t = this.clock;
-    this.fx.clear();
+    this.fxG.clear();
     for (const r of this.rigs) {
       if (r.mode === 'idle') { r.rig.vx = 0; r.rig.apply(idle(t + r.offset), dt); continue; }
       if (r.mode === 'run') { r.rig.vx = RUN_SPEED; r.rig.apply(run(t + r.offset), dt); continue; }
-      const at = (t + r.offset) % ATTACK_EVERY;
-      const p = at < ATTACK_LEN ? attack(at) : Object.assign(idle(t), { strike: 0 });
+      const ct = (t + r.offset) % COMBO_LOOP;
       r.rig.vx = 0;
-      r.rig.apply(p, dt);
-      this.trail(r.rig, p.strike > 0, dt);
+      r.rig.apply(combo(ct), dt);
+      HITS.forEach((h, i) => {
+        const crossed = r.last <= ct ? r.last < h.t && ct >= h.t : ct >= h.t; // loop wrap
+        if (crossed && r.last >= 0) this.hit(r.rig, h.arc, i, r.shake);
+      });
+      r.last = ct;
     }
+    this.fx.update(dt);
     for (const m of this.marks) {
       m.g.clear();
       const gap = 120 * (m.speed / (RUN_SPEED * BIG));
@@ -92,18 +97,21 @@ class Mock extends Phaser.Scene {
     }
   }
 
-  /** Swoosh behind the blade while it is fast: a code effect, not art. */
-  private trail(rig: HeroRig, on: boolean, dt: number) {
-    let tr = this.trails.get(rig);
-    if (!tr) { tr = { pts: [], ages: [] }; this.trails.set(rig, tr); }
-    if (on) { tr.pts.push(rig.point('hand_f', [0, -250])); tr.ages.push(0); tr.pts.push(rig.point('hand_f', [0, -120])); tr.ages.push(0); }
-    tr.ages = tr.ages.map(a => a + dt);
-    while (tr.ages.length && tr.ages[0] > 0.16) { tr.ages.splice(0, 2); tr.pts.splice(0, 2); }
-    for (let i = 0; i + 3 < tr.pts.length; i += 2) {
-      const a = 1 - tr.ages[i] / 0.16;
-      this.fx.fillStyle(0xfff6dc, 0.55 * a);
-      this.fx.fillPoints([tr.pts[i], tr.pts[i + 2], tr.pts[i + 3], tr.pts[i + 1]], true);
-    }
+  /** A hit lands: slash arc along the blade's path, spark where a foe would
+   *  stand, and a light camera shake (big hero only, so the mock isn't busy). */
+  private hit(rig: HeroRig, kind: 'side' | 'rise', i: number, shake: boolean) {
+    const sh = rig.point('shoulder_f');
+    const R = 560 * rig.scale;
+    const spec: ArcSpec = kind === 'side'
+      // flat ellipse in front of the chest: from behind, round the near side
+      // (the lower half reads as closer to the camera), out past the front
+      ? { cx: sh.x + 0.1 * R, cy: sh.y + 0.18 * R, rx: R, ry: 0.3 * R, rot: -0.1, from: Math.PI * 1.02, to: -0.35, width: 0.24 * R }
+      // rising backhand: from low in front, up and over the front
+      : { cx: sh.x - 0.05 * R, cy: sh.y + 0.02 * R, rx: 0.95 * R, ry: 0.85 * R, rot: 0, from: 1.15, to: -1.3, width: 0.22 * R };
+    this.fx.slash(spec);
+    const [px, py] = HitFx.at(spec, kind === 'side' ? 0.15 : 0.05);
+    this.fx.spark(px, py, 0.16 * R, i + 1);
+    if (shake) this.cameras.main.shake(90, 0.0025);
   }
 }
 
