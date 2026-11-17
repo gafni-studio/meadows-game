@@ -57,20 +57,20 @@ Paths are under `art-direction/chibi/`. **Approved** means Oded signed off. **Ne
 | Wool-Shoulder | `mobs/wool-shoulder.jpg` | Approved |
 | Crow | `mobs/crow.jpg` | Approved |
 | Boar | `mobs/boar.jpg` | Approved |
-| Angry Bull | `mobs/angry-bull.jpg` | New (fixed flinch frame, still small) |
-| Burrow Mole | `mobs/burrow-mole.jpg` | New (squints in every frame) |
+| Angry Bull | `mobs/angry-bull.jpg` | New (flaws resolved: full-size frames, mirrored to face right) |
+| Burrow Mole | `mobs/burrow-mole.jpg` | New (flaws resolved: open eyes except hit/die) |
 | Bank-Cracker | `mobs/bank-cracker.jpg` | New |
-| Earth Sprite | `mobs/earth-sprite.jpg` | New (close to front-facing) |
+| Earth Sprite | `mobs/earth-sprite.jpg` | New (flaws resolved: side view facing right) |
 | Ember Beetle | `mobs/ember-beetle.jpg` | New |
 | Cinderback | `mobs/cinderback.jpg` | New |
-| Spark Bug | `mobs/spark-bug.jpg` | New (odd tube in the attack frame) |
+| Spark Bug | `mobs/spark-bug.jpg` | New (flaws resolved: tube removed, clear zap attack) |
 | Wisp | `mobs/wisp.jpg` | New |
 | Thornling | `mobs/thornling.jpg` | New |
 | Moss Lurker | `mobs/moss-lurker.jpg` | New |
-| Mire Toad | `mobs/mire-toad.jpg` | New (idle row has 4 frames) |
+| Mire Toad | `mobs/mire-toad.jpg` | New (flaws resolved: 3 idle frames) |
 | Hollow Stag (miniboss) | `mobs/hollow-stag.jpg` | New |
 | **Mobs (not spawned yet)** | | |
-| Old Stump | `mobs/old-stump.jpg` | New (three-quarter view) |
+| Old Stump | `mobs/old-stump.jpg` | New (near side view, accepted) |
 | Night Stump | `mobs/night-stump.jpg` | New |
 | Frost Moth | `mobs/frost-moth.jpg` | New |
 | Shrine Wisp | `mobs/shrine-wisp.jpg` | New |
@@ -94,7 +94,7 @@ Paths are under `art-direction/chibi/`. **Approved** means Oded signed off. **Ne
 | Stone and earth materials (8) | `items/13-materials-stone-earth.jpg` | New |
 | Hide materials (6) | `items/14-materials-hide.jpg` | New |
 | Elemental materials (10) | `items/15-materials-elemental.jpg` | New |
-| Quest items and curiosities (9) | `items/16-quest-curiosities.jpg` | New (the Smoldering Scale reads as a whole shell) |
+| Quest items and curiosities (9) | `items/16-quest-curiosities.jpg` | New (flaws resolved: single glowing scale; Warm Grain is a glowing pouch) |
 | Junk (8) | `items/17-junk.jpg` | New |
 | Rare junk (10) | `items/18-rare-junk.jpg` | New |
 
