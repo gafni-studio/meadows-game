@@ -1,0 +1,179 @@
+{
+ "bones": {
+  "root": {
+   "parent": null,
+   "at": [
+    434,
+    657.92
+   ]
+  },
+  "hips": {
+   "parent": "root",
+   "at": [
+    432,
+    540
+   ]
+  },
+  "torso": {
+   "parent": "hips",
+   "at": [
+    432,
+    540
+   ]
+  },
+  "head": {
+   "parent": "torso",
+   "at": [
+    437,
+    438
+   ]
+  },
+  "scarf_tail": {
+   "parent": "torso",
+   "at": [
+    398,
+    455
+   ]
+  },
+  "shoulder_f": {
+   "parent": "torso",
+   "at": [
+    403,
+    470
+   ]
+  },
+  "elbow_f": {
+   "parent": "shoulder_f",
+   "at": [
+    395.62,
+    524.12
+   ]
+  },
+  "hand_f": {
+   "parent": "elbow_f",
+   "at": [
+    402.18,
+    547.9
+   ]
+  },
+  "shoulder_b": {
+   "parent": "torso",
+   "at": [
+    447,
+    468
+   ]
+  },
+  "elbow_b": {
+   "parent": "shoulder_b",
+   "at": [
+    439.62,
+    522.12
+   ]
+  },
+  "hand_b": {
+   "parent": "elbow_b",
+   "at": [
+    446.18,
+    545.9
+   ]
+  },
+  "hip_f": {
+   "parent": "hips",
+   "at": [
+    436,
+    540
+   ]
+  },
+  "knee_f": {
+   "parent": "hip_f",
+   "at": [
+    436,
+    582.24
+   ]
+  },
+  "ankle_f": {
+   "parent": "knee_f",
+   "at": [
+    437.76,
+    636.8
+   ]
+  },
+  "hip_b": {
+   "parent": "hips",
+   "at": [
+    427,
+    537
+   ]
+  },
+  "knee_b": {
+   "parent": "hip_b",
+   "at": [
+    427,
+    579.24
+   ]
+  },
+  "ankle_b": {
+   "parent": "knee_b",
+   "at": [
+    428.76,
+    633.8
+   ]
+  }
+ },
+ "parts": {
+  "head": {
+   "bone": "head"
+  },
+  "vest": {
+   "bone": "torso"
+  },
+  "scarf": {
+   "bone": "torso"
+  },
+  "scarf_tail": {
+   "bone": "scarf_tail"
+  },
+  "upperarm_f": {
+   "bone": "shoulder_f"
+  },
+  "forearm_f": {
+   "bone": "elbow_f"
+  },
+  "upperarm_b": {
+   "bone": "shoulder_b"
+  },
+  "forearm_b": {
+   "bone": "elbow_b"
+  },
+  "thigh_f": {
+   "bone": "hip_f"
+  },
+  "shin_f": {
+   "bone": "knee_f"
+  },
+  "thigh_b": {
+   "bone": "hip_b"
+  },
+  "shin_b": {
+   "bone": "knee_b"
+  },
+  "sword": {
+   "bone": "hand_f"
+  }
+ },
+ "draw": [
+  "forearm_b",
+  "upperarm_b",
+  "scarf_tail",
+  "shin_b",
+  "thigh_b",
+  "shin_f",
+  "thigh_f",
+  "vest",
+  "sword",
+  "forearm_f",
+  "upperarm_f",
+  "head",
+  "scarf"
+ ]
+}

@@ -1,0 +1,324 @@
+{
+ "frames": {
+  "head": {
+   "frame": {
+    "x": 66,
+    "y": 0,
+    "w": 158,
+    "h": 150
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 158,
+    "h": 150
+   },
+   "sourceSize": {
+    "w": 158,
+    "h": 150
+   },
+   "pivot": {
+    "x": 0.5063,
+    "y": 0.9467
+   }
+  },
+  "vest": {
+   "frame": {
+    "x": 226,
+    "y": 0,
+    "w": 101,
+    "h": 124
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 101,
+    "h": 124
+   },
+   "sourceSize": {
+    "w": 101,
+    "h": 124
+   },
+   "pivot": {
+    "x": 0.5149,
+    "y": 0.8871
+   }
+  },
+  "scarf": {
+   "frame": {
+    "x": 229,
+    "y": 221,
+    "w": 75,
+    "h": 51
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 75,
+    "h": 51
+   },
+   "sourceSize": {
+    "w": 75,
+    "h": 51
+   },
+   "pivot": {
+    "x": 0.4933,
+    "y": 2.1569
+   }
+  },
+  "scarf_tail": {
+   "frame": {
+    "x": 306,
+    "y": 221,
+    "w": 40,
+    "h": 39
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 39
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 39
+   },
+   "pivot": {
+    "x": 0.936,
+    "y": 0.32
+   }
+  },
+  "sword": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 219
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 219
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 219
+   },
+   "pivot": {
+    "x": 0.4688,
+    "y": 0.8311
+   }
+  },
+  "upperarm_f": {
+   "frame": {
+    "x": 49,
+    "y": 221,
+    "w": 43,
+    "h": 74
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 43,
+    "h": 74
+   },
+   "sourceSize": {
+    "w": 43,
+    "h": 74
+   },
+   "pivot": {
+    "x": 0.5912,
+    "y": 0.2327
+   }
+  },
+  "upperarm_b": {
+   "frame": {
+    "x": 94,
+    "y": 221,
+    "w": 43,
+    "h": 74
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 43,
+    "h": 74
+   },
+   "sourceSize": {
+    "w": 43,
+    "h": 74
+   },
+   "pivot": {
+    "x": 0.5912,
+    "y": 0.2327
+   }
+  },
+  "forearm_f": {
+   "frame": {
+    "x": 139,
+    "y": 221,
+    "w": 43,
+    "h": 59
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 43,
+    "h": 59
+   },
+   "sourceSize": {
+    "w": 43,
+    "h": 59
+   },
+   "pivot": {
+    "x": 0.4005,
+    "y": 0.2919
+   }
+  },
+  "forearm_b": {
+   "frame": {
+    "x": 184,
+    "y": 221,
+    "w": 43,
+    "h": 59
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 43,
+    "h": 59
+   },
+   "sourceSize": {
+    "w": 43,
+    "h": 59
+   },
+   "pivot": {
+    "x": 0.4005,
+    "y": 0.2919
+   }
+  },
+  "thigh_f": {
+   "frame": {
+    "x": 443,
+    "y": 0,
+    "w": 47,
+    "h": 76
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 47,
+    "h": 76
+   },
+   "sourceSize": {
+    "w": 47,
+    "h": 76
+   },
+   "pivot": {
+    "x": 0.4868,
+    "y": 0.1853
+   }
+  },
+  "thigh_b": {
+   "frame": {
+    "x": 0,
+    "y": 221,
+    "w": 47,
+    "h": 76
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 47,
+    "h": 76
+   },
+   "sourceSize": {
+    "w": 47,
+    "h": 76
+   },
+   "pivot": {
+    "x": 0.4868,
+    "y": 0.1853
+   }
+  },
+  "shin_f": {
+   "frame": {
+    "x": 329,
+    "y": 0,
+    "w": 55,
+    "h": 92
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 92
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 92
+   },
+   "pivot": {
+    "x": 0.416,
+    "y": 0.2104
+   }
+  },
+  "shin_b": {
+   "frame": {
+    "x": 386,
+    "y": 0,
+    "w": 55,
+    "h": 92
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 92
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 92
+   },
+   "pivot": {
+    "x": 0.416,
+    "y": 0.2104
+   }
+  }
+ },
+ "meta": {
+  "image": "hero.png",
+  "size": {
+   "w": 512,
+   "h": 512
+  },
+  "scale": 1
+ }
+}

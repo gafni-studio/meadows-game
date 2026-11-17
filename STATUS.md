@@ -10,7 +10,8 @@ Read this first, then `CLAUDE.md`. **End every session by updating this file** (
 Hero (internal id `warrior`) walks two Paths: Warrior (Power Strike → Earthbreaker → Root Lash / Flame Cleave; Dig In; Rage) and Magician (Magic Bolt → Mana Shield → Fire Bolt / Thorn Volley → Chain Spark). Trees are hidden until their Path quest is done; finishing one opens its tree once with the first skill pulsing. Areas, left to right: **Sunny Pasture (3–5) → Meadow West (1–3, mirrored, mice by the gate) → Meadow Town (west + east gates; Pell at the west gate) → Meadow East (hills: crows/sheep, Boars on terraces, one Angry Bull in the grove) → Dirt Banks West → Dirt Banks East**; Whisperwood (5–10) north of Meadow East's grove. New Heroes go west first. Welcome to Meadow Town is ten steps (Mara's 18 HP slap, no chest steps). Objectives show count lines; a green farm list; affordable skill nodes glow. Spirit skills, Soul Guard, the Meadow Shrine, the Old Stump (no spawn), Night Stump and Frost Moth stay parked.
 
 ## In flight
-Nothing. v0.3.1 is released; waiting for Oded's playtest notes.
+- **Hero rig pass 1** (`art-direction/chibi/rig-brief.md`) is done on branch `claude/festive-babbage-bdzucw`, not merged and not wired into the game. Outputs and known issues: `art-direction/chibi/rig-pass-1/REPORT.md`. **Waiting for Oded's review** before porting the rig into the game.
+- v0.3.1 is released; waiting for Oded's playtest notes.
 
 ## Next
 - Playtest v0.3.1: Boar and Angry Bull timings (`MONSTER_FEEL` / `MOB_KIND` in `assumptions.ts`), Sunny Pasture pacing 3–5, the slap, farm list and tracker readability.
