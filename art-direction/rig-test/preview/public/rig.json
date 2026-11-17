@@ -1,0 +1,191 @@
+{
+ "bones": {
+  "root": {
+   "parent": null,
+   "at": [
+    440,
+    1062
+   ]
+  },
+  "hips": {
+   "parent": "root",
+   "at": [
+    440,
+    718
+   ]
+  },
+  "torso": {
+   "parent": "hips",
+   "at": [
+    440,
+    718
+   ]
+  },
+  "neck": {
+   "parent": "torso",
+   "at": [
+    452,
+    362
+   ]
+  },
+  "head": {
+   "parent": "neck",
+   "at": [
+    452,
+    362
+   ]
+  },
+  "hair": {
+   "parent": "head",
+   "at": [
+    410,
+    210
+   ]
+  },
+  "scarf": {
+   "parent": "torso",
+   "at": [
+    430,
+    372
+   ]
+  },
+  "scarf_tail": {
+   "parent": "scarf",
+   "at": [
+    480,
+    396
+   ]
+  },
+  "shoulder_f": {
+   "parent": "torso",
+   "at": [
+    374,
+    418
+   ]
+  },
+  "elbow_f": {
+   "parent": "shoulder_f",
+   "at": [
+    352,
+    590
+   ]
+  },
+  "hand_f": {
+   "parent": "elbow_f",
+   "at": [
+    356,
+    702
+   ]
+  },
+  "shoulder_b": {
+   "parent": "torso",
+   "at": [
+    478,
+    416
+   ]
+  },
+  "elbow_b": {
+   "parent": "shoulder_b",
+   "at": [
+    456,
+    590
+   ]
+  },
+  "hand_b": {
+   "parent": "elbow_b",
+   "at": [
+    460,
+    702
+   ]
+  },
+  "hip_f": {
+   "parent": "hips",
+   "at": [
+    396,
+    722
+   ]
+  },
+  "knee_f": {
+   "parent": "hip_f",
+   "at": [
+    380,
+    880
+   ]
+  },
+  "hip_b": {
+   "parent": "hips",
+   "at": [
+    482,
+    722
+   ]
+  },
+  "knee_b": {
+   "parent": "hip_b",
+   "at": [
+    474,
+    876
+   ]
+  }
+ },
+ "parts": {
+  "upperarm_b": {
+   "bone": "shoulder_b"
+  },
+  "forearm_b": {
+   "bone": "elbow_b"
+  },
+  "thigh_b": {
+   "bone": "hip_b"
+  },
+  "shin_b": {
+   "bone": "knee_b"
+  },
+  "thigh_f": {
+   "bone": "hip_f"
+  },
+  "shin_f": {
+   "bone": "knee_f"
+  },
+  "torso": {
+   "bone": "torso"
+  },
+  "scarf_tail": {
+   "bone": "scarf_tail"
+  },
+  "head": {
+   "bone": "head"
+  },
+  "hair": {
+   "bone": "hair"
+  },
+  "sword": {
+   "bone": "hand_f"
+  },
+  "forearm_f": {
+   "bone": "elbow_f"
+  },
+  "upperarm_f": {
+   "bone": "shoulder_f"
+  },
+  "scarf": {
+   "bone": "scarf"
+  }
+ },
+ "draw": [
+  "upperarm_b",
+  "forearm_b",
+  "thigh_b",
+  "shin_b",
+  "thigh_f",
+  "shin_f",
+  "torso",
+  "scarf_tail",
+  "head",
+  "hair",
+  "sword",
+  "forearm_f",
+  "upperarm_f",
+  "scarf"
+ ],
+ "height": 994
+}
