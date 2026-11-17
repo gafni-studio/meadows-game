@@ -20,10 +20,11 @@ From Oded: **clean, detailed pixel art, not chunky retro (think Sea of Stars or 
 - **Fine detail, shown 1:1:** no nearest-neighbour upscaling and no visible big-pixel stair-steps. The game is drawn at 1920×1080 (see `planning/art-plan.md`).
 - **Side view only.** Characters face east, and west is a mirror.
 - **Environment:** clean, detailed layered parallax backgrounds made with the same recipe; a bright, readable foreground ground strip; soft light shafts in forests; a cozy, saturated palette per zone.
-- **Animation is the selling point:** smooth idle breathing, a weighty walk and run, anticipation before attacks, squash on landing, and clear hit reactions.
+- **Animation is the selling point:** smooth idle breathing, a weighty run as the default movement (check frame timing, leg alternation, body bob and foot sliding), anticipation before attacks, squash on landing, and clear hit reactions.
 
 ## Recipe (every asset)
 
+- **Size:** the hero is generated about 320 px tall (the largest converter source) and halved to about **160 px** on the 1920×1080 canvas. Every other asset uses the same scale.
 - **Concept sheets** draw every asset at the same scale as the hero lineup.
 - **Generate at 2× game size** with PixelLab's 1-generation converter in **faithful** mode, with no Pro Flash. **Remove the background and scale down to exactly half** locally with the finishing script in `tools/`. The engine never resizes art.
 - **No added outline.** Animations at 2× cost about 3 generations each.
@@ -78,7 +79,8 @@ From Oded: **clean, detailed pixel art, not chunky retro (think Sea of Stars or 
 The locked hero, an A+C mix, in the four armour looks: Cloth, Leather, Chain, Plate.
 - Fluffy white hair, a short orange knotted scarf (no cape), and a simple fitted body. About 4 heads tall.
 - Side view, facing right. Clean, detailed pixel art with the converter's own outline.
-- Each look is a full animation set. Weapons and hats are separate layers pinned to hand and head anchors (see `planning/art-plan.md`).
+- Each look is a full animation set. Weapons are separate layers, pinned and rotated to a hand point and angle recorded on every frame, so they move with the hero. Hats use a head point the same way.
+- Weapons are grouped by grip type (one-handed, two-handed, staff, bow). Each grip type has its own attack animations, and the other clips are shared. A new weapon is 1 sprite. See `planning/art-plan.md`.
 
 <img src="hero/hero-anim-mock.jpg" width="640">
 
