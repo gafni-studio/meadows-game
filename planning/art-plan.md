@@ -15,6 +15,8 @@ This plan covers how Meadows art is made and what exists so far. It was rewritte
 2. **Claude cuts parts and builds simple bone rigs in Phaser.** The pose sheets are the keyframes, and Claude tweens between them. Code adds secondary motion (hair, scarf), squash and stretch, and the **effects** (slash arcs, hit sparks, hit-stop, shake, particles).
 3. **Oded reviews** each batch in a 1920×1080 mock or a playable build before the next batch starts.
 
+**Current brief:** [`art-direction/chibi/rig-brief.md`](../art-direction/chibi/rig-brief.md), the first hero rig pass.
+
 ## Hero rig and gear
 - **Rig parts** follow `chibi/style/hero-rig-parts.jpg`: head, torso, upper and lower arms, thighs and shins.
 - **Gear swaps rig parts:** gloves swap the forearms, boots swap the shins, and chest armour swaps the torso. So every animation works with every look.

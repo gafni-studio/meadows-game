@@ -13,6 +13,8 @@ All art in `public/art/` is built by `scripts/build-art.py` from these packs (ve
 
 License text: https://creativecommons.org/publicdomain/zero/1.0/
 
+The chibi art sheets in `art-direction/chibi/` were made for this project and are not in the build yet.
+
 Recolored icons (essences, shards, junk) are hue-shifted versions of the tiles above, made by `scripts/build-art.py`.
 
 v0.3.0 art made for this project by `scripts/draw-art-v030.py` (original pixel art in the same style, same CC0 terms as the rest of the repo's own work): Wisp, Thornling, Moss Lurker, Mire Toad, Hollow Stag, Old Stump, the Wisp Dust / Moss Fiber / Toad Gland / Hollow Antler icons, the Whisperwood decor (old tree, dead tree, tent, campfire, fern, mushroom, reeds), the mote and thorn projectiles. Wren, the moss ground and the branch ledges are recolors of Pell, the grass tile and the plank tile.

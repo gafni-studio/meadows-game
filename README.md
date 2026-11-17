@@ -2,7 +2,7 @@
 
 A 2D side-scrolling browser MMORPG prototype (MapleStory-style real-time grinding, later Travian-style offline growth). A single-player slice of the Meadows zone: **Meadow Town**, **Meadow West** (levels 1–3), hilly **Meadow East** (3–7, the Old Stump at 10), the **Dirt Banks** West (river) and East (cave), and the misty **Whisperwood** (5–10, the Hollow Stag). The Hero walks Paths (Warrior, Magician).
 
-Stack: **Phaser 3 + TypeScript + Vite**. Save in `localStorage`. CC0 pixel art (see [CREDITS.md](CREDITS.md)).
+Stack: **Phaser 3 + TypeScript + Vite**. Save in `localStorage`. In-game art is CC0 pixel-art placeholder (see [CREDITS.md](CREDITS.md)). The target look is basic chibi: see [art-direction/README.md](art-direction/README.md) and [planning/art-plan.md](planning/art-plan.md).
 
 - Live build: https://meadows-gafni.netlify.app (which version is live: `/version.json`, also shown in the HUD help line)
 - What changed in each release: [CHANGELOG.md](CHANGELOG.md) · release write-ups in `docs/` · specs in `planning/`
@@ -92,3 +92,5 @@ Press **`** to open, type a command, press **Enter** to run, **↑/↓** for his
 ## Art
 
 All visuals go through **`src/art/sprites.ts`**, a registry of named slots with fixed logical sizes; game logic only references slot keys, so art can be swapped by replacing files. `python3 scripts/build-art.py` (Pillow) builds `public/art/` from the vendored CC0 tiles in `art-src/`. Item icons are `public/art/icons/<item_id>.png`, skill icons `skill_<id>.png`, NPCs `public/art/chars/npc_<id>.png`.
+
+That pipeline (and `scripts/draw-art-v030.py` / `v031.py`) produces **placeholder** art. The art direction is **basic chibi** (MapleStory-like): style rules in [art-direction/README.md](art-direction/README.md), the pipeline and asset index in [planning/art-plan.md](planning/art-plan.md), and the generated sheets in `art-direction/chibi/`. The new art replaces the placeholders as it is rigged and ported.

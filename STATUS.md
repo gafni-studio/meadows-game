@@ -20,7 +20,7 @@ Nothing. v0.3.1 is released; waiting for Oded's playtest notes.
 ## Known gaps and judgment calls worth remembering
 - v0.3.1: id `meadow_boar` is now `angry_bull`; the new mob is `boar`. Boar art is original (`scripts/draw-art-v031.py`); the Angry Bull is the old boar sprite recoloured. Wildflowers in Sunny Pasture are not drawn yet (no flower decor slot).
 - v0.3.1: the `sunny_pasture` save alias is gone (it is a real area again); intro saves past the removed chest steps are renumbered once (`questFlags.intro_v031`).
-- Placeholder art: Tamsin's sprite (a recolour of Ila's), Wren's (a recolour of Pell's), the Club and Chain Spark icons. v0.3.0 mob/decor art is original, from `scripts/draw-art-v030.py`.
+- All in-game art is placeholder until the chibi art (`art-direction/chibi/`, `planning/art-plan.md`) is ported. Older stand-ins: Tamsin's sprite (a recolour of Ila's), Wren's (a recolour of Pell's), the Club and Chain Spark icons. v0.3.0 mob/decor art is original, from `scripts/draw-art-v030.py`.
 - v0.3.0: Moss Lurker, Mire Toad and Stag timings are first guesses.
 - v0.3.0: an NPC with several active quests leads with the conversation that moves one forward; a "not yet" only when nothing is ready.
 - Old saves in Dirt Banks load into Dirt Banks West (`AREA_ALIAS`).

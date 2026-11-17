@@ -58,6 +58,7 @@ Do not run long manual playthroughs, write one-off browser scripts, or re-read w
 | `src/systems/CombatFx.ts` | every attack/skill visual. Damage fires from inside the animation via `onImpact` |
 | `src/ui/Hud.ts` (1120 lines) | DOM HUD and all windows (`render<Panel>()`), keys, dialogue, rewards screen |
 | `src/ui/panels/npc.ts` | E on an NPC: quest talk, else their window, else a greeting |
+| `art-direction/chibi/` | target art: style and hero sheets, mob, NPC and item sheets, art briefs (rules in `art-direction/README.md`, plan in `planning/art-plan.md`) |
 | `src/ui/panels/skills.ts` | the Paths window (K): tabs, equip bar, skill tree, skill preview, farm-list button, ready glow |
 | `src/ui/panels/journal.ts` | the journal (J) and its quest preview with count lines |
 | `src/ui/panels/tracker.ts` | the objectives panel (L): quest lines, count lines, ready-to-turn-in, farm entries |
@@ -85,7 +86,7 @@ Rules:
 - One file per tab: `{ tab, note, columns, rows }`. Edit rows directly (a small `node -e` script for bulk edits). Keep `note` updated with a one-line `vX.Y.Z:` change note.
 - Player-facing text goes in `desc` / dialogue; design reasoning goes in `notes`. Player text is short. The character is the **Hero** (internal class id stays `warrior`).
 - New item: a row in `items` (+ `gear` if equippable) and an icon `public/art/icons/<id>.png` (a data test fails without it).
-- New art for v0.3.0+ is drawn by `scripts/draw-art-v030.py` (Pillow; ASCII grids or shapes, auto outline); v0.3.1 adds `scripts/draw-art-v031.py` (Boar, Angry Bull), reusing its helpers. Sprite slots and frame sizes live in `src/art/sprites.ts`.
+- **Art direction is basic chibi:** follow `art-direction/README.md` and `planning/art-plan.md`. The source sheets are in `art-direction/chibi/`, and art briefs live next to them (for example `art-direction/chibi/rig-brief.md`). The current in-game art is placeholder: Kenney CC0 via `scripts/build-art.py`, plus `scripts/draw-art-v030.py` / `v031.py`. Use those scripts only for stand-ins until the chibi art is ported. Sprite slots and frame sizes live in `src/art/sprites.ts`.
 - Recipes: explicit per rank 1-10, 10-40 per material, family essence is the main cost, no Heartwood/Log (tests enforce it).
 
 ## Quest engine (`Quests.ts`, maps in `quests/maps.ts`)
