@@ -19,7 +19,8 @@ Steps:
    Characters: --leg-gaps 0.65 also clears background pockets enclosed
    between the legs (low in the sprite only, so hair and wool are safe).
    Leave none: an animation spreads a leftover pocket into a smear.
-3. Half scale: exact 2:1 Lanczos on premultiplied alpha (no colour fringes),
+3. Scale: with --height H the sprite is scaled to that height (animation
+   frames, see to_height). Otherwise half scale: exact 2:1 Lanczos on premultiplied alpha (no colour fringes),
    which keeps the converter's own outline. Width and height must be even.
 """
 import argparse
@@ -119,7 +120,15 @@ def half(im):
     return im.convert("RGBa").resize((im.width // 2, im.height // 2), Image.LANCZOS).convert("RGBA")
 
 
-def finish(path, tol, shadow_rows, ref=None, leg_gaps=0.0):
+def to_height(im, height):
+    """Scale to an exact height (width follows, rounded to even). Used for
+    animation frames: the animation tools cap a frame at 256 px, so a hero
+    that must end up 160 px tall is animated at 256 and scaled by 0.625."""
+    w = round(im.width * height / im.height)
+    return im.convert("RGBa").resize((w, height), Image.LANCZOS).convert("RGBA")
+
+
+def finish(path, tol, shadow_rows, ref=None, leg_gaps=0.0, height=0):
     src = Image.open(path).convert("RGBA")
     # Animation frames come back on transparency, so their border has no
     # background colour: pass the idle sprite's (--ref-from) instead.
@@ -130,7 +139,7 @@ def finish(path, tol, shadow_rows, ref=None, leg_gaps=0.0):
     # smears the animator carried over from such a pocket).
     im = key_background_ref(im, ref, tol)
     im = clear_leg_gaps(im, ref, tol, leg_gaps)
-    return half(im)
+    return to_height(im, height) if height else half(im)
 
 
 def main():
@@ -142,6 +151,8 @@ def main():
     ap.add_argument("--out-dir")
     ap.add_argument("--leg-gaps", type=float, default=0.0,
                     help="clear enclosed background pockets below this fraction of the height (characters: 0.65)")
+    ap.add_argument("--height", type=int, default=0,
+                    help="scale to this height instead of exactly half (for 256 px animation frames)")
     ap.add_argument("--ref-from", help="take the background colour from this (opaque, 2x) image")
     a = ap.parse_args()
     ref = ref_of(Image.open(a.ref_from).convert("RGBA")) if a.ref_from else None
@@ -149,11 +160,11 @@ def main():
         import os
         os.makedirs(a.out_dir, exist_ok=True)
         for p in a.paths:
-            finish(p, a.tol, a.shadow_rows, ref, a.leg_gaps).save(os.path.join(a.out_dir, os.path.basename(p)))
+            finish(p, a.tol, a.shadow_rows, ref, a.leg_gaps, a.height).save(os.path.join(a.out_dir, os.path.basename(p)))
     else:
         if len(a.paths) != 2:
             ap.error("give IN and OUT")
-        finish(a.paths[0], a.tol, a.shadow_rows, ref, a.leg_gaps).save(a.paths[1])
+        finish(a.paths[0], a.tol, a.shadow_rows, ref, a.leg_gaps, a.height).save(a.paths[1])
 
 
 if __name__ == "__main__":

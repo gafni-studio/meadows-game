@@ -1,0 +1,73 @@
+{
+ "sprite": "80x160 (hero) / 93x33 (sword)",
+ "grip_in_sword": [
+  14,
+  16
+ ],
+ "rule": "angle = 40 deg + swing of shoulder(36,68)->hand from straight down (+ forward), counter-clockwise from +x",
+ "frames": {
+  "0": {
+   "hand": [
+    28,
+    91
+   ],
+   "angle": 20.8
+  },
+  "1": {
+   "hand": [
+    26,
+    92
+   ],
+   "angle": 17.4
+  },
+  "2": {
+   "hand": [
+    28,
+    94
+   ],
+   "angle": 22.9
+  },
+  "3": {
+   "hand": [
+    26,
+    95
+   ],
+   "angle": 19.7
+  },
+  "4": {
+   "hand": [
+    17,
+    91
+   ],
+   "angle": 0.4
+  },
+  "5": {
+   "hand": [
+    14,
+    91
+   ],
+   "angle": -3.7
+  },
+  "6": {
+   "hand": [
+    16,
+    96
+   ],
+   "angle": 4.5
+  },
+  "7": {
+   "hand": [
+    23,
+    98
+   ],
+   "angle": 16.6
+  },
+  "8": {
+   "hand": [
+    32,
+    93
+   ],
+   "angle": 30.9
+  }
+ }
+}
