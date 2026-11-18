@@ -14,6 +14,7 @@ A web tool for posing rigged assets and saving their animation clips. It is publ
    - **Empty space:** drag to pan. Use the mouse wheel to zoom.
 3. **Side panel:**
    - Exact angle and offset for the selected bone, and the sword's layer (behind the body, normal, or in front).
+   - **Picture:** for parts that have other pictures, such as an NPC head's `blink` and `talk`. A picture switches at its key and doesn't blend, so a blink is a key with `blink` followed by a short key without it.
    - Copy, paste, **mirror** (swap left and right) and reset the pose.
 4. **Timeline:**
    - **Add key** duplicates the current key after it.
@@ -71,3 +72,11 @@ Paste it in **⚙ Settings**. It is stored in this browser's localStorage and is
 **Adding an asset:**
 1. Write `rigs/<asset>/cut.py` and run it.
 2. Add the asset to `rigs/index.json`.
+
+**Town NPCs** (`rigs/npc_cut.py`) share one simple rig:
+- **Body:** a still body with the legs.
+- **Head:** turns, and swaps to the `blink` and `talk` pictures.
+- **Arms:** two arms, each a sleeve and a hand, with IK on the hand.
+- **Item:** Pell's staff or Calden's sword.
+
+They are cut from one standing frame of each NPC sheet, and the body behind the arms and head is filled in from its own flat colours. To add an NPC, add a spec to `SPECS`, then run `python3 rigs/npc_cut.py <id>`.

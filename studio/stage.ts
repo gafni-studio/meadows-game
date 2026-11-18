@@ -55,7 +55,7 @@ function drawRig(p: Pose, w: Record<string, Xform>, alpha: number) {
   const boneOf = Object.fromEntries(a.rig.parts.map(q => [q.name, q.bone]));
   ctx.globalAlpha = alpha;
   for (const name of drawOrder(p)) {
-    const f = a.frames[name], t = w[boneOf[name]];
+    const f = a.frames[p.swap?.[name] ?? name] ?? a.frames[name], t = w[boneOf[name]];
     const [sx, sy] = toScreen([t.x, t.y]);
     ctx.save();
     ctx.translate(sx, sy);

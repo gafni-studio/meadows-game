@@ -31,6 +31,8 @@ export interface RigDef {
   /** Items that can change layer per key: draw just before `back`, or just after `front`. */
   layers?: Record<string, { back: string; front: string }>;
   springs?: Record<string, SpringDef>;
+  /** Other pictures a part can show per key (e.g. head -> head_blink, head_talk). */
+  swaps?: Record<string, string[]>;
 }
 
 /** One keyframe pose. Missing bones are at rest. */
@@ -41,6 +43,8 @@ export interface Pose {
   x?: Record<string, [number, number]>;
   /** item part -> layer ('mid' = its place in the draw order) */
   layer?: Record<string, 'back' | 'mid' | 'front'>;
+  /** part -> the picture it shows instead of its own (one of rig.swaps[part]) */
+  swap?: Record<string, string>;
 }
 
 export interface Xform { x: number; y: number; r: number }
@@ -177,6 +181,7 @@ export function clonePose(p: Pose): Pose {
     a: { ...p.a },
     ...(p.x ? { x: Object.fromEntries(Object.entries(p.x).map(([k, v]) => [k, [v[0], v[1]] as [number, number]])) } : {}),
     ...(p.layer ? { layer: { ...p.layer } } : {}),
+    ...(p.swap ? { swap: { ...p.swap } } : {}),
   };
 }
 

@@ -1,0 +1,153 @@
+{
+ "id": "pell",
+ "name": "Pell",
+ "atlas": "atlas.png",
+ "frames": "atlas.json",
+ "height": 235,
+ "bones": {
+  "root": {
+   "at": [
+    279.0,
+    267.0
+   ]
+  },
+  "body": {
+   "parent": "root",
+   "at": [
+    279.0,
+    267.0
+   ]
+  },
+  "head": {
+   "parent": "body",
+   "at": [
+    272.0,
+    142.0
+   ],
+   "tip": [
+    300.0,
+    40.0
+   ]
+  },
+  "shoulder_n": {
+   "parent": "body",
+   "at": [
+    243.0,
+    152.0
+   ],
+   "tip": [
+    242.7,
+    200.0
+   ]
+  },
+  "elbow_n": {
+   "parent": "shoulder_n",
+   "at": [
+    242.7,
+    200.0
+   ],
+   "tip": [
+    242.0,
+    214.0
+   ]
+  },
+  "shoulder_f": {
+   "parent": "body",
+   "at": [
+    302.0,
+    176.0
+   ],
+   "tip": [
+    314.0,
+    188.0
+   ]
+  },
+  "elbow_f": {
+   "parent": "shoulder_f",
+   "at": [
+    314.0,
+    188.0
+   ],
+   "tip": [
+    333.0,
+    188.0
+   ]
+  },
+  "staff": {
+   "parent": "elbow_f",
+   "at": [
+    333.0,
+    188.0
+   ],
+   "tip": [
+    336.0,
+    142.0
+   ],
+   "kind": "item"
+  }
+ },
+ "parts": [
+  {
+   "name": "body",
+   "bone": "body"
+  },
+  {
+   "name": "staff",
+   "bone": "staff"
+  },
+  {
+   "name": "hand_f",
+   "bone": "elbow_f"
+  },
+  {
+   "name": "upperarm_f",
+   "bone": "shoulder_f"
+  },
+  {
+   "name": "hand_n",
+   "bone": "elbow_n"
+  },
+  {
+   "name": "upperarm_n",
+   "bone": "shoulder_n"
+  },
+  {
+   "name": "head",
+   "bone": "head"
+  }
+ ],
+ "ik": [
+  {
+   "upper": "shoulder_n",
+   "lower": "elbow_n",
+   "bend": -1
+  },
+  {
+   "upper": "shoulder_f",
+   "lower": "elbow_f",
+   "bend": -1
+  }
+ ],
+ "mirror": [
+  [
+   "shoulder_n",
+   "shoulder_f"
+  ],
+  [
+   "elbow_n",
+   "elbow_f"
+  ]
+ ],
+ "swaps": {
+  "head": [
+   "head_blink",
+   "head_talk"
+  ]
+ },
+ "layers": {
+  "staff": {
+   "back": "body",
+   "front": "head"
+  }
+ }
+}

@@ -83,7 +83,9 @@ export function sample(c: Clip, t: number): Pose {
     out.x = {};
     for (const b of moves) out.x[b] = [mix(p => p.x?.[b]?.[0] ?? 0), mix(p => p.x?.[b]?.[1] ?? 0)];
   }
+  // layers and pictures switch at the key, they don't blend
   if (k1.pose.layer) out.layer = { ...k1.pose.layer };
+  if (k1.pose.swap) out.swap = { ...k1.pose.swap };
   return out;
 }
 

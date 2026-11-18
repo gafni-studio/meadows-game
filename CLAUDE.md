@@ -70,6 +70,7 @@ Do not run long manual playthroughs, write one-off browser scripts, or re-read w
 | `tests/` | `data.test.ts` (invariants), `rules.test.ts`, `quests.test.ts` (flows simulated in Node), `anim.test.ts` (rigs, IK, clip sampling) |
 | `studio/` | Meadows Animation Studio (web tool on GitHub Pages): pose rigged assets, time keys, save clips. See `studio/README.md` |
 | `rigs/<asset>/` | `cut.py` (parts from the art sheet) → `atlas.png`, `atlas.json`, `rig.json`; listed in `rigs/index.json` |
+| `rigs/npc_cut.py` | town NPC rigs (Pell, Mara, Calden): one simple shared rig (still body, head with blink/talk pictures, two 2-piece arms, held item), one spec per NPC |
 | `animations/<asset>.json` | animation clips, **written by the studio only** |
 | `src/anim/rig.ts`, `clip.ts` | shared by studio and game: rig FK, 2-bone IK, springs; clip sampling and events |
 

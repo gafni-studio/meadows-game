@@ -1,1 +1,6 @@
-[{ "id": "hero", "name": "Hero", "clips": ["idle", "run", "combo"] }]
+[
+  { "id": "hero", "name": "Hero", "clips": ["idle", "run", "combo"] },
+  { "id": "pell", "name": "Pell (NPC)", "clips": ["idle", "talk"] },
+  { "id": "mara", "name": "Mara (NPC)", "clips": ["idle", "talk"] },
+  { "id": "calden", "name": "Calden (NPC)", "clips": ["idle", "talk"] }
+]

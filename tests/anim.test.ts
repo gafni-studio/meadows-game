@@ -18,6 +18,10 @@ describe('animation rigs', () => {
         expect(frames[p.name], p.name).toBeTruthy();
       }
       for (const c of r.ik ?? []) expect(r.bones[c.lower].tip, c.lower).toBeTruthy();
+      for (const [part, pics] of Object.entries(r.swaps ?? {})) {
+        expect(r.parts.some(p => p.name === part), part).toBe(true);
+        for (const f of pics) expect(frames[f], f).toBeTruthy();
+      }
     }
   });
 

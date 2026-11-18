@@ -1,0 +1,131 @@
+{
+ "id": "mara",
+ "name": "Mara",
+ "atlas": "atlas.png",
+ "frames": "atlas.json",
+ "height": 240,
+ "bones": {
+  "root": {
+   "at": [
+    557.0,
+    269.0
+   ]
+  },
+  "body": {
+   "parent": "root",
+   "at": [
+    557.0,
+    269.0
+   ]
+  },
+  "head": {
+   "parent": "body",
+   "at": [
+    571.0,
+    148.0
+   ],
+   "tip": [
+    575.0,
+    35.0
+   ]
+  },
+  "shoulder_n": {
+   "parent": "body",
+   "at": [
+    533.0,
+    156.0
+   ],
+   "tip": [
+    533.0,
+    184.0
+   ]
+  },
+  "elbow_n": {
+   "parent": "shoulder_n",
+   "at": [
+    533.0,
+    184.0
+   ],
+   "tip": [
+    533.0,
+    203.0
+   ]
+  },
+  "shoulder_f": {
+   "parent": "body",
+   "at": [
+    604.0,
+    158.0
+   ],
+   "tip": [
+    604.9,
+    182.0
+   ]
+  },
+  "elbow_f": {
+   "parent": "shoulder_f",
+   "at": [
+    604.9,
+    182.0
+   ],
+   "tip": [
+    607.0,
+    199.0
+   ]
+  }
+ },
+ "parts": [
+  {
+   "name": "hand_f",
+   "bone": "elbow_f"
+  },
+  {
+   "name": "upperarm_f",
+   "bone": "shoulder_f"
+  },
+  {
+   "name": "body",
+   "bone": "body"
+  },
+  {
+   "name": "hand_n",
+   "bone": "elbow_n"
+  },
+  {
+   "name": "upperarm_n",
+   "bone": "shoulder_n"
+  },
+  {
+   "name": "head",
+   "bone": "head"
+  }
+ ],
+ "ik": [
+  {
+   "upper": "shoulder_n",
+   "lower": "elbow_n",
+   "bend": -1
+  },
+  {
+   "upper": "shoulder_f",
+   "lower": "elbow_f",
+   "bend": -1
+  }
+ ],
+ "mirror": [
+  [
+   "shoulder_n",
+   "shoulder_f"
+  ],
+  [
+   "elbow_n",
+   "elbow_f"
+  ]
+ ],
+ "swaps": {
+  "head": [
+   "head_blink",
+   "head_talk"
+  ]
+ }
+}

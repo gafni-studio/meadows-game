@@ -1,0 +1,152 @@
+{
+ "id": "calden",
+ "name": "Calden",
+ "atlas": "atlas.png",
+ "frames": "atlas.json",
+ "height": 235,
+ "bones": {
+  "root": {
+   "at": [
+    558.0,
+    266.0
+   ]
+  },
+  "body": {
+   "parent": "root",
+   "at": [
+    558.0,
+    266.0
+   ]
+  },
+  "head": {
+   "parent": "body",
+   "at": [
+    566.0,
+    148.0
+   ],
+   "tip": [
+    565.0,
+    35.0
+   ]
+  },
+  "shoulder_n": {
+   "parent": "body",
+   "at": [
+    531.0,
+    150.0
+   ],
+   "tip": [
+    530.1,
+    184.0
+   ]
+  },
+  "elbow_n": {
+   "parent": "shoulder_n",
+   "at": [
+    530.1,
+    184.0
+   ],
+   "tip": [
+    528.0,
+    212.0
+   ]
+  },
+  "shoulder_f": {
+   "parent": "body",
+   "at": [
+    606.0,
+    158.0
+   ],
+   "tip": [
+    606.6,
+    186.0
+   ]
+  },
+  "elbow_f": {
+   "parent": "shoulder_f",
+   "at": [
+    606.6,
+    186.0
+   ],
+   "tip": [
+    608.0,
+    215.0
+   ]
+  },
+  "sword": {
+   "parent": "elbow_n",
+   "at": [
+    521.0,
+    210.0
+   ],
+   "tip": [
+    626.0,
+    262.0
+   ],
+   "kind": "item"
+  }
+ },
+ "parts": [
+  {
+   "name": "hand_f",
+   "bone": "elbow_f"
+  },
+  {
+   "name": "upperarm_f",
+   "bone": "shoulder_f"
+  },
+  {
+   "name": "body",
+   "bone": "body"
+  },
+  {
+   "name": "sword",
+   "bone": "sword"
+  },
+  {
+   "name": "hand_n",
+   "bone": "elbow_n"
+  },
+  {
+   "name": "upperarm_n",
+   "bone": "shoulder_n"
+  },
+  {
+   "name": "head",
+   "bone": "head"
+  }
+ ],
+ "ik": [
+  {
+   "upper": "shoulder_n",
+   "lower": "elbow_n",
+   "bend": -1
+  },
+  {
+   "upper": "shoulder_f",
+   "lower": "elbow_f",
+   "bend": -1
+  }
+ ],
+ "mirror": [
+  [
+   "shoulder_n",
+   "shoulder_f"
+  ],
+  [
+   "elbow_n",
+   "elbow_f"
+  ]
+ ],
+ "swaps": {
+  "head": [
+   "head_blink"
+  ]
+ },
+ "layers": {
+  "sword": {
+   "back": "body",
+   "front": "head"
+  }
+ }
+}

@@ -23,6 +23,7 @@ export function renderSide() {
   const off = S.sel ? (p.x?.[S.sel] ?? [0, 0]) : [0, 0];
   const layerSpec = S.sel ? rig.layers?.[rig.parts.find(q => q.bone === S.sel)?.name ?? ''] : undefined;
   const item = rig.parts.find(q => q.bone === S.sel)?.name ?? '';
+  const swapPart = rig.parts.find(q => q.bone === S.sel && rig.swaps?.[q.name]?.length)?.name;
   const boneList = Object.keys(rig.bones).filter(n => rig.bones[n].parent);
   side.innerHTML = `
     <section>
@@ -35,6 +36,8 @@ export function renderSide() {
           <label class="row">Move y <input id="off-y" type="number" step="1" value="${off[1]}"></label>` : ''}
         ${layerSpec ? `<label class="row">Layer <select id="layer">${['back', 'mid', 'front'].map(l =>
           `<option ${(p.layer?.[item] ?? 'mid') === l ? 'selected' : ''} value="${l}">${{ back: 'behind body', mid: 'normal', front: 'in front' }[l]}</option>`).join('')}</select></label>` : ''}
+        ${swapPart ? `<label class="row">Picture <select id="swap"><option value="">normal</option>${rig.swaps![swapPart].map(f =>
+          `<option ${p.swap?.[swapPart] === f ? 'selected' : ''} value="${f}">${f.replace(`${swapPart}_`, '')}</option>`).join('')}</select></label>` : ''}
         <button id="bone-reset">Reset bone</button>` : '<p class="hint">Click a handle on the stage, or pick a bone here.</p>'}
     </section>
     <section>
@@ -52,7 +55,7 @@ export function renderSide() {
       <label class="check"><input type="checkbox" id="t-pin" ${S.pin ? 'checked' : ''}> Pin feet while moving the hips</label>
       <label class="check"><input type="checkbox" id="t-onion" ${S.onion ? 'checked' : ''}> Onion skin (previous and next key)</label>
       <label class="check"><input type="checkbox" id="t-handles" ${S.handles ? 'checked' : ''}> Show handles</label>
-      <label class="check"><input type="checkbox" id="t-springs" ${S.springs ? 'checked' : ''}> Scarf / hair follow-through on play</label>
+      <label class="check"><input type="checkbox" id="t-springs" ${S.springs ? 'checked' : ''}> Follow-through (scarf, tails) on play</label>
       <button id="fit">Fit view</button>
     </section>
     <section class="legend">
@@ -69,6 +72,11 @@ export function renderSide() {
   on(side, '#off-x', 'change', el => edit(() => { const p = pose(); (p.x ??= {})[S.sel!] = [+el.value || 0, p.x[S.sel!]?.[1] ?? 0]; }));
   on(side, '#off-y', 'change', el => edit(() => { const p = pose(); (p.x ??= {})[S.sel!] = [p.x[S.sel!]?.[0] ?? 0, +el.value || 0]; }));
   on(side, '#layer', 'change', el => edit(() => { const p = pose(); (p.layer ??= {})[item] = el.value as 'back' | 'mid' | 'front'; if (el.value === 'mid') delete p.layer[item]; }));
+  on(side, '#swap', 'change', el => edit(() => {
+    const p = pose();
+    if (el.value) (p.swap ??= {})[swapPart!] = el.value;
+    else if (p.swap) { delete p.swap[swapPart!]; if (!Object.keys(p.swap).length) delete p.swap; }
+  }));
   on(side, '#bone-reset', 'click', () => edit(() => { const p = pose(); delete p.a[S.sel!]; if (p.x) delete p.x[S.sel!]; }));
   on(side, '#copy', 'click', copyPose);
   on(side, '#paste', 'click', pastePose);
