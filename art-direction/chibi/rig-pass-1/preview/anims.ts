@@ -1,4 +1,4 @@
-// Hero clips for rig pass 1: idle, run (jog) and the 2-hit basic attack.
+// Hero clips for rig pass 1: idle, run (a 3-pose loop) and the 2-hit basic attack.
 // Keyframes follow style/hero-poses.jpg (idle, run) and style/hero-swings.jpg
 // rows 1-2 (side slash, overhead smash). Angles in degrees, positive =
 // clockwise on screen (a hanging limb swings back, the torso leans forward).
@@ -46,39 +46,35 @@ export function idle(t: number): Pose {
   return aim(p, { a: 30 + br * 1.5 });
 }
 
-// ---------- run: a steady jog, both legs on one foot path half a cycle apart ----------
-export const RUN_CYCLE = 0.52;
-const STRIDE = 96;           // rig px a foot travels while planted
-const STANCE = 0.46;         // fraction of the cycle a foot is down
-/** Ground speed that keeps a planted foot still. */
-export const RUN_SPEED = STRIDE / (STANCE * RUN_CYCLE);
+// ---------- run: a plain 3-pose loop, A B C B ----------
+// He faces right, so his left side is the near side: left = the *_f bones
+// (the sword arm), right = the *_b bones.
+//   A: right leg forward, left leg a bit behind, left hand forward, right elbow back
+//   B: mid-switch (legs together, arms down)
+//   C: A mirrored
+// Feet stay on the ground (no knee or foot lift) and the stride is small.
+export const RUN_CYCLE = 1.0;       // A -> B -> C -> B, a quarter each
+const STEP = 18;                    // rig px a foot sits ahead of / behind centre
+/** Average speed of a foot across the ground (the grass scrolls at it). */
+export const RUN_SPEED = (STEP + STEP * 0.6) / (RUN_CYCLE / 2);
 
-function footPath(u: number): [number, number] {
-  u = ((u % 1) + 1) % 1;
-  const c = 6;
-  if (u < STANCE) return [c + STRIDE / 2 - STRIDE * (u / STANCE), 0];
-  const s = (u - STANCE) / (1 - STANCE);
-  const x = c - STRIDE / 2 + STRIDE * (s * s * (3 - 2 * s));
-  return [x, -30 * Math.sin(Math.PI * s ** 0.8)];   // heel lifts, foot reaches, lands
-}
+type RunPose = { ff: number; fb: number; sf: number; ef: number; sb: number; eb: number };
+const RUN_A: RunPose = { ff: -STEP * 0.6, fb: STEP, sf: -40, ef: -50, sb: 26, eb: -70 };
+const RUN_B: RunPose = { ff: 0, fb: 0, sf: -18, ef: -50, sb: 0, eb: -60 };
+const RUN_C: RunPose = { ff: STEP, fb: -STEP * 0.6, sf: 22, ef: -70, sb: -30, eb: -50 };
 
 export function run(t: number): Pose {
-  const u = t / RUN_CYCLE;
-  const ph = u * TAU;
-  const bob = Math.cos(2 * TAU * (u - STANCE / 2));   // lowest mid-stance, twice a cycle
+  const u = (((t / RUN_CYCLE) % 1) + 1) % 1 * 4;
+  const seq = [RUN_A, RUN_B, RUN_C, RUN_B, RUN_A];
+  const i = Math.floor(u), k = ease.inOut(u - i);
+  const a = seq[i], b = seq[i + 1];
+  const m = (n: keyof RunPose) => a[n] + (b[n] - a[n]) * k;
   const p: Pose = {
-    hipY: 17 + 2.5 * bob, hipX: 4,
-    sy: 1 + 0.006 * (1 - bob) / 2, sx: 1,
-    feet: { f: footPath(u), b: footPath(u + 0.5) },
-    a: {
-      hips: 3, torso: 12 + 1.2 * Math.sin(2 * ph - 0.8), head: -6 - Math.sin(2 * ph - 1.4),
-      // arms counter-swing the legs (front foot forward at u = 0); the sword
-      // arm carries, so it swings less
-      shoulder_f: -22 + 14 * Math.cos(ph), elbow_f: -60 - 8 * Math.max(0, Math.cos(ph)),
-      shoulder_b: -4 - 30 * Math.cos(ph), elbow_b: -78 - 10 * Math.max(0, -Math.cos(ph)),
-    },
+    hipY: 8, hipX: 2,
+    feet: { f: [m('ff'), 0], b: [m('fb'), 0] },
+    a: { torso: 6, head: -3, shoulder_f: m('sf'), elbow_f: m('ef'), shoulder_b: m('sb'), elbow_b: m('eb') },
   };
-  return aim(p, { a: 64 + 6 * Math.cos(ph) });
+  return aim(p, { a: 64 });
 }
 
 // ---------- basic attack: side slash, overhead smash, short pause ----------

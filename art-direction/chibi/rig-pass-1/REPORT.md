@@ -5,7 +5,7 @@ Brief: [`../rig-brief.md`](../rig-brief.md). Branch: `claude/festive-babbage-bdz
 ## For review
 | | |
 | --- | --- |
-| **Video** | [`hero-rig-pass-1.mp4`](hero-rig-pass-1.mp4) (1920×1080, 30 fps, 11 s), also as [`hero-rig-pass-1.gif`](hero-rig-pass-1.gif). It plays 3 s of idle, a 3.2 s run loop, then 3 combos. The hero is shown large for review, with the same rig at game scale (160 px) underneath. |
+| **Video** | [`hero-rig-pass-1.mp4`](hero-rig-pass-1.mp4) (1920×1080, 30 fps, 11 s), also as [`hero-rig-pass-1.gif`](hero-rig-pass-1.gif). It plays 3 s of idle, a 3.2 s run loop (A B C B), then 3 combos. The hero is shown large for review, with the same rig at game scale (160 px) underneath. |
 | **Side by side** | [`compare.png`](compare.png): 9 sheet keyframes (idle, 2 run frames, 3 slash, 3 smash), each next to the rig in the same pose at the same scale. |
 | **Still** | [`still.png`](still.png): hit 1 landing, with its slash arc and spark. |
 
@@ -25,7 +25,7 @@ Brief: [`../rig-brief.md`](../rig-brief.md). Branch: `claude/festive-babbage-bdz
 - **Gear swaps are part swaps by design.** Gloves are the forearm image, boots are the shin image and chest armour is the vest image. A hat would be one more image on the head bone. Nothing is swapped yet.
 - **Clips** (`preview/anims.ts`), keyed from the sheets:
   - **Idle:** 2.4 s breath with a slow weight shift.
-  - **Run:** a 0.52 s jog cycle. Both feet follow one foot path half a cycle apart, so they have the same stride and timing and there's no limp. The bob is only ±2.5 px. The grass scrolls at the planted foot's speed, so the feet don't skate.
+  - **Run** (simplified on request): a plain 3-pose loop, A B C B, 1 s per cycle. In A the right (far) leg is forward, the left (near) leg is a bit behind, the left hand is forward and the right elbow is back. B is mid-switch, with the legs together and the arms down. C is A mirrored. The feet stay on the ground with no knee or foot lift, the stride is small (18 px), and there's no bob or squash. Because the feet never lift, the forward-moving foot slides on the ground. The grass scrolls at the feet's average speed.
   - **Combo** (1.16 s, then a 0.44 s pause):
     - **Hit 1, side slash** (swings row 1), lands at 0.20 s: wind-up with the blade low by the back hip, then the arm shoots out at shoulder height and the blade comes round flat.
     - **Hit 2, overhead smash** (row 2), lands at 0.68 s: the sword goes up behind the head, then he chops down into a deep lunge.
@@ -51,7 +51,7 @@ Live preview: `npx vite art-direction/chibi/rig-pass-1/preview`. To rebuild ever
 - **The lunges are a little narrower and more upright than the sheet**, mainly in the smash strike. The legs reach their IK limit before the sheet's stance width, so the back leg can't stretch as far.
 - **The side slash reads mostly through the arc.** The blade's path from the low guard to the forward point is short. A wider wind-up, with the blade further back, would sell the sweep better at the cost of matching frame 1.
 - **The blend from run into the combo** is a 0.16 s cross-fade and looks a little soft. In the game, the attack would start from the current pose.
-- **The run keeps the sword fairly still**, and the back arm's swing is mostly hidden behind the body.
+- **Run:** the forward-moving foot slides, because the feet never lift. The run frames in `compare.png` still show the earlier jog; only the video was re-exported.
 - **The hair and fringe don't move.** The head is one piece with no hair spring, which the brief keeps out of scope.
 - **Joints at strong bends** are two rigid pieces meeting at a cap. That's invisible at 160 px but visible at review size.
 - **The parts are at sheet resolution** (hero about 350 px), so the review view upscales them about 1.6× and looks a little soft. At game scale they are downscaled cleanly through the power-of-two atlas with mipmaps.

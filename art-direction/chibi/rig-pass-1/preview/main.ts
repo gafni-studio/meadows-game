@@ -116,7 +116,7 @@ class Preview extends Phaser.Scene {
   private tick(dt: number) {
     this.clock += dt;
     const { clip, local, pose } = reelAt(this.clock);
-    this.label.setText(clip === 'idle' ? 'Idle' : clip === 'run' ? 'Run (jog)' : `2-hit combo ${Math.min(3, Math.floor(local / COMBO_LOOP) + 1)} / 3`);
+    this.label.setText(clip === 'idle' ? 'Idle' : clip === 'run' ? 'Run (A B C B)' : `2-hit combo ${Math.min(3, Math.floor(local / COMBO_LOOP) + 1)} / 3`);
     this.fxG.clear();
     const moving = clip === 'run';
     if (moving) this.scroll += dt * RUN_SPEED;
