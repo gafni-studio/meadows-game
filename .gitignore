@@ -10,3 +10,4 @@ art-src/*/*
 !art-src/*/License.txt
 shots/
 .netlify/
+studio/dist/

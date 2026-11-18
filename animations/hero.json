@@ -1,0 +1,42 @@
+{
+ "asset": "hero",
+ "version": 1,
+ "clips": {
+  "idle": {
+   "loop": true,
+   "keys": [
+    {
+     "ms": 400,
+     "ease": "smooth",
+     "pose": {
+      "a": {}
+     }
+    }
+   ]
+  },
+  "run": {
+   "loop": true,
+   "keys": [
+    {
+     "ms": 400,
+     "ease": "smooth",
+     "pose": {
+      "a": {}
+     }
+    }
+   ]
+  },
+  "combo": {
+   "loop": true,
+   "keys": [
+    {
+     "ms": 400,
+     "ease": "smooth",
+     "pose": {
+      "a": {}
+     }
+    }
+   ]
+  }
+ }
+}

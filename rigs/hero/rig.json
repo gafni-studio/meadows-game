@@ -1,0 +1,271 @@
+{
+ "id": "hero",
+ "name": "Hero",
+ "atlas": "atlas.png",
+ "frames": "atlas.json",
+ "height": 357.9,
+ "bones": {
+  "root": {
+   "at": [
+    434.0,
+    657.92
+   ]
+  },
+  "hips": {
+   "parent": "root",
+   "at": [
+    432.0,
+    540.0
+   ],
+   "tip": [
+    392.0,
+    548.0
+   ],
+   "kind": "move"
+  },
+  "torso": {
+   "parent": "hips",
+   "at": [
+    432.0,
+    540.0
+   ],
+   "tip": [
+    437.0,
+    438.0
+   ]
+  },
+  "head": {
+   "parent": "torso",
+   "at": [
+    437.0,
+    438.0
+   ],
+   "tip": [
+    452.0,
+    318.0
+   ]
+  },
+  "scarf_tail": {
+   "parent": "torso",
+   "at": [
+    398.0,
+    455.0
+   ],
+   "tip": [
+    366.0,
+    462.0
+   ],
+   "kind": "spring"
+  },
+  "shoulder_f": {
+   "parent": "torso",
+   "at": [
+    403.0,
+    470.0
+   ],
+   "tip": [
+    395.62,
+    524.12
+   ]
+  },
+  "elbow_f": {
+   "parent": "shoulder_f",
+   "at": [
+    395.62,
+    524.12
+   ],
+   "tip": [
+    402.18,
+    547.9
+   ]
+  },
+  "sword": {
+   "parent": "elbow_f",
+   "at": [
+    402.18,
+    547.9
+   ],
+   "tip": [
+    402.18,
+    373.9
+   ],
+   "kind": "item"
+  },
+  "shoulder_b": {
+   "parent": "torso",
+   "at": [
+    447.0,
+    468.0
+   ],
+   "tip": [
+    439.62,
+    522.12
+   ]
+  },
+  "elbow_b": {
+   "parent": "shoulder_b",
+   "at": [
+    439.62,
+    522.12
+   ],
+   "tip": [
+    446.18,
+    545.9
+   ]
+  },
+  "hip_f": {
+   "parent": "hips",
+   "at": [
+    436.0,
+    540.0
+   ],
+   "tip": [
+    436.0,
+    582.24
+   ]
+  },
+  "knee_f": {
+   "parent": "hip_f",
+   "at": [
+    436.0,
+    582.24
+   ],
+   "tip": [
+    437.76,
+    636.8
+   ]
+  },
+  "hip_b": {
+   "parent": "hips",
+   "at": [
+    427.0,
+    537.0
+   ],
+   "tip": [
+    427.0,
+    579.24
+   ]
+  },
+  "knee_b": {
+   "parent": "hip_b",
+   "at": [
+    427.0,
+    579.24
+   ],
+   "tip": [
+    428.76,
+    633.8
+   ]
+  }
+ },
+ "parts": [
+  {
+   "name": "forearm_b",
+   "bone": "elbow_b"
+  },
+  {
+   "name": "upperarm_b",
+   "bone": "shoulder_b"
+  },
+  {
+   "name": "scarf_tail",
+   "bone": "scarf_tail"
+  },
+  {
+   "name": "shin_b",
+   "bone": "knee_b"
+  },
+  {
+   "name": "thigh_b",
+   "bone": "hip_b"
+  },
+  {
+   "name": "shin_f",
+   "bone": "knee_f"
+  },
+  {
+   "name": "thigh_f",
+   "bone": "hip_f"
+  },
+  {
+   "name": "vest",
+   "bone": "torso"
+  },
+  {
+   "name": "sword",
+   "bone": "sword"
+  },
+  {
+   "name": "forearm_f",
+   "bone": "elbow_f"
+  },
+  {
+   "name": "upperarm_f",
+   "bone": "shoulder_f"
+  },
+  {
+   "name": "head",
+   "bone": "head"
+  },
+  {
+   "name": "scarf",
+   "bone": "torso"
+  }
+ ],
+ "ik": [
+  {
+   "upper": "shoulder_f",
+   "lower": "elbow_f",
+   "bend": -1
+  },
+  {
+   "upper": "shoulder_b",
+   "lower": "elbow_b",
+   "bend": -1
+  },
+  {
+   "upper": "hip_f",
+   "lower": "knee_f",
+   "bend": 1,
+   "pin": true
+  },
+  {
+   "upper": "hip_b",
+   "lower": "knee_b",
+   "bend": 1,
+   "pin": true
+  }
+ ],
+ "mirror": [
+  [
+   "shoulder_f",
+   "shoulder_b"
+  ],
+  [
+   "elbow_f",
+   "elbow_b"
+  ],
+  [
+   "hip_f",
+   "hip_b"
+  ],
+  [
+   "knee_f",
+   "knee_b"
+  ]
+ ],
+ "layers": {
+  "sword": {
+   "back": "vest",
+   "front": "scarf"
+  }
+ },
+ "springs": {
+  "scarf_tail": {
+   "k": 90,
+   "c": 7,
+   "gain": 0.006,
+   "max": 24
+  }
+ }
+}

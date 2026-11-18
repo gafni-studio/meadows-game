@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Meadows Animation Studio</title>
+</head>
+<body>
+  <header id="top">
+    <h1>Meadows Animation Studio</h1>
+    <label>Asset <select id="asset"></select></label>
+    <label>Clip <select id="clip"></select></label>
+    <button id="clip-new" title="New clip">New</button>
+    <button id="clip-dup" title="Copy this clip">Copy</button>
+    <button id="clip-ren">Rename</button>
+    <button id="clip-del">Delete</button>
+    <span class="spacer"></span>
+    <span id="dirty" class="dirty" hidden title="Unsaved changes (kept in this browser)">● unsaved</span>
+    <button id="save" class="primary" title="Commit animations/&lt;asset&gt;.json (Ctrl+S)">Save to GitHub</button>
+    <button id="download" title="Download the JSON file">Download</button>
+    <button id="open" title="Open a JSON file">Open…</button>
+    <input id="open-file" type="file" accept=".json,application/json" hidden />
+    <button id="settings-btn" title="GitHub token, repo and branch">⚙ Settings</button>
+  </header>
+  <div id="status" role="status"></div>
+  <div id="banner" hidden></div>
+  <main id="work">
+    <canvas id="stage"></canvas>
+    <aside id="side"></aside>
+  </main>
+  <footer id="timeline"></footer>
+
+  <dialog id="settings">
+    <form method="dialog">
+      <h2>Save to GitHub</h2>
+      <p class="hint">Clips are saved by committing <code>animations/&lt;asset&gt;.json</code> to the repo. Use a
+        <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained token</a>
+        for this repository only, with <b>Contents: Read and write</b>. It is kept in this browser and only sent to api.github.com.</p>
+      <p id="s-note" class="note"></p>
+      <label>Token <input id="s-token" type="password" autocomplete="off" placeholder="github_pat_…" /></label>
+      <label>Repository <input id="s-repo" type="text" /></label>
+      <label>Branch <input id="s-branch" type="text" /></label>
+      <div class="btns">
+        <button type="button" id="s-forget">Clear token</button>
+        <span class="spacer"></span>
+        <button type="button" id="s-cancel">Cancel</button>
+        <button type="button" id="s-ok" class="primary">Save settings</button>
+      </div>
+    </form>
+  </dialog>
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

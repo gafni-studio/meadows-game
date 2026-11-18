@@ -9,12 +9,14 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "check": "tsc --noEmit && vitest run",
+    "check": "tsc --noEmit && tsc --noEmit -p studio && vitest run",
     "smoke": "node scripts/smoke.mjs",
     "verify": "npm run check && vite build && node scripts/smoke.mjs",
     "shots": "node scripts/shots.mjs",
     "sheet:export": "node scripts/json-to-sheet.mjs",
-    "sheet:import": "node scripts/export-sheet.mjs"
+    "sheet:import": "node scripts/export-sheet.mjs",
+    "studio": "vite --config studio/vite.config.ts",
+    "studio:build": "vite build --config studio/vite.config.ts"
   },
   "dependencies": {
     "phaser": "^3.90.0"
