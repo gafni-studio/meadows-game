@@ -7,28 +7,65 @@
 </head>
 <body>
   <header id="top">
-    <h1>Meadows Animation Studio</h1>
-    <label>Asset <select id="asset"></select></label>
-    <label>Clip <select id="clip"></select></label>
-    <button id="clip-new" title="New clip">New</button>
-    <button id="clip-dup" title="Copy this clip">Copy</button>
-    <button id="clip-ren">Rename</button>
-    <button id="clip-del">Delete</button>
+    <div class="brand"><span class="logo">✦</span> Meadows <b>Animation Studio</b></div>
+    <div class="group">
+      <label class="field">Asset <select id="asset"></select></label>
+      <label class="field">Clip <select id="clip"></select></label>
+      <div class="menu">
+        <button id="clip-menu" class="icon" title="Clip actions" aria-haspopup="true">⋯</button>
+        <div id="clip-menu-list" class="menu-list" hidden>
+          <button id="clip-new">＋ New clip</button>
+          <button id="clip-dup">⧉ Copy this clip</button>
+          <button id="clip-ren">✎ Rename</button>
+          <button id="clip-del" class="danger">🗑 Delete</button>
+        </div>
+      </div>
+    </div>
     <span class="spacer"></span>
-    <span id="dirty" class="dirty" hidden title="Unsaved changes (kept in this browser)">● unsaved</span>
-    <button id="save" class="primary" title="Commit animations/&lt;asset&gt;.json (Ctrl+S)">Save to GitHub</button>
-    <button id="download" title="Download the JSON file">Download</button>
-    <button id="open" title="Open a JSON file">Open…</button>
-    <input id="open-file" type="file" accept=".json,application/json" hidden />
-    <button id="settings-btn" title="GitHub token, repo and branch">⚙ Settings</button>
+    <div class="group">
+      <button id="undo" class="icon" title="Undo (Ctrl+Z)">↶</button>
+      <button id="redo" class="icon" title="Redo (Ctrl+Shift+Z)">↷</button>
+    </div>
+    <div class="group">
+      <span id="dirty" class="dirty" hidden title="Unsaved changes (kept in this browser)">● Unsaved</span>
+      <button id="save" class="primary" title="Commit animations/&lt;asset&gt;.json to GitHub (Ctrl+S)">⬆ Save to GitHub</button>
+      <button id="download" title="Download the JSON file">⬇ Download</button>
+      <button id="open" title="Open a JSON file">Open…</button>
+      <input id="open-file" type="file" accept=".json,application/json" hidden />
+      <button id="settings-btn" class="icon" title="GitHub token, repo and branch">⚙</button>
+    </div>
   </header>
-  <div id="status" role="status"></div>
   <div id="banner" hidden></div>
+
   <main id="work">
-    <canvas id="stage"></canvas>
+    <div id="stage-wrap">
+      <canvas id="stage"></canvas>
+      <div class="stage-tools">
+        <button id="v-zoom-out" class="icon" title="Zoom out">−</button>
+        <button id="v-fit" class="icon" title="Fit the view (F)">⤢</button>
+        <button id="v-zoom-in" class="icon" title="Zoom in">＋</button>
+        <span class="sep"></span>
+        <button id="t-ik" class="toggle" title="IK: dragging a hand or foot moves the whole limb">IK</button>
+        <button id="t-pin" class="toggle" title="Pin feet: moving the hips keeps the feet planted">Pin feet</button>
+        <button id="t-onion" class="toggle" title="Onion skin: show the previous and next key faintly">Onion</button>
+        <button id="t-handles" class="toggle" title="Show the drag handles (H)">Handles</button>
+        <button id="t-springs" class="toggle" title="Follow-through on playback (scarf, tails)">Follow-through</button>
+      </div>
+      <div class="stage-hint" id="stage-hint"></div>
+      <div id="toast" role="status"></div>
+    </div>
     <aside id="side"></aside>
   </main>
+
   <footer id="timeline"></footer>
+
+  <aside id="help" hidden aria-label="Help">
+    <div class="help-head">
+      <h2>How to use the studio</h2>
+      <button id="help-close" class="icon" title="Close (Esc)">✕</button>
+    </div>
+    <div id="help-body" class="help-body"></div>
+  </aside>
 
   <dialog id="settings">
     <form method="dialog">

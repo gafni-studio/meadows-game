@@ -13,7 +13,8 @@ A web tool for posing rigged assets and saving their animation clips. It is publ
    - **Purple square:** moves the hips. Pinned feet stay planted.
    - **Empty space:** drag to pan. Use the mouse wheel to zoom.
 3. **Side panel:**
-   - Exact angle and offset for the selected bone, and the sword's layer (behind the body, normal, or in front).
+   - **Selected:** exact angle (slider, number, ±1°/±5° nudges) and offset for the selected bone, its picture, and its layer (▲ forward / ▼ back). Click any part on the stage to select it, including parts without a handle.
+   - **Layers:** the draw order (z-order) of every part on the current key, front at the top. It switches at the key and doesn't blend. **Use on all keys** copies it to the whole clip.
    - **Picture:** for parts that have other pictures, such as an NPC head's `blink` and `talk`. A picture switches at its key and doesn't blend, so a blink is a key with `blink` followed by a short key without it.
    - Copy, paste, **mirror** (swap left and right) and reset the pose.
 4. **Timeline:**
@@ -26,6 +27,8 @@ A web tool for posing rigged assets and saving their animation clips. It is publ
    - **Play** loops the clip. Speed can be 0.25× to 2×.
 5. **Save to GitHub** commits `animations/<asset>.json`. If saving isn't possible, use **Download** and commit the file by hand.
 
+The **? Help** button (bottom right, or the <kbd>?</kbd> key) opens a panel that explains every control and how to build an animation.
+
 **Keys:**
 | Key | Action |
 | --- | --- |
@@ -35,7 +38,11 @@ A web tool for posing rigged assets and saving their animation clips. It is publ
 | Ctrl+Z, Ctrl+Shift+Z | Undo, redo |
 | Ctrl+C, Ctrl+V | Copy or paste the pose |
 | Ctrl+S | Save |
-| Esc | Deselect |
+| Delete | Delete the current key |
+| [ and ] | Send the selected part back, or bring it forward |
+| F, H | Fit the view; show or hide handles |
+| ? | Help |
+| Esc | Deselect, or close the help |
 
 **Drafts:** every edit is also kept in this browser. If you close the tab before saving, the studio offers to restore your changes next time.
 
@@ -62,7 +69,7 @@ Paste it in **⚙ Settings**. It is stored in this browser's localStorage and is
 - A pose has:
   - `a`: bone angles in degrees, clockwise, relative to the parent. 0 is the rest pose, and a missing bone is at rest.
   - `x`: offsets in rig px, for bones that move (the hips).
-  - `layer`: the item layer, `back` or `front`.
+  - `order`: optional draw order for this key, back to front. The older `layer` field (item `back` or `front`) still plays. Use `drawOrder(rig, pose)` to get the order.
 - To play a clip, call `sample(clip, ms)`. It returns a pose, and `solve(rig, pose)` turns that pose into bone transforms.
 
 ## Develop

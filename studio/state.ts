@@ -19,19 +19,27 @@ export const S = {
   file: null as AnimFile | null,
   clip: '',
   key: 0,
-  sel: null as string | null,
+  sel: null as string | null,   // selected bone
+  part: null as string | null,  // selected part (for layers); its bone is `sel`
   playing: false,
   t: 0,            // playback time (ms)
   speed: 1,
-  ik: true,
-  pin: true,
-  onion: true,
-  handles: true,
-  springs: true,
+  ...loadView(),
   dirty: false,
   /** where the open file came from: 'github' | 'site' | 'new' | 'file' */
   source: 'new',
 };
+
+// ---------- view toggles, remembered per browser ----------
+type View = { ik: boolean; pin: boolean; onion: boolean; handles: boolean; springs: boolean };
+function loadView(): View {
+  const d: View = { ik: true, pin: true, onion: true, handles: true, springs: true };
+  try { return { ...d, ...JSON.parse(localStorage.getItem('meadows-studio:view') ?? '{}') }; } catch { return d; }
+}
+export function saveView() {
+  const v: View = { ik: S.ik, pin: S.pin, onion: S.onion, handles: S.handles, springs: S.springs };
+  try { localStorage.setItem('meadows-studio:view', JSON.stringify(v)); } catch { /* storage off */ }
+}
 
 const listeners: (() => void)[] = [];
 export const onChange = (f: () => void) => listeners.push(f);

@@ -24,11 +24,11 @@ export interface RigDef {
   frames: string;
   height: number;
   bones: Record<string, BoneDef>;
-  /** Draw order, back to front. */
+  /** Default draw order, back to front (a key can change it with `order`). */
   parts: { name: string; bone: string }[];
   ik?: IkChain[];
   mirror?: [string, string][];
-  /** Items that can change layer per key: draw just before `back`, or just after `front`. */
+  /** Older shortcut for items: draw just before `back`, or just after `front` (see Pose.layer). */
   layers?: Record<string, { back: string; front: string }>;
   springs?: Record<string, SpringDef>;
   /** Other pictures a part can show per key (e.g. head -> head_blink, head_talk). */
@@ -41,7 +41,9 @@ export interface Pose {
   a: Record<string, number>;
   /** move bones -> offset from rest (rig px, in the parent's space) */
   x?: Record<string, [number, number]>;
-  /** item part -> layer ('mid' = its place in the draw order) */
+  /** Draw order for this key, back to front (every part once). Wins over `layer`. */
+  order?: string[];
+  /** Older per-item layer ('mid' = its place in the draw order); kept so saved clips still play. */
   layer?: Record<string, 'back' | 'mid' | 'front'>;
   /** part -> the picture it shows instead of its own (one of rig.swaps[part]) */
   swap?: Record<string, string>;
@@ -180,9 +182,37 @@ export function clonePose(p: Pose): Pose {
   return {
     a: { ...p.a },
     ...(p.x ? { x: Object.fromEntries(Object.entries(p.x).map(([k, v]) => [k, [v[0], v[1]] as [number, number]])) } : {}),
+    ...(p.order ? { order: [...p.order] } : {}),
     ...(p.layer ? { layer: { ...p.layer } } : {}),
     ...(p.swap ? { swap: { ...p.swap } } : {}),
   };
+}
+
+/**
+ * The parts in the order to draw them for a pose, back to front: the key's own
+ * `order` if it has one (unknown names dropped, parts it misses kept at their
+ * default spot), else the rig's order with any item `layer` moves applied.
+ */
+export function drawOrder(rig: RigDef, pose: Pose): string[] {
+  const names = rig.parts.map(q => q.name);
+  if (pose.order?.length) {
+    const known = pose.order.filter((n, i) => names.includes(n) && pose.order!.indexOf(n) === i);
+    for (const n of names) {
+      if (known.includes(n)) continue;
+      // a part the order doesn't name (added to the rig later): after its default neighbour
+      const before = names.slice(0, names.indexOf(n)).reverse().find(m => known.includes(m));
+      known.splice(before ? known.indexOf(before) + 1 : 0, 0, n);
+    }
+    return known;
+  }
+  for (const [item, l] of Object.entries(pose.layer ?? {})) {
+    const spec = rig.layers?.[item];
+    if (!spec || l === 'mid' || !names.includes(item)) continue;
+    names.splice(names.indexOf(item), 1);
+    if (l === 'back') names.splice(names.indexOf(spec.back), 0, item);
+    else names.splice(names.indexOf(spec.front) + 1, 0, item);
+  }
+  return names;
 }
 
 /**

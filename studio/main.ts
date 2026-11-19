@@ -2,10 +2,11 @@
 // keys, preview the clip, and save every clip to animations/<asset>.json.
 // The rigs (rigs/<asset>/) are cut and built in code; poses are made here.
 import './style.css';
-import { S, onChange, changed, clip, edit, normalise, readDraft, clearDraft, clearHistory, doUndo, doRedo, type Asset, type Frame } from './state';
-import { render, play } from './stage';
-import { renderSide, renderTimeline, updatePlayhead, selectKey, addKey, copyPose, pastePose } from './panels';
-import { setOnTick } from './stage';
+import { S, onChange, changed, clip, edit, normalise, readDraft, clearDraft, clearHistory, doUndo, doRedo, saveView, type Asset, type Frame } from './state';
+import { render, play, setOnTick, resetView, zoomBy, refreshHint, selectBone } from './stage';
+import { renderSide, copyPose, pastePose, moveLayer } from './inspector';
+import { renderTimeline, updatePlayhead, selectKey, addKey, deleteKey } from './timeline';
+import { openHelp, closeHelp, helpOpen } from './help';
 import * as gh from './github';
 import type { RigDef } from '../src/anim/rig';
 import type { AnimFile } from '../src/anim/clip';
@@ -13,16 +14,21 @@ import type { AnimFile } from '../src/anim/clip';
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const assetSel = $<HTMLSelectElement>('asset');
 const clipSel = $<HTMLSelectElement>('clip');
-const status = $('status');
+const toast = $('toast');
 const banner = $('banner');
 
 type IndexEntry = { id: string; name: string; clips: string[] };
 let index: IndexEntry[] = [];
 
+let toastTimer = 0;
+/** A message in the corner of the stage; errors stay until clicked. */
 function say(msg: string, kind: '' | 'ok' | 'err' = '') {
-  status.textContent = msg;
-  status.className = kind;
+  toast.textContent = msg;
+  toast.className = `show ${kind}`;
+  clearTimeout(toastTimer);
+  if (kind !== 'err') toastTimer = window.setTimeout(() => { toast.className = kind; }, msg.length > 70 ? 7000 : 4000);
 }
+toast.onclick = () => { toast.className = ''; };
 
 // ---------- loading ----------
 async function getJson<T>(url: string): Promise<T> {
@@ -44,6 +50,7 @@ async function loadAsset(id: string) {
   const asset: Asset = { id, name: entry.name, clips: entry.clips, rig, img, frames };
   S.asset = asset;
   S.sel = null;
+  S.part = null;
   S.key = 0;
   S.t = 0;
 
@@ -99,7 +106,29 @@ function renderTop() {
   assetSel.innerHTML = index.map(e => `<option value="${e.id}" ${e.id === S.asset?.id ? 'selected' : ''}>${e.name}</option>`).join('');
   clipSel.innerHTML = Object.keys(S.file.clips).map(c => `<option ${c === S.clip ? 'selected' : ''}>${c}</option>`).join('');
   $('dirty').hidden = !S.dirty;
+  for (const k of ['ik', 'pin', 'onion', 'handles', 'springs'] as const) $(`t-${k}`).classList.toggle('on', S[k]);
+  // tools this rig has nothing for (an NPC has no pinned feet and no springs)
+  const rig = S.asset!.rig;
+  $<HTMLButtonElement>('t-pin').disabled = !rig.ik?.some(c => c.pin);
+  $<HTMLButtonElement>('t-springs').disabled = !Object.keys(rig.springs ?? {}).length;
+  $<HTMLButtonElement>('t-ik').disabled = !rig.ik?.length;
+  refreshHint();
 }
+
+// ---------- stage toolbar ----------
+for (const k of ['ik', 'pin', 'onion', 'handles', 'springs'] as const) {
+  $(`t-${k}`).onclick = () => { S[k] = !S[k]; saveView(); changed(); };
+}
+$('v-fit').onclick = () => resetView();
+$('v-zoom-in').onclick = () => zoomBy(1.2);
+$('v-zoom-out').onclick = () => zoomBy(1 / 1.2);
+$('undo').onclick = () => doUndo();
+$('redo').onclick = () => doRedo();
+
+// clip menu (⋯)
+const menu = $('clip-menu-list');
+$('clip-menu').onclick = e => { e.stopPropagation(); menu.hidden = !menu.hidden; };
+document.addEventListener('click', () => { menu.hidden = true; });
 
 assetSel.onchange = async () => {
   if (S.dirty && !confirm('Switch asset? Unsaved changes stay in this browser as a draft.')) { renderTop(); return; }
@@ -211,7 +240,13 @@ window.addEventListener('keydown', e => {
   else if (e.key === 'ArrowLeft') selectKey(S.key - 1);
   else if (e.key === 'ArrowRight') selectKey(S.key + 1);
   else if (e.key === 'Insert') addKey();
-  else if (e.key === 'Escape') { S.sel = null; changed(); }
+  else if (e.key === 'Delete') deleteKey();
+  else if (e.key === '[') moveLayer(S.part, -1);
+  else if (e.key === ']') moveLayer(S.part, 1);
+  else if (e.key.toLowerCase() === 'f' && !mod) resetView();
+  else if (e.key.toLowerCase() === 'h' && !mod) { S.handles = !S.handles; saveView(); changed(); }
+  else if (e.key === '?') helpOpen() ? closeHelp() : openHelp();
+  else if (e.key === 'Escape') { if (helpOpen()) closeHelp(); else { selectBone(null); changed(); } }
 });
 window.addEventListener('beforeunload', e => { if (S.dirty) e.preventDefault(); });
 

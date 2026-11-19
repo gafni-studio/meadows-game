@@ -1,7 +1,7 @@
 // Animation Studio format: rigs/<asset>/rig.json + animations/<asset>.json.
 import { describe, expect, it } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
-import { solve, solveIk, chainEnd, bendOf, type RigDef } from '../src/anim/rig';
+import { solve, solveIk, chainEnd, bendOf, drawOrder, type RigDef } from '../src/anim/rig';
 import { sample, clipLength, type Clip } from '../src/anim/clip';
 
 const rig = JSON.parse(readFileSync('rigs/hero/rig.json', 'utf8')) as RigDef;
@@ -38,6 +38,23 @@ describe('animation rigs', () => {
         expect(Math.sign(bendOf(rig, chain, pose.a[chain.lower]))).toBe(chain.bend);
       }
     }
+  });
+});
+
+describe('draw order (layers)', () => {
+  const parts = rig.parts.map(p => p.name);
+  it('a key can reorder parts; unknown names drop, missing parts keep their spot', () => {
+    expect(drawOrder(rig, { a: {} })).toEqual(parts);
+    const swapped = [...parts].reverse();
+    expect(drawOrder(rig, { a: {}, order: swapped })).toEqual(swapped);
+    const partial = drawOrder(rig, { a: {}, order: ['sword', 'nope', ...parts.filter(n => n !== 'sword' && n !== 'head')] });
+    expect(partial[0]).toBe('sword');
+    expect(partial).toHaveLength(parts.length);
+    expect(partial).toContain('head');
+  });
+  it('older saves: an item layer still moves the item', () => {
+    const o = drawOrder(rig, { a: {}, layer: { sword: 'back' } });
+    expect(o.indexOf('sword')).toBe(o.indexOf('vest') - 1);
   });
 });
 

@@ -12,6 +12,10 @@ Hero (internal id `warrior`) walks two Paths: Warrior (Power Strike → Earthbre
 ## In flight
 - **Meadows Animation Studio** (`studio/`, `studio/README.md`) on branch `claude/festive-babbage-bdzucw`, not merged yet. It is a web tool for GitHub Pages: pose the hero rig (`rigs/hero/`) key by key, set per-key timing and blend, preview the looping clip, save to `animations/hero.json` through the GitHub API (or Download). The idle, run and combo clips start at the rest pose; **Oded poses them**. Claude only cuts parts and builds rigs from now on, never poses. Pages goes live once the branch is merged to main and Pages is set to "GitHub Actions" in the repo settings.
 - **Town NPC rigs** for the studio: Pell, Mara, Calden (`rigs/npc_cut.py`), each with a still body, a head with `blink` and `talk` pictures (a new studio feature: per-key part pictures), and two arms with IK. Calden holds his sword and Pell his staff. Starting clips are idle and talk, for Oded to pose. Known gap: the body behind a raised arm is filled in from flat colours, which is rough on Calden (behind the sword and arm). Ila and Tamsin can be added the same way.
+- **Studio UI pass:**
+  - **Layers:** a per-key draw order for every part (`pose.order`, `drawOrder()` in `src/anim/rig.ts`), replacing the sword-only layer switch; older `layer` saves still play.
+  - **Layout:** collapsible inspector, stage toolbar, angle nudges, click-to-select parts, key thumbnails on the timeline.
+  - **Help:** a Help side panel (button at the bottom right) explaining every control and how to make an animation.
 - Rig pass 1 (`art-direction/chibi/rig-pass-1/`) stays as the reference for the first rig; its hand-made poses are superseded by the studio.
 - v0.3.1 is released; waiting for Oded's playtest notes.
 
