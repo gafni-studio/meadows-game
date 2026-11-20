@@ -7,6 +7,7 @@ import { clonePose } from '../src/anim/rig';
 import { openHelp } from './help';
 
 const tl = document.getElementById('timeline')!;
+let keysScroll = 0;   // the key row's scroll, kept while the timeline redraws
 const esc = (s: string) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
 const on = (sel: string, ev: string, f: (el: HTMLInputElement & HTMLSelectElement & HTMLElement, e: Event) => void) =>
   tl.querySelectorAll<HTMLInputElement & HTMLSelectElement>(sel).forEach(el => el.addEventListener(ev, e => f(el, e)));
@@ -65,7 +66,22 @@ export function renderTimeline() {
     const k = clip().keys[+el.dataset.i!];
     if (el.value.trim()) k.event = el.value.trim(); else delete k.event;
   }));
-  tl.querySelector('.key.on')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  // keep the scroll position across redraws, then bring the current key into view
+  const row = tl.querySelector<HTMLElement>('.keys')!;
+  row.style.scrollBehavior = 'auto';
+  row.scrollLeft = keysScroll;
+  const cur = row.querySelector<HTMLElement>('.key.on');
+  if (cur && (cur.offsetLeft < row.scrollLeft || cur.offsetLeft + cur.offsetWidth > row.scrollLeft + row.clientWidth)) {
+    row.scrollLeft = cur.offsetLeft - (row.clientWidth - cur.offsetWidth) / 2;
+  }
+  row.style.scrollBehavior = '';
+  row.addEventListener('scroll', () => { keysScroll = row.scrollLeft; });
+  // the mouse wheel scrolls the row of keys sideways
+  row.addEventListener('wheel', e => {
+    if (Math.abs(e.deltaY) <= Math.abs(e.deltaX) || row.scrollWidth <= row.clientWidth) return;
+    e.preventDefault();
+    row.scrollLeft += e.deltaY;
+  }, { passive: false });
   updatePlayhead();
 }
 
