@@ -6,22 +6,27 @@
    "loop": true,
    "keys": [
     {
-     "ms": 300,
+     "ms": 550,
      "ease": "smooth",
      "pose": {
       "a": {
-       "head": -3.4,
-       "hip_f": -32.3,
-       "knee_f": 3.4,
-       "hip_b": -0.8,
-       "knee_b": 39.9,
-       "shoulder_f": 24,
-       "elbow_f": -45.4,
-       "sword": 93,
-       "shoulder_b": -62.8,
+       "head": -2.2,
+       "hip_f": 9.3,
+       "knee_f": 7.2,
+       "hip_b": -14.2,
+       "knee_b": 7.2,
+       "shoulder_f": 3,
+       "elbow_f": -13.8,
+       "sword": 141.5,
+       "shoulder_b": -25,
        "elbow_b": 22.2,
-       "hips": 1.3,
-       "torso": -1.9
+       "torso": -2.6
+      },
+      "x": {
+       "hips": [
+        -4.6,
+        13.3
+       ]
       },
       "order": [
        "forearm_b",
@@ -37,35 +42,69 @@
        "upperarm_f",
        "scarf",
        "head"
-      ],
-      "x": {
-       "hips": [
-        -21.6,
-        13.1
-       ]
-      }
+      ]
      }
     },
     {
-     "ms": 300,
+     "ms": 550,
      "ease": "smooth",
      "pose": {
       "a": {
-       "head": -9.3,
-       "hip_f": -18.3,
-       "knee_f": 9.9,
-       "hip_b": -26.4,
-       "knee_b": 53.5,
-       "shoulder_f": -35.3,
-       "elbow_f": 21.4,
-       "sword": 67.4,
-       "shoulder_b": -5.7,
-       "elbow_b": 22.1,
-       "torso": 1.9
+       "head": -2.2,
+       "hip_f": 0.7,
+       "knee_f": 20.7,
+       "hip_b": -19,
+       "knee_b": 13.5,
+       "shoulder_f": 3,
+       "elbow_f": -13.8,
+       "sword": 141.5,
+       "shoulder_b": -18.2,
+       "elbow_b": 22.2,
+       "torso": -0.6
       },
       "x": {
        "hips": [
-        -24.9,
+        -6.5,
+        14.1
+       ]
+      },
+      "order": [
+       "forearm_b",
+       "upperarm_b",
+       "scarf_tail",
+       "shin_b",
+       "thigh_b",
+       "shin_f",
+       "thigh_f",
+       "vest",
+       "sword",
+       "forearm_f",
+       "upperarm_f",
+       "scarf",
+       "head"
+      ]
+     }
+    },
+    {
+     "ms": 700,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "head": -1.1,
+       "hip_f": 2.8,
+       "knee_f": 17.1,
+       "hip_b": -16,
+       "knee_b": 8.5,
+       "shoulder_f": -1.9,
+       "elbow_f": -13.8,
+       "sword": 141.5,
+       "shoulder_b": -18.2,
+       "elbow_b": 22.2,
+       "torso": 1.6
+      },
+      "x": {
+       "hips": [
+        -6.3,
         13.7
        ]
       },
@@ -87,26 +126,26 @@
      }
     },
     {
-     "ms": 400,
+     "ms": 900,
      "ease": "smooth",
      "pose": {
       "a": {
-       "head": -7.2,
-       "hip_f": 30.3,
-       "knee_f": 3.5,
-       "hip_b": -29.5,
-       "knee_b": 3.5,
-       "shoulder_f": -51.5,
-       "elbow_f": -14.4,
-       "sword": 107.3,
-       "shoulder_b": 33.6,
-       "elbow_b": 21.7,
-       "torso": -0.3
+       "head": -1.3,
+       "hip_f": 8.2,
+       "knee_f": 9.1,
+       "hip_b": -15.5,
+       "knee_b": 9.5,
+       "shoulder_f": 1.9,
+       "elbow_f": -26.3,
+       "sword": 152.1,
+       "shoulder_b": -18.2,
+       "elbow_b": 22.2,
+       "torso": 1.6
       },
       "x": {
        "hips": [
-        -11.7,
-        11.2
+        -4.6,
+        13.4
        ]
       },
       "order": [
@@ -127,26 +166,66 @@
      }
     },
     {
-     "ms": 400,
+     "ms": 600,
      "ease": "smooth",
      "pose": {
       "a": {
-       "head": -2.2,
-       "hip_f": -37.5,
-       "knee_f": 78.8,
-       "hip_b": -7.4,
-       "knee_b": 3.4,
-       "shoulder_f": -24.4,
-       "elbow_f": -13.8,
-       "sword": 104.9,
-       "shoulder_b": -12.1,
+       "head": -3.5,
+       "hip_f": 8.9,
+       "knee_f": 3.5,
+       "hip_b": -14.2,
+       "knee_b": 3.5,
+       "shoulder_f": 4,
+       "elbow_f": -26.3,
+       "sword": 149.7,
+       "shoulder_b": -18.2,
        "elbow_b": 22.2,
-       "torso": -2.6
+       "torso": 1.6
       },
       "x": {
        "hips": [
-        -4.6,
-        13.2
+        -8.6,
+        11.8
+       ]
+      },
+      "order": [
+       "forearm_b",
+       "upperarm_b",
+       "scarf_tail",
+       "shin_b",
+       "thigh_b",
+       "shin_f",
+       "thigh_f",
+       "vest",
+       "sword",
+       "forearm_f",
+       "upperarm_f",
+       "scarf",
+       "head"
+      ]
+     }
+    },
+    {
+     "ms": 900,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "head": -6.9,
+       "hip_f": 0.8,
+       "knee_f": 15.2,
+       "hip_b": -21.5,
+       "knee_b": 13.8,
+       "shoulder_f": 5.9,
+       "elbow_f": -26.3,
+       "sword": 148.6,
+       "shoulder_b": -22.3,
+       "elbow_b": 21.4,
+       "torso": 1.6
+      },
+      "x": {
+       "hips": [
+        -11.1,
+        11.7
        ]
       },
       "order": [
