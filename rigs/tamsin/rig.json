@@ -1,0 +1,153 @@
+{
+ "id": "tamsin",
+ "name": "Tamsin",
+ "atlas": "atlas.png",
+ "frames": "atlas.json",
+ "height": 242,
+ "bones": {
+  "root": {
+   "at": [
+    286.0,
+    270.0
+   ]
+  },
+  "body": {
+   "parent": "root",
+   "at": [
+    286.0,
+    270.0
+   ]
+  },
+  "head": {
+   "parent": "body",
+   "at": [
+    290.0,
+    145.0
+   ],
+   "tip": [
+    270.0,
+    30.0
+   ]
+  },
+  "shoulder_n": {
+   "parent": "body",
+   "at": [
+    258.0,
+    160.0
+   ],
+   "tip": [
+    258.0,
+    196.0
+   ]
+  },
+  "elbow_n": {
+   "parent": "shoulder_n",
+   "at": [
+    258.0,
+    196.0
+   ],
+   "tip": [
+    258.0,
+    206.0
+   ]
+  },
+  "shoulder_f": {
+   "parent": "body",
+   "at": [
+    324.0,
+    162.0
+   ],
+   "tip": [
+    333.0,
+    180.0
+   ]
+  },
+  "elbow_f": {
+   "parent": "shoulder_f",
+   "at": [
+    333.0,
+    180.0
+   ],
+   "tip": [
+    343.0,
+    180.0
+   ]
+  },
+  "staff": {
+   "parent": "elbow_f",
+   "at": [
+    343.0,
+    180.0
+   ],
+   "tip": [
+    358.0,
+    92.0
+   ],
+   "kind": "item"
+  }
+ },
+ "parts": [
+  {
+   "name": "body",
+   "bone": "body"
+  },
+  {
+   "name": "staff",
+   "bone": "staff"
+  },
+  {
+   "name": "hand_f",
+   "bone": "elbow_f"
+  },
+  {
+   "name": "upperarm_f",
+   "bone": "shoulder_f"
+  },
+  {
+   "name": "hand_n",
+   "bone": "elbow_n"
+  },
+  {
+   "name": "upperarm_n",
+   "bone": "shoulder_n"
+  },
+  {
+   "name": "head",
+   "bone": "head"
+  }
+ ],
+ "ik": [
+  {
+   "upper": "shoulder_n",
+   "lower": "elbow_n",
+   "bend": -1
+  },
+  {
+   "upper": "shoulder_f",
+   "lower": "elbow_f",
+   "bend": -1
+  }
+ ],
+ "mirror": [
+  [
+   "shoulder_n",
+   "shoulder_f"
+  ],
+  [
+   "elbow_n",
+   "elbow_f"
+  ]
+ ],
+ "swaps": {
+  "head": [
+   "head_talk",
+   "head_blink"
+  ]
+ },
+ "layers": {
+  "staff": {
+   "back": "body",
+   "front": "head"
+  }
+ }
+}

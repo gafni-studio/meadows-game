@@ -1,0 +1,116 @@
+{
+ "asset": "pell",
+ "version": 1,
+ "clips": {
+  "idle": {
+   "loop": true,
+   "keys": [
+    {
+     "ms": 1500,
+     "ease": "smooth",
+     "pose": {
+      "a": {}
+     }
+    },
+    {
+     "ms": 1100,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "head": 2,
+       "shoulder_n": -2,
+       "shoulder_f": -2
+      }
+     }
+    },
+    {
+     "ms": 130,
+     "ease": "hold",
+     "pose": {
+      "a": {
+       "head": 2,
+       "shoulder_n": -2,
+       "shoulder_f": -2
+      },
+      "swap": {
+       "head": "head_blink"
+      }
+     }
+    },
+    {
+     "ms": 1200,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "head": 2,
+       "shoulder_n": -2,
+       "shoulder_f": -2
+      }
+     }
+    }
+   ]
+  },
+  "talk": {
+   "loop": true,
+   "keys": [
+    {
+     "ms": 260,
+     "ease": "smooth",
+     "pose": {
+      "a": {}
+     }
+    },
+    {
+     "ms": 280,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "head": -4,
+       "shoulder_n": -55,
+       "elbow_n": -45
+      },
+      "swap": {
+       "head": "head_talk"
+      }
+     }
+    },
+    {
+     "ms": 260,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "head": 2,
+       "shoulder_n": -40,
+       "elbow_n": -60
+      }
+     }
+    },
+    {
+     "ms": 280,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "head": -2,
+       "shoulder_n": -60,
+       "elbow_n": -35
+      },
+      "swap": {
+       "head": "head_talk"
+      }
+     }
+    },
+    {
+     "ms": 320,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "head": 3,
+       "shoulder_n": -30,
+       "elbow_n": -40
+      }
+     }
+    }
+   ]
+  }
+ }
+}

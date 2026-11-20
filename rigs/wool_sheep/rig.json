@@ -1,0 +1,82 @@
+{
+ "id": "wool_sheep",
+ "name": "Wool Sheep",
+ "atlas": "atlas.png",
+ "frames": "atlas.json",
+ "height": 147,
+ "bones": {
+  "root": {
+   "at": [
+    75.0,
+    148.0
+   ]
+  },
+  "body": {
+   "parent": "root",
+   "at": [
+    75.0,
+    120.0
+   ],
+   "tip": [
+    75.0,
+    9.0
+   ],
+   "kind": "move"
+  },
+  "leg_back": {
+   "parent": "body",
+   "at": [
+    45.0,
+    122.0
+   ],
+   "tip": [
+    45.0,
+    148.0
+   ]
+  },
+  "leg_front": {
+   "parent": "body",
+   "at": [
+    108.0,
+    122.0
+   ],
+   "tip": [
+    108.0,
+    148.0
+   ]
+  }
+ },
+ "parts": [
+  {
+   "name": "leg_back",
+   "bone": "leg_back"
+  },
+  {
+   "name": "leg_front",
+   "bone": "leg_front"
+  },
+  {
+   "name": "body",
+   "bone": "body"
+  }
+ ],
+ "swaps": {
+  "body": [
+   "body_hurt",
+   "body_dead",
+   "body_strike"
+  ],
+  "leg_back": [
+   "leg_back_none"
+  ],
+  "leg_front": [
+   "leg_front_none"
+  ]
+ },
+ "mirror": [
+  [
+   "leg_back",
+   "leg_front"
+  ]
+ ]
+}

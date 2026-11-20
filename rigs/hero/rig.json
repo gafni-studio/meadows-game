@@ -267,5 +267,11 @@
    "gain": 0.006,
    "max": 24
   }
+ },
+ "swaps": {
+  "head": [
+   "head_blink",
+   "head_hurt"
+  ]
  }
 }

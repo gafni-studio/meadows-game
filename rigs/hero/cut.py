@@ -169,6 +169,26 @@ def cut(name, spec):
 
 cuts = {n: cut(n, s) for n, s in parts.items()}
 
+# head pictures for the studio (blink, hurt), painted over the head part: the
+# pose sheet's other faces are drawn at other angles and don't line up.
+def face(kind):
+    im, piv = cuts["head"]
+    im = im.copy()
+    d = ImageDraw.Draw(im)
+    skin = im.getpixel((112, 128))[:3]
+    eye = (101, 89, 121, 121)                       # the eye, in head-part px
+    d.ellipse(eye, fill=skin + (255,))
+    ink = OUTLINE + (255,)
+    if kind == "blink":                             # a closed lid, curved down
+        d.arc((99, 96, 123, 116), 20, 160, fill=ink, width=3)
+    else:                                           # hurt: squeezed shut ">" and a frown
+        d.line([(103, 96), (119, 105), (104, 114)], fill=ink, width=3, joint="curve")
+        d.arc((112, 128, 126, 138), 200, 340, fill=ink, width=2)
+    return im, piv
+
+cuts["head_blink"] = face("blink")
+cuts["head_hurt"] = face("hurt")
+
 # back limbs: same pieces, a shade darker (they sit behind the body)
 def darker(im, k=0.8):
     a = np.array(im).astype(np.float32)
@@ -271,6 +291,7 @@ rig = {
     # where an item can be moved in the draw order, per key
     "layers": {"sword": {"back": "vest", "front": "scarf"}},
     "springs": {"scarf_tail": {"k": 90, "c": 7, "gain": 0.006, "max": 24}},
+    "swaps": {"head": ["head_blink", "head_hurt"]},
 }
 with open(os.path.join(HERE, "rig.json"), "w") as f:
     json.dump(rig, f, indent=1)

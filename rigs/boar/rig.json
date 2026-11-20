@@ -1,0 +1,82 @@
+{
+ "id": "boar",
+ "name": "Boar",
+ "atlas": "atlas.png",
+ "frames": "atlas.json",
+ "height": 146,
+ "bones": {
+  "root": {
+   "at": [
+    85.0,
+    146.0
+   ]
+  },
+  "body": {
+   "parent": "root",
+   "at": [
+    85.0,
+    116.0
+   ],
+   "tip": [
+    85.0,
+    8.0
+   ],
+   "kind": "move"
+  },
+  "leg_back": {
+   "parent": "body",
+   "at": [
+    45.0,
+    118.0
+   ],
+   "tip": [
+    45.0,
+    146.0
+   ]
+  },
+  "leg_front": {
+   "parent": "body",
+   "at": [
+    118.0,
+    118.0
+   ],
+   "tip": [
+    118.0,
+    146.0
+   ]
+  }
+ },
+ "parts": [
+  {
+   "name": "leg_back",
+   "bone": "leg_back"
+  },
+  {
+   "name": "leg_front",
+   "bone": "leg_front"
+  },
+  {
+   "name": "body",
+   "bone": "body"
+  }
+ ],
+ "swaps": {
+  "body": [
+   "body_hurt",
+   "body_dead",
+   "body_strike"
+  ],
+  "leg_back": [
+   "leg_back_none"
+  ],
+  "leg_front": [
+   "leg_front_none"
+  ]
+ },
+ "mirror": [
+  [
+   "leg_back",
+   "leg_front"
+  ]
+ ]
+}

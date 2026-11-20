@@ -86,4 +86,12 @@ Paste it in **⚙ Settings**. It is stored in this browser's localStorage and is
 - **Arms:** two arms, each a sleeve and a hand, with IK on the hand.
 - **Item:** Pell's staff or Calden's sword.
 
-They are cut from one standing frame of each NPC sheet, and the body behind the arms and head is filled in from its own flat colours. To add an NPC, add a spec to `SPECS`, then run `python3 rigs/npc_cut.py <id>`.
+Ila and Tamsin have no side-view closed-eye frame, so their `blink` is painted by hand. They are cut from one standing frame of each NPC sheet, and the body behind the arms and head is filled in from its own flat colours. To add an NPC, add a spec to `SPECS`, then run `python3 rigs/npc_cut.py <id>`.
+
+**Meadow mobs** (`rigs/mob_cut.py`) share one rig:
+- **Body:** moves (square handle) and tilts (round handle).
+- **Legs:** two leg pairs that swing (the crow has one).
+- **Body pictures:** whole frames from the sheet: `hurt`, `dead`, `strike`, and for the crow `fly_up` and `fly_down`.
+- **Leg pictures:** each leg pair has a `none` picture, to hide it while the body shows a whole frame.
+
+Base clips (idle, move, attack, hit, death; NPC idle and talk) came from `scripts/base-clips.ts` as rough starting points.

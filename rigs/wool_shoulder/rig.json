@@ -1,0 +1,82 @@
+{
+ "id": "wool_shoulder",
+ "name": "Wool-Shoulder",
+ "atlas": "atlas.png",
+ "frames": "atlas.json",
+ "height": 155,
+ "bones": {
+  "root": {
+   "at": [
+    90.0,
+    156.0
+   ]
+  },
+  "body": {
+   "parent": "root",
+   "at": [
+    90.0,
+    123.0
+   ],
+   "tip": [
+    90.0,
+    9.0
+   ],
+   "kind": "move"
+  },
+  "leg_back": {
+   "parent": "body",
+   "at": [
+    55.0,
+    125.0
+   ],
+   "tip": [
+    55.0,
+    156.0
+   ]
+  },
+  "leg_front": {
+   "parent": "body",
+   "at": [
+    122.0,
+    125.0
+   ],
+   "tip": [
+    122.0,
+    156.0
+   ]
+  }
+ },
+ "parts": [
+  {
+   "name": "leg_back",
+   "bone": "leg_back"
+  },
+  {
+   "name": "leg_front",
+   "bone": "leg_front"
+  },
+  {
+   "name": "body",
+   "bone": "body"
+  }
+ ],
+ "swaps": {
+  "body": [
+   "body_hurt",
+   "body_dead",
+   "body_strike"
+  ],
+  "leg_back": [
+   "leg_back_none"
+  ],
+  "leg_front": [
+   "leg_front_none"
+  ]
+ },
+ "mirror": [
+  [
+   "leg_back",
+   "leg_front"
+  ]
+ ]
+}

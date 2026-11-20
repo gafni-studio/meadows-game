@@ -1,0 +1,285 @@
+{
+ "asset": "crow",
+ "version": 1,
+ "clips": {
+  "idle": {
+   "loop": true,
+   "keys": [
+    {
+     "ms": 700,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": 0
+      },
+      "x": {
+       "body": [
+        0,
+        0
+       ]
+      }
+     }
+    },
+    {
+     "ms": 700,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": -1.5
+      },
+      "x": {
+       "body": [
+        0,
+        1.2000000000000002
+       ]
+      }
+     }
+    }
+   ]
+  },
+  "move": {
+   "loop": true,
+   "keys": [
+    {
+     "ms": 140,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": 0
+      },
+      "x": {
+       "body": [
+        0,
+        -32
+       ]
+      },
+      "swap": {
+       "body": "body_fly_up",
+       "legs": "legs_none"
+      }
+     }
+    },
+    {
+     "ms": 140,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": 4
+      },
+      "x": {
+       "body": [
+        0,
+        -27.200000000000003
+       ]
+      },
+      "swap": {
+       "body": "body_fly_down",
+       "legs": "legs_none"
+      }
+     }
+    }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "keys": [
+    {
+     "ms": 260,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": 0
+      },
+      "x": {
+       "body": [
+        0,
+        0
+       ]
+      }
+     }
+    },
+    {
+     "ms": 120,
+     "ease": "easeIn",
+     "pose": {
+      "a": {
+       "body": -10
+      },
+      "x": {
+       "body": [
+        -8,
+        1.6
+       ]
+      }
+     }
+    },
+    {
+     "ms": 220,
+     "ease": "easeOut",
+     "pose": {
+      "a": {
+       "body": 4
+      },
+      "x": {
+       "body": [
+        12.8,
+        0
+       ]
+      },
+      "swap": {
+       "body": "body_strike",
+       "legs": "legs_none"
+      }
+     },
+     "event": "hit"
+    },
+    {
+     "ms": 240,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": 0
+      },
+      "x": {
+       "body": [
+        3.2,
+        0
+       ]
+      }
+     }
+    },
+    {
+     "ms": 1,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": 0
+      },
+      "x": {
+       "body": [
+        0,
+        0
+       ]
+      }
+     }
+    }
+   ]
+  },
+  "hit": {
+   "loop": false,
+   "keys": [
+    {
+     "ms": 240,
+     "ease": "easeOut",
+     "pose": {
+      "a": {
+       "body": -8
+      },
+      "x": {
+       "body": [
+        -11.200000000000001,
+        0
+       ]
+      },
+      "swap": {
+       "body": "body_hurt",
+       "legs": "legs_none"
+      }
+     }
+    },
+    {
+     "ms": 220,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": -2
+      },
+      "x": {
+       "body": [
+        -3.2,
+        0
+       ]
+      }
+     }
+    },
+    {
+     "ms": 1,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": 0
+      },
+      "x": {
+       "body": [
+        0,
+        0
+       ]
+      }
+     }
+    }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "keys": [
+    {
+     "ms": 300,
+     "ease": "easeOut",
+     "pose": {
+      "a": {
+       "body": -8
+      },
+      "x": {
+       "body": [
+        -11.200000000000001,
+        0
+       ]
+      },
+      "swap": {
+       "body": "body_hurt",
+       "legs": "legs_none"
+      }
+     }
+    },
+    {
+     "ms": 400,
+     "ease": "hold",
+     "pose": {
+      "a": {
+       "body": 0
+      },
+      "x": {
+       "body": [
+        -17.6,
+        0
+       ]
+      },
+      "swap": {
+       "body": "body_dead",
+       "legs": "legs_none"
+      }
+     }
+    },
+    {
+     "ms": 1,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": 0
+      },
+      "x": {
+       "body": [
+        -17.6,
+        0
+       ]
+      },
+      "swap": {
+       "body": "body_dead",
+       "legs": "legs_none"
+      }
+     }
+    }
+   ]
+  }
+ }
+}

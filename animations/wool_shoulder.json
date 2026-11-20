@@ -1,0 +1,320 @@
+{
+ "asset": "wool_shoulder",
+ "version": 1,
+ "clips": {
+  "idle": {
+   "loop": true,
+   "keys": [
+    {
+     "ms": 700,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": 0
+      },
+      "x": {
+       "body": [
+        0,
+        0
+       ]
+      }
+     }
+    },
+    {
+     "ms": 700,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": -1.5
+      },
+      "x": {
+       "body": [
+        0,
+        1.5
+       ]
+      }
+     }
+    }
+   ]
+  },
+  "move": {
+   "loop": true,
+   "keys": [
+    {
+     "ms": 170,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": 0,
+       "leg_back": 18,
+       "leg_front": -18
+      },
+      "x": {
+       "body": [
+        0,
+        0
+       ]
+      }
+     }
+    },
+    {
+     "ms": 170,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": 0,
+       "leg_back": 0,
+       "leg_front": 0
+      },
+      "x": {
+       "body": [
+        0,
+        -3
+       ]
+      }
+     }
+    },
+    {
+     "ms": 170,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": 0,
+       "leg_back": -18,
+       "leg_front": 18
+      },
+      "x": {
+       "body": [
+        0,
+        0
+       ]
+      }
+     }
+    },
+    {
+     "ms": 170,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": 0,
+       "leg_back": 0,
+       "leg_front": 0
+      },
+      "x": {
+       "body": [
+        0,
+        -3
+       ]
+      }
+     }
+    }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "keys": [
+    {
+     "ms": 260,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": 0
+      },
+      "x": {
+       "body": [
+        0,
+        0
+       ]
+      }
+     }
+    },
+    {
+     "ms": 120,
+     "ease": "easeIn",
+     "pose": {
+      "a": {
+       "body": -10
+      },
+      "x": {
+       "body": [
+        -10,
+        2
+       ]
+      }
+     }
+    },
+    {
+     "ms": 220,
+     "ease": "easeOut",
+     "pose": {
+      "a": {
+       "body": 4
+      },
+      "x": {
+       "body": [
+        16,
+        0
+       ]
+      },
+      "swap": {
+       "body": "body_strike",
+       "leg_back": "leg_back_none",
+       "leg_front": "leg_front_none"
+      }
+     },
+     "event": "hit"
+    },
+    {
+     "ms": 240,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": 0
+      },
+      "x": {
+       "body": [
+        4,
+        0
+       ]
+      }
+     }
+    },
+    {
+     "ms": 1,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": 0
+      },
+      "x": {
+       "body": [
+        0,
+        0
+       ]
+      }
+     }
+    }
+   ]
+  },
+  "hit": {
+   "loop": false,
+   "keys": [
+    {
+     "ms": 240,
+     "ease": "easeOut",
+     "pose": {
+      "a": {
+       "body": -8
+      },
+      "x": {
+       "body": [
+        -14,
+        0
+       ]
+      },
+      "swap": {
+       "body": "body_hurt",
+       "leg_back": "leg_back_none",
+       "leg_front": "leg_front_none"
+      }
+     }
+    },
+    {
+     "ms": 220,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": -2
+      },
+      "x": {
+       "body": [
+        -4,
+        0
+       ]
+      }
+     }
+    },
+    {
+     "ms": 1,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": 0
+      },
+      "x": {
+       "body": [
+        0,
+        0
+       ]
+      }
+     }
+    }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "keys": [
+    {
+     "ms": 300,
+     "ease": "easeOut",
+     "pose": {
+      "a": {
+       "body": -8
+      },
+      "x": {
+       "body": [
+        -14,
+        0
+       ]
+      },
+      "swap": {
+       "body": "body_hurt",
+       "leg_back": "leg_back_none",
+       "leg_front": "leg_front_none"
+      }
+     }
+    },
+    {
+     "ms": 400,
+     "ease": "hold",
+     "pose": {
+      "a": {
+       "body": 0
+      },
+      "x": {
+       "body": [
+        -22,
+        0
+       ]
+      },
+      "swap": {
+       "body": "body_dead",
+       "leg_back": "leg_back_none",
+       "leg_front": "leg_front_none"
+      }
+     }
+    },
+    {
+     "ms": 1,
+     "ease": "smooth",
+     "pose": {
+      "a": {
+       "body": 0
+      },
+      "x": {
+       "body": [
+        -22,
+        0
+       ]
+      },
+      "swap": {
+       "body": "body_dead",
+       "leg_back": "leg_back_none",
+       "leg_front": "leg_front_none"
+      }
+     }
+    }
+   ]
+  }
+ }
+}

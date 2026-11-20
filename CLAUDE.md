@@ -70,7 +70,9 @@ Do not run long manual playthroughs, write one-off browser scripts, or re-read w
 | `tests/` | `data.test.ts` (invariants), `rules.test.ts`, `quests.test.ts` (flows simulated in Node), `anim.test.ts` (rigs, IK, clip sampling) |
 | `studio/` | Meadows Animation Studio (web tool on GitHub Pages): pose rigged assets, time keys, save clips. See `studio/README.md` |
 | `rigs/<asset>/` | `cut.py` (parts from the art sheet) → `atlas.png`, `atlas.json`, `rig.json`; listed in `rigs/index.json` |
-| `rigs/npc_cut.py` | town NPC rigs (Pell, Mara, Calden): one simple shared rig (still body, head with blink/talk pictures, two 2-piece arms, held item), one spec per NPC |
+| `rigs/npc_cut.py` | town NPC rigs (Pell, Mara, Calden, Ila, Tamsin): one simple shared rig (still body, head with blink/talk pictures, two 2-piece arms, held item), one spec per NPC |
+| `rigs/mob_cut.py` | Meadow mob rigs (Field Mouse, Wool Sheep, Crow, Boar, Angry Bull, Wool-Shoulder): body + 2 leg pairs (crow: 1), whole-frame body pictures hurt/dead/strike from the sheet |
+| `scripts/base-clips.ts` | one-off generator of the rough base clips (Nov 2026); adds numbered copies, never overwrites |
 | `animations/<asset>.json` | animation clips, **written by the studio only** |
 | `src/anim/rig.ts`, `clip.ts` | shared by studio and game: rig FK, 2-bone IK, springs; clip sampling and events |
 
@@ -93,7 +95,7 @@ Rules:
 - Player-facing text goes in `desc` / dialogue; design reasoning goes in `notes`. Player text is short. The character is the **Hero** (internal class id stays `warrior`).
 - New item: a row in `items` (+ `gear` if equippable) and an icon `public/art/icons/<id>.png` (a data test fails without it).
 - **Art direction is basic chibi:** follow `art-direction/README.md` and `planning/art-plan.md`. The source sheets are in `art-direction/chibi/`, and art briefs live next to them (for example `art-direction/chibi/rig-brief.md`). The current in-game art is placeholder: Kenney CC0 via `scripts/build-art.py`, plus `scripts/draw-art-v030.py` / `v031.py`. Use those scripts only for stand-ins until the chibi art is ported. Sprite slots and frame sizes live in `src/art/sprites.ts`.
-- **Animation: Claude never authors poses.** Per asset, Claude cuts the parts and builds the rig (`rigs/<asset>/cut.py`, `rig.json`, an entry in `rigs/index.json`). Oded poses and times every clip in the Animation Studio (`studio/`), which commits `animations/<asset>.json`. Do not hand-edit that file.
+- **Animation: Claude never authors poses.** Per asset, Claude cuts the parts and builds the rig (`rigs/<asset>/cut.py`, `rig.json`, an entry in `rigs/index.json`). Oded poses and times every clip in the Animation Studio (`studio/`), which commits `animations/<asset>.json`. Do not hand-edit that file. Exception, only when Oded asks for rough base clips: **never edit or overwrite an existing clip**; add yours, and if the name is taken save it as the first free numbered copy (`run_1`, `idle_2`, ...).
 - Recipes: explicit per rank 1-10, 10-40 per material, family essence is the main cost, no Heartwood/Log (tests enforce it).
 
 ## Quest engine (`Quests.ts`, maps in `quests/maps.ts`)

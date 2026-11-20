@@ -1,0 +1,60 @@
+{
+ "id": "crow",
+ "name": "Crow",
+ "atlas": "atlas.png",
+ "frames": "atlas.json",
+ "height": 120,
+ "bones": {
+  "root": {
+   "at": [
+    80.0,
+    121.0
+   ]
+  },
+  "body": {
+   "parent": "root",
+   "at": [
+    80.0,
+    99.0
+   ],
+   "tip": [
+    80.0,
+    9.0
+   ],
+   "kind": "move"
+  },
+  "legs": {
+   "parent": "body",
+   "at": [
+    80.0,
+    101.0
+   ],
+   "tip": [
+    80.0,
+    121.0
+   ]
+  }
+ },
+ "parts": [
+  {
+   "name": "legs",
+   "bone": "legs"
+  },
+  {
+   "name": "body",
+   "bone": "body"
+  }
+ ],
+ "swaps": {
+  "body": [
+   "body_hurt",
+   "body_dead",
+   "body_strike",
+   "body_fly_up",
+   "body_fly_down"
+  ],
+  "legs": [
+   "legs_none"
+  ]
+ }
+}

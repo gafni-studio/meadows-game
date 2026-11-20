@@ -1,0 +1,82 @@
+{
+ "id": "angry_bull",
+ "name": "Angry Bull",
+ "atlas": "atlas.png",
+ "frames": "atlas.json",
+ "height": 167,
+ "bones": {
+  "root": {
+   "at": [
+    143.0,
+    167.0
+   ]
+  },
+  "body": {
+   "parent": "root",
+   "at": [
+    143.0,
+    124.0
+   ],
+   "tip": [
+    143.0,
+    8.0
+   ],
+   "kind": "move"
+  },
+  "leg_back": {
+   "parent": "body",
+   "at": [
+    88.0,
+    126.0
+   ],
+   "tip": [
+    88.0,
+    167.0
+   ]
+  },
+  "leg_front": {
+   "parent": "body",
+   "at": [
+    190.0,
+    126.0
+   ],
+   "tip": [
+    190.0,
+    167.0
+   ]
+  }
+ },
+ "parts": [
+  {
+   "name": "leg_back",
+   "bone": "leg_back"
+  },
+  {
+   "name": "leg_front",
+   "bone": "leg_front"
+  },
+  {
+   "name": "body",
+   "bone": "body"
+  }
+ ],
+ "swaps": {
+  "body": [
+   "body_hurt",
+   "body_dead",
+   "body_strike"
+  ],
+  "leg_back": [
+   "leg_back_none"
+  ],
+  "leg_front": [
+   "leg_front_none"
+  ]
+ },
+ "mirror": [
+  [
+   "leg_back",
+   "leg_front"
+  ]
+ ]
+}

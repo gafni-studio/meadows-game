@@ -2,5 +2,13 @@
   { "id": "hero", "name": "Hero", "clips": ["idle", "run", "combo"] },
   { "id": "pell", "name": "Pell (NPC)", "clips": ["idle", "talk"] },
   { "id": "mara", "name": "Mara (NPC)", "clips": ["idle", "talk"] },
-  { "id": "calden", "name": "Calden (NPC)", "clips": ["idle", "talk"] }
+  { "id": "calden", "name": "Calden (NPC)", "clips": ["idle", "talk"] },
+  { "id": "ila", "name": "Ila (NPC)", "clips": ["idle", "talk"] },
+  { "id": "tamsin", "name": "Tamsin (NPC)", "clips": ["idle", "talk"] },
+  { "id": "field_mouse", "name": "Field Mouse (mob)", "clips": ["idle", "move", "attack", "hit", "death"] },
+  { "id": "wool_sheep", "name": "Wool Sheep (mob)", "clips": ["idle", "move", "attack", "hit", "death"] },
+  { "id": "crow", "name": "Crow (mob)", "clips": ["idle", "move", "attack", "hit", "death"] },
+  { "id": "boar", "name": "Boar (mob)", "clips": ["idle", "move", "attack", "hit", "death"] },
+  { "id": "angry_bull", "name": "Angry Bull (mob)", "clips": ["idle", "move", "attack", "hit", "death"] },
+  { "id": "wool_shoulder", "name": "Wool-Shoulder (mob)", "clips": ["idle", "move", "attack", "hit", "death"] }
 ]

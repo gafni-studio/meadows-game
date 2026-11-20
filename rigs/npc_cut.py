@@ -41,6 +41,7 @@ OUTLINE = (40, 26, 16)
 #   item           polygon, grip, tip; drawn under the hand that holds it
 #   body           the body's full outline, including what the arms and head hide
 #   swaps          other head pictures: name -> frame box on the same sheet
+#   paint_blink    no closed-eye frame on the sheet: eye boxes to close by hand, and a skin pixel
 #   drop           polygons to remove (breath puffs and the like)
 #   pockets        background closed in by the drawing (between a staff and the body)
 SPECS = {
@@ -77,6 +78,45 @@ SPECS = {
         "body": [(530, 145), (600, 145), (603, 160), (603, 262), (520, 264), (517, 222), (530, 200)],
         "drop": [[(613, 124), (660, 124), (660, 158), (613, 158)]],
         "swaps": {"blink": (785, 25, 925, 280), "talk": (505, 295, 645, 545)},
+    },
+    "ila": {
+        "name": "Ila",
+        "frame": (200, 20, 365, 292),
+        "head": {"poly": [(200, 20), (365, 20), (365, 118), (332, 118), (328, 128), (310, 133), (290, 136),
+                          (270, 134), (258, 131), (240, 129), (220, 125), (200, 125)],
+                 "neck": (282, 134), "tip": (280, 28)},
+        "arm_n": {"poly": [(235, 138), (262, 138), (265, 208), (263, 244), (237, 244), (235, 200)],
+                  "shoulder": (250, 150), "elbow": 208, "hand": (250, 224)},
+        "arm_f": {"poly": [(300, 156), (328, 150), (330, 196), (305, 196)],
+                  "shoulder": (306, 170), "elbow": 326, "hand": (341, 160), "horizontal": True, "cap": False,
+                  "hand_poly": [(322, 138), (357, 138), (357, 182), (322, 182)]},
+        "far": "front",
+        "item": {"name": "vial", "poly": [(331, 127), (354, 127), (354, 168), (331, 168)],
+                 "grip": (341, 158), "tip": (343, 130), "colour_of": (343, 150)},
+        "body": [(248, 135), (318, 135), (324, 160), (318, 215), (322, 266), (240, 266), (246, 215)],
+        "drop": [[(334, 92), (365, 92), (365, 127), (334, 127)]],
+        "swaps": {"talk": (200, 565, 365, 835)},
+        "paint_blink": {"eyes": [(291, 84, 302, 104), (317, 89, 323, 100)], "skin": (300, 113)},
+    },
+    "tamsin": {
+        "name": "Tamsin",
+        "frame": (195, 20, 392, 282),
+        "head": {"poly": [(195, 20), (362, 20), (362, 76), (347, 82), (345, 112), (337, 112), (335, 150), (306, 151), (290, 149),
+                          (276, 141), (262, 150), (200, 150), (195, 140)],
+                 "neck": (290, 145), "tip": (270, 30)},
+        "arm_n": {"poly": [(238, 150), (276, 150), (277, 204), (273, 219), (247, 219), (239, 200)],
+                  "shoulder": (258, 160), "elbow": 196, "hand": (258, 206)},
+        "arm_f": {"poly": [(318, 152), (334, 152), (334, 203), (320, 203)],
+                  "shoulder": (324, 162), "elbow": 333, "hand": (343, 180), "horizontal": True, "cap": False,
+                  "hand_poly": [(329, 163), (357, 163), (357, 196), (329, 196)]},
+        "far": "front",
+        "item": {"name": "staff", "poly": [(340, 86), (382, 86), (381, 130), (362, 136), (341, 272), (324, 273),
+                                           (344, 160), (344, 130)],
+                 "grip": (343, 180), "tip": (358, 92), "colour_of": (345, 230)},
+        "body": [(252, 150), (320, 150), (326, 200), (320, 256), (250, 262), (248, 200)],
+        "drop": [[(381, 98), (395, 98), (395, 124), (381, 124)]],
+        "swaps": {"talk": (480, 292, 665, 548)},
+        "paint_blink": {"eyes": [(284, 108, 296, 126), (314, 110, 321, 125)], "skin": (303, 133)},
     },
     "calden": {
         "name": "Calden",
@@ -192,6 +232,18 @@ def crop(rgba_full, pivot):
     return im, (pivot[0] - x0, pivot[1] - y0)
 
 
+def paint_closed_eyes(a, eyes, skin):
+    """A blink picture: each eye (box in sheet px) filled with skin and
+    crossed by a dark lid line, like the sheets' closed eyes."""
+    im = Image.fromarray(a)
+    d = ImageDraw.Draw(im)
+    for x0, y0, x1, y1 in eyes:
+        d.ellipse((x0, y0, x1, y1), fill=tuple(int(v) for v in skin) + (255,))
+        mid = y0 + (y1 - y0) * 0.6
+        d.arc((x0 - 1, mid - (y1 - y0) * 0.25, x1 + 1, mid + (y1 - y0) * 0.25), 15, 165, fill=OUTLINE + (255,), width=2)
+    return np.array(im)
+
+
 def align(fg, head_mask, frame, box):
     """Shift (dx, dy) that lays the head of `box` on the main frame's head."""
     hy, hx = np.where(head_mask)
@@ -279,9 +331,13 @@ def build(npc, spec):
         alt &= nd.binary_dilation(head, iterations=3)   # the head only, not the collar under it
         img[sy[ok], sx[ok]] = src[ty[ok], tx[ok]]
         cuts[f"head_{name}"] = (rgba(img, alt), spec["head"]["neck"])
+    if "paint_blink" in spec:
+        # no side-view frame with closed eyes on the sheet: close them by hand
+        pb = spec["paint_blink"]
+        cuts["head_blink"] = (paint_closed_eyes(rgba(src, head), pb["eyes"], src[pb["skin"][1], pb["skin"][0]]), spec["head"]["neck"])
 
     for side, (upper, hand, elbow, a) in arms.items():
-        if side == "n" or spec["far"] == "front":
+        if (side == "n" or spec["far"] == "front") and a.get("cap", True):
             up_img, up_mask = cap(src, upper, a["shoulder"], 9, upper)
             hd_img, hd_mask = cap(src, hand, (round(elbow[0]), round(elbow[1])), 7, hand)
         else:
@@ -362,7 +418,7 @@ def build(npc, spec):
         "ik": [{"upper": "shoulder_n", "lower": "elbow_n", "bend": -1},
                {"upper": "shoulder_f", "lower": "elbow_f", "bend": -1}],
         "mirror": [["shoulder_n", "shoulder_f"], ["elbow_n", "elbow_f"]],
-        "swaps": {"head": [f"head_{n}" for n in spec.get("swaps", {})]},
+        "swaps": {"head": [f"head_{n}" for n in spec.get("swaps", {})] + (["head_blink"] if "paint_blink" in spec else [])},
     }
     if item:
         rig["layers"] = {item["name"]: {"back": "body", "front": "head"}}
@@ -377,7 +433,7 @@ def build(npc, spec):
         bx, by = bones[part_bone[n]][1]
         rest.alpha_composite(im, (int(round(bx - px - fx0)), int(round(by - py - fy0))))
     sheet = Image.open(os.path.join(SHEETS, npc + ".jpg")).convert("RGBA").crop(spec["frame"])
-    extra = [ims[f"head_{n}"] for n in spec.get("swaps", {})]
+    extra = [ims[f"head_{n}"] for n in spec.get("swaps", {})] + ([ims["head_blink"]] if "paint_blink" in spec else [])
     W2 = rest.width * 2 + sum(im.width + 10 for im, _ in extra) + 20
     sheet_rest = Image.new("RGBA", (W2, rest.height), (255, 255, 255, 255))
     sheet_rest.paste(sheet, (0, 0))

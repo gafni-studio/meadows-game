@@ -1,0 +1,153 @@
+{
+ "id": "ila",
+ "name": "Ila",
+ "atlas": "atlas.png",
+ "frames": "atlas.json",
+ "height": 254,
+ "bones": {
+  "root": {
+   "at": [
+    288.0,
+    280.0
+   ]
+  },
+  "body": {
+   "parent": "root",
+   "at": [
+    288.0,
+    280.0
+   ]
+  },
+  "head": {
+   "parent": "body",
+   "at": [
+    282.0,
+    134.0
+   ],
+   "tip": [
+    280.0,
+    28.0
+   ]
+  },
+  "shoulder_n": {
+   "parent": "body",
+   "at": [
+    250.0,
+    150.0
+   ],
+   "tip": [
+    250.0,
+    208.0
+   ]
+  },
+  "elbow_n": {
+   "parent": "shoulder_n",
+   "at": [
+    250.0,
+    208.0
+   ],
+   "tip": [
+    250.0,
+    224.0
+   ]
+  },
+  "shoulder_f": {
+   "parent": "body",
+   "at": [
+    306.0,
+    170.0
+   ],
+   "tip": [
+    326.0,
+    160.0
+   ]
+  },
+  "elbow_f": {
+   "parent": "shoulder_f",
+   "at": [
+    326.0,
+    160.0
+   ],
+   "tip": [
+    341.0,
+    160.0
+   ]
+  },
+  "vial": {
+   "parent": "elbow_f",
+   "at": [
+    341.0,
+    158.0
+   ],
+   "tip": [
+    343.0,
+    130.0
+   ],
+   "kind": "item"
+  }
+ },
+ "parts": [
+  {
+   "name": "body",
+   "bone": "body"
+  },
+  {
+   "name": "vial",
+   "bone": "vial"
+  },
+  {
+   "name": "hand_f",
+   "bone": "elbow_f"
+  },
+  {
+   "name": "upperarm_f",
+   "bone": "shoulder_f"
+  },
+  {
+   "name": "hand_n",
+   "bone": "elbow_n"
+  },
+  {
+   "name": "upperarm_n",
+   "bone": "shoulder_n"
+  },
+  {
+   "name": "head",
+   "bone": "head"
+  }
+ ],
+ "ik": [
+  {
+   "upper": "shoulder_n",
+   "lower": "elbow_n",
+   "bend": -1
+  },
+  {
+   "upper": "shoulder_f",
+   "lower": "elbow_f",
+   "bend": -1
+  }
+ ],
+ "mirror": [
+  [
+   "shoulder_n",
+   "shoulder_f"
+  ],
+  [
+   "elbow_n",
+   "elbow_f"
+  ]
+ ],
+ "swaps": {
+  "head": [
+   "head_talk",
+   "head_blink"
+  ]
+ },
+ "layers": {
+  "vial": {
+   "back": "body",
+   "front": "head"
+  }
+ }
+}
