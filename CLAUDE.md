@@ -47,6 +47,7 @@ Do not run long manual playthroughs, write one-off browser scripts, or re-read w
 | `src/systems/Loot.ts`, `Combat.ts`, `Gear.ts` | drops (cap 3 except Copper), damage / hit / affinity, gear rolls |
 | `src/scenes/WorldScene.ts` (900 lines) | scene shell, combat resolution, Magician bolts, drops. `grep` for the method you need |
 | `src/scenes/world/terrain.ts` | sky, parallax, ground, blocks, water, decor, platforms, climbs, chest, post, portals |
+| `src/scenes/world/eastKit.ts` | Meadow East drawn from the tile kit (parallax, ground, hills, terraces, climbs, front grass); only when `geo.kit` is set |
 | `src/scenes/world/npcs.ts` | NPC sprites, quest markers, named quest foes |
 | `src/scenes/world/player.ts` | walk/jump/attack/hotbar input, climbing, drop-through, slopes, regen, death |
 | `src/scenes/world/ambient.ts` | area ambience: Whisperwood fog/shafts/fireflies/bog, hill wind, river, cave |

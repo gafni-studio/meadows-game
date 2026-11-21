@@ -14,7 +14,7 @@ import type { WorldScene } from '../WorldScene';
 export function buildAmbient(scene: WorldScene): void {
   switch (scene.geo.ambient) {
     case 'forest': forest(scene); break;
-    case 'hills': hills(scene); break;
+    case 'hills': if (!scene.geo.kit) hills(scene); break; // the kit scene has its own painted grass
     case 'river': river(scene); break;
     case 'cave': cave(scene); break;
   }

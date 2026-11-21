@@ -2,6 +2,10 @@
 
 One section per release, newest first. The full write-up of each release is `docs/vX.Y.Z.md`; the spec it came from is `planning/vX.Y.Z.md`.
 
+## v0.3.2 (Meadow East from the tile kit: look test)
+
+Meadow East is now drawn entirely from the painted tile kit (`art-direction/chibi/env/meadow-east/`) with the painted sky and two hill layers behind. Hills, terraces, ladders, ropes and portals are kit pieces; the front grass strip is drawn over characters and mobs. Gameplay, collision and spawns are unchanged, and every other map looks as before. Write-up in `docs/v0.3.2.md`.
+
 ## v0.3.1 (playtest fixes: west of town)
 
 The town gets a **west side**: Meadow West moves left of town (mirrored, mice by the gate) and a new **Sunny Pasture** (3–5) lies beyond it; Pell stands at the west gate and new Heroes go west first. Meadow East loses the Old Stump and its bull pack: the Meadow Boar is now a single **Angry Bull** in the grove, and a new level 5 **Boar** holds the terraces. Mara slaps the Hero (18 HP) so the strawberry visibly heals; the chest steps are gone. The Paths window opens on the new Path after a Path quest with its first skill pulsing; objectives show count lines; a green **farm list**; affordable skills glow; ready quests show bold gold with ✓. Plain stat wording, 1.0 s hit invulnerability, mobs no longer spawn inside hills, and a drop-range pass (1–2 for level 1–3 mobs, 1–3 for 4+). Write-up in `docs/v0.3.1.md`.

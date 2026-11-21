@@ -6,6 +6,7 @@ import { SPRITES } from '../../art/sprites';
 import { fitSlot } from '../../art/SpriteFactory';
 import { TILE } from '../../data/assumptions';
 import { groundAt } from '../../world/surface';
+import { eastParallax, eastTerrain, eastClimbs } from './eastKit';
 import type { WorldScene } from '../WorldScene';
 
 export const GROUND_H = 64;
@@ -16,6 +17,100 @@ export function buildTerrain(scene: WorldScene, W: number, area: AreaDef | undef
   const H = scene.physics.world.bounds.height;
   // v0.3.0: tall areas scroll vertically. Parallax layers are placed so they look as before when the camera
   // rests on the base ground (camera y = H - view height).
+  // v0.3.2: Meadow East is drawn from the painted tile kit (eastKit.ts); collision below is unchanged.
+  const kit = geo.kit === 'meadow_east';
+  if (kit) eastParallax(scene, W, H);
+  else drawBackdrop(scene, W, H);
+
+  // Ground: a top row (grass, dirt or moss) + dirt fill + one static body.
+  const topKey = geo.ground === 'dirt' ? 'tile.dirt_top' : geo.ground === 'moss' ? 'tile.moss_top' : 'tile.grass_top';
+  const gs = SPRITES[topKey];
+  if (!kit) {
+    const top = scene.add.tileSprite(0, scene.groundY, W, gs.h, topKey).setOrigin(0, 0).setDepth(1);
+    top.setTileScale(gs.w / scene.textures.getFrame(topKey).width);
+    const dirt = scene.add.tileSprite(0, scene.groundY + gs.h, W, GROUND_H, 'tile.dirt').setOrigin(0, 0).setDepth(1);
+    dirt.setTileScale(SPRITES['tile.dirt'].w / scene.textures.getFrame('tile.dirt').width);
+    dirt.setTint(geo.ambient === 'forest' ? 0x7a6a5a : geo.ambient === 'cave' ? 0x9a8a90 : 0xffffff);
+  }
+  const soil = geo.ambient === 'forest' ? 0x7a6a5a : geo.ambient === 'cave' ? 0x9a8a90 : 0xffffff;
+  scene.ground = scene.add.rectangle(W / 2, scene.groundY + GROUND_H / 2 + 4, W, GROUND_H, 0, 0);
+  scene.physics.add.existing(scene.ground, true);
+  const groundY = scene.groundY + 4; // feet stand slightly into the grass row
+  const yOf = (tiles: number) => groundY - tiles * TILE;
+
+  // v0.3.0 solid terrain steps (hills, banks, the cave floor). Collide on every side.
+  const blocks = scene.physics.add.staticGroup();
+  for (const b of geo.blocks ?? []) {
+    const x = b.x * TILE, w = b.w * TILE, h = b.h * TILE, y = groundY - h;
+    if (kit) { blocks.add(scene.add.rectangle(x + w / 2, y + h / 2, w, h, 0, 0)); continue; }
+    const fill = scene.add.tileSprite(x, y, w, h + GROUND_H, 'tile.dirt').setOrigin(0, 0).setDepth(1.2);
+    fill.setTileScale(SPRITES['tile.dirt'].w / scene.textures.getFrame('tile.dirt').width);
+    fill.setTint(soil);
+    const cap = scene.add.tileSprite(x, y - 4, w, Math.min(gs.h, h + 4), topKey).setOrigin(0, 0).setDepth(1.3);
+    cap.setTileScale(gs.w / scene.textures.getFrame(topKey).width);
+    const body = scene.add.rectangle(x + w / 2, y + h / 2, w, h, 0, 0);
+    blocks.add(body);
+  }
+  scene.blockGroup = blocks;
+
+  drawWater(scene, groundY);
+  if (kit) eastTerrain(scene, W, H, groundY);
+
+  for (const d of kit ? [] : geo.decor) fitSlot(scene, scene.add.image(d.x * TILE, yOf(d.y ?? 0), d.slot).setOrigin(0.5, 1).setDepth(d.y ? 1.5 : 0), d.slot); // raised decor: over block tops, behind ledges
+
+  // One-way platforms (jump up through them, land on top; down + jump drops through).
+  const platforms = scene.physics.add.staticGroup();
+  const pk = geo.ground === 'moss' ? 'tile.branch' : 'tile.platform';
+  const ps = SPRITES[pk];
+  for (const p of geo.platforms) {
+    const y = scene.groundY - p.y * TILE;
+    const plat = scene.add.tileSprite(p.x * TILE, y, p.w * TILE, ps.h, pk).setOrigin(0, 0).setDepth(2);
+    const fr = scene.textures.getFrame(pk);
+    plat.setTileScale(ps.h / fr.height);
+    if (kit) plat.setVisible(false); // kit ledge drawn by eastTerrain; this keeps the one-way body
+    platforms.add(plat);
+  }
+  scene.platformGroup = platforms;
+
+  // Ladders, ropes, vines and root ladders.
+  scene.climbs = (geo.climbs ?? []).map((c) => ({ x: c.x * TILE, top: yOf(c.y1), bottom: yOf(c.y0), kind: c.kind }));
+  if (kit) eastClimbs(scene); else drawClimbs(scene);
+
+  // Storage chest (town).
+  if (geo.chest !== undefined) {
+    scene.chestX = geo.chest * TILE;
+    scene.chestImg = fitSlot(scene, scene.add.image(scene.chestX, groundY, 'deco.chest').setOrigin(0.5, 1).setDepth(3), 'deco.chest');
+    scene.add.text(scene.chestX, groundY - 44, 'Storage', { fontFamily: 'monospace', fontSize: '11px', color: '#fff6c2', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5, 1).setDepth(4);
+  }
+  if (geo.practicePost != null) {
+    scene.postX = geo.practicePost * TILE;
+    fitSlot(scene, scene.add.image(scene.postX, groundY, 'deco.practice_post').setOrigin(0.5, 1).setDepth(3), 'deco.practice_post');
+    scene.add.text(scene.postX, groundY - 50, 'Practice Post', { fontFamily: 'monospace', fontSize: '11px', color: '#fff6c2', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5, 1).setDepth(4);
+  }
+
+  // Portals (v0.3.0: may stand on a ledge, `y` tiles up).
+  for (const p of geo.portals) {
+    const target = area?.links?.[p.dir];
+    const implemented = target && AREAS[target];
+    const py = yOf(p.y ?? groundAt(geo, p.x));
+    const img = kit
+      ? scene.add.image(p.x * TILE, py + 2, 'east.portal').setOrigin(0.5, 1).setDepth(2.5).setAlpha(implemented ? 1 : 0.45) // glow base sits in the grass
+      : fitSlot(scene, scene.add.image(p.x * TILE, py, 'portal').setOrigin(0.5, 1).setDepth(2), 'portal').setAlpha(implemented ? 1 : 0.45);
+    if (!kit && (p.dir === 'north' || p.dir === 'south')) img.setTint(0xc8f0d8);
+    if (implemented) scene.tweens.add({ targets: img, alpha: 0.75, yoyo: true, repeat: -1, duration: 900 });
+    const tname = target ? DB.areas[target]?.name ?? target : '—';
+    scene.add.text(p.x * TILE, py - 100, implemented ? `→ ${tname}` : `${tname}\n(later)`, {
+      fontFamily: 'monospace', fontSize: '12px', color: '#fff', stroke: '#000', strokeThickness: 3, align: 'center',
+    }).setOrigin(0.5, 0).setDepth(3);
+    const arriveY = p.arriveY != null ? p.arriveY : undefined;
+    scene.portals.push({ x: p.x * TILE, y: py, dir: p.dir, arriveX: p.arriveX * TILE, arriveY, target: implemented ? target : undefined });
+  }
+  return { platforms, groundY };
+}
+
+/** Placeholder sky clouds and hills (every area but the kit scene). */
+function drawBackdrop(scene: WorldScene, W: number, H: number): void {
+  const geo = scene.geo;
   const camBottom = H - scene.scale.height;
   const at = (sf: number, screenY: number) => screenY + camBottom * sf;
   const viewGround = scene.scale.height - GROUND_H;
@@ -48,83 +143,6 @@ export function buildTerrain(scene: WorldScene, W: number, area: AreaDef | undef
     hills2.fillRect(0, hy2, W, H);
   }
 
-  // Ground: a top row (grass, dirt or moss) + dirt fill + one static body.
-  const topKey = geo.ground === 'dirt' ? 'tile.dirt_top' : geo.ground === 'moss' ? 'tile.moss_top' : 'tile.grass_top';
-  const gs = SPRITES[topKey];
-  const top = scene.add.tileSprite(0, scene.groundY, W, gs.h, topKey).setOrigin(0, 0).setDepth(1);
-  top.setTileScale(gs.w / scene.textures.getFrame(topKey).width);
-  const dirt = scene.add.tileSprite(0, scene.groundY + gs.h, W, GROUND_H, 'tile.dirt').setOrigin(0, 0).setDepth(1);
-  dirt.setTileScale(SPRITES['tile.dirt'].w / scene.textures.getFrame('tile.dirt').width);
-  const soil = geo.ambient === 'forest' ? 0x7a6a5a : geo.ambient === 'cave' ? 0x9a8a90 : 0xffffff;
-  dirt.setTint(soil);
-  scene.ground = scene.add.rectangle(W / 2, scene.groundY + GROUND_H / 2 + 4, W, GROUND_H, 0, 0);
-  scene.physics.add.existing(scene.ground, true);
-  const groundY = scene.groundY + 4; // feet stand slightly into the grass row
-  const yOf = (tiles: number) => groundY - tiles * TILE;
-
-  // v0.3.0 solid terrain steps (hills, banks, the cave floor). Collide on every side.
-  const blocks = scene.physics.add.staticGroup();
-  for (const b of geo.blocks ?? []) {
-    const x = b.x * TILE, w = b.w * TILE, h = b.h * TILE, y = groundY - h;
-    const fill = scene.add.tileSprite(x, y, w, h + GROUND_H, 'tile.dirt').setOrigin(0, 0).setDepth(1.2);
-    fill.setTileScale(SPRITES['tile.dirt'].w / scene.textures.getFrame('tile.dirt').width);
-    fill.setTint(soil);
-    const cap = scene.add.tileSprite(x, y - 4, w, Math.min(gs.h, h + 4), topKey).setOrigin(0, 0).setDepth(1.3);
-    cap.setTileScale(gs.w / scene.textures.getFrame(topKey).width);
-    const body = scene.add.rectangle(x + w / 2, y + h / 2, w, h, 0, 0);
-    blocks.add(body);
-  }
-  scene.blockGroup = blocks;
-
-  drawWater(scene, groundY);
-
-  for (const d of geo.decor) fitSlot(scene, scene.add.image(d.x * TILE, yOf(d.y ?? 0), d.slot).setOrigin(0.5, 1).setDepth(d.y ? 1.5 : 0), d.slot); // raised decor: over block tops, behind ledges
-
-  // One-way platforms (jump up through them, land on top; down + jump drops through).
-  const platforms = scene.physics.add.staticGroup();
-  const pk = geo.ground === 'moss' ? 'tile.branch' : 'tile.platform';
-  const ps = SPRITES[pk];
-  for (const p of geo.platforms) {
-    const y = scene.groundY - p.y * TILE;
-    const plat = scene.add.tileSprite(p.x * TILE, y, p.w * TILE, ps.h, pk).setOrigin(0, 0).setDepth(2);
-    const fr = scene.textures.getFrame(pk);
-    plat.setTileScale(ps.h / fr.height);
-    platforms.add(plat);
-  }
-  scene.platformGroup = platforms;
-
-  // Ladders, ropes, vines and root ladders.
-  scene.climbs = (geo.climbs ?? []).map((c) => ({ x: c.x * TILE, top: yOf(c.y1), bottom: yOf(c.y0), kind: c.kind }));
-  drawClimbs(scene);
-
-  // Storage chest (town).
-  if (geo.chest !== undefined) {
-    scene.chestX = geo.chest * TILE;
-    scene.chestImg = fitSlot(scene, scene.add.image(scene.chestX, groundY, 'deco.chest').setOrigin(0.5, 1).setDepth(3), 'deco.chest');
-    scene.add.text(scene.chestX, groundY - 44, 'Storage', { fontFamily: 'monospace', fontSize: '11px', color: '#fff6c2', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5, 1).setDepth(4);
-  }
-  if (geo.practicePost != null) {
-    scene.postX = geo.practicePost * TILE;
-    fitSlot(scene, scene.add.image(scene.postX, groundY, 'deco.practice_post').setOrigin(0.5, 1).setDepth(3), 'deco.practice_post');
-    scene.add.text(scene.postX, groundY - 50, 'Practice Post', { fontFamily: 'monospace', fontSize: '11px', color: '#fff6c2', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5, 1).setDepth(4);
-  }
-
-  // Portals (v0.3.0: may stand on a ledge, `y` tiles up).
-  for (const p of geo.portals) {
-    const target = area?.links?.[p.dir];
-    const implemented = target && AREAS[target];
-    const py = yOf(p.y ?? groundAt(geo, p.x));
-    const img = fitSlot(scene, scene.add.image(p.x * TILE, py, 'portal').setOrigin(0.5, 1).setDepth(2), 'portal').setAlpha(implemented ? 1 : 0.45);
-    if (p.dir === 'north' || p.dir === 'south') img.setTint(0xc8f0d8);
-    if (implemented) scene.tweens.add({ targets: img, alpha: 0.75, yoyo: true, repeat: -1, duration: 900 });
-    const tname = target ? DB.areas[target]?.name ?? target : '—';
-    scene.add.text(p.x * TILE, py - 100, implemented ? `→ ${tname}` : `${tname}\n(later)`, {
-      fontFamily: 'monospace', fontSize: '12px', color: '#fff', stroke: '#000', strokeThickness: 3, align: 'center',
-    }).setOrigin(0.5, 0).setDepth(3);
-    const arriveY = p.arriveY != null ? p.arriveY : undefined;
-    scene.portals.push({ x: p.x * TILE, y: py, dir: p.dir, arriveX: p.arriveX * TILE, arriveY, target: implemented ? target : undefined });
-  }
-  return { platforms, groundY };
 }
 
 /** River and bog water over the base ground: a translucent band with a lighter, moving surface line. */

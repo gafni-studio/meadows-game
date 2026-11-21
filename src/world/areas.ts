@@ -25,6 +25,8 @@ export interface AreaGeometry {
   /** Far and near parallax hill colors. Defaults to meadow green. */
   hills?: [number, number];
   ambient?: Ambient;
+  /** v0.3.2: draw this map from a painted tile kit (visuals only). */
+  kit?: 'meadow_east';
   safe: boolean;
   spawnX: number; // default arrival x (px)
   chest?: number; // storage chest x (tiles)
@@ -128,6 +130,7 @@ export const AREAS: Record<string, AreaGeometry> = {
     sky: 0xaee3ff,
     ground: 'grass',
     ambient: 'hills',
+    kit: 'meadow_east',
     safe: false,
     spawnX: 3 * 32,
     blocks: [

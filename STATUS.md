@@ -3,13 +3,14 @@
 Read this first, then `CLAUDE.md`. **End every session by updating this file** (live version, what is in flight, open issues, next step).
 
 ## Live
-- **v0.3.1** on `main`: playtest fixes, west of town. Check the live build at https://meadows-gafni.netlify.app/version.json (it should show `0.3.1`). The sandbox cannot reach the site, so a human confirms deploys.
+- **v0.3.2** on `main`: Meadow East redrawn from the tile kit (look test, visuals only). Before that v0.3.1: playtest fixes, west of town. Check the live build at https://meadows-gafni.netlify.app/version.json (it should show `0.3.1`). The sandbox cannot reach the site, so a human confirms deploys.
 - Health: `npm run verify` passes (51 logic tests ~1 s, boot smoke ~18 s; it visits every area incl. Sunny Pasture and climbs a ladder).
 
 ## What the game is now
 Hero (internal id `warrior`) walks two Paths: Warrior (Power Strike → Earthbreaker → Root Lash / Flame Cleave; Dig In; Rage) and Magician (Magic Bolt → Mana Shield → Fire Bolt / Thorn Volley → Chain Spark). Trees are hidden until their Path quest is done; finishing one opens its tree once with the first skill pulsing. Areas, left to right: **Sunny Pasture (3–5) → Meadow West (1–3, mirrored, mice by the gate) → Meadow Town (west + east gates; Pell at the west gate) → Meadow East (hills: crows/sheep, Boars on terraces, one Angry Bull in the grove) → Dirt Banks West → Dirt Banks East**; Whisperwood (5–10) north of Meadow East's grove. New Heroes go west first. Welcome to Meadow Town is ten steps (Mara's 18 HP slap, no chest steps). Objectives show count lines; a green farm list; affordable skill nodes glow. Spirit skills, Soul Guard, the Meadow Shrine, the Old Stump (no spawn), Night Stump and Frost Moth stay parked.
 
 ## In flight
+- **v0.3.2 kit look test:** Meadow East only (`src/scenes/world/eastKit.ts`, assets `public/art/east/` from `scripts/build-east-kit.py`). Waiting for Oded's verdict; if kept, port the other maps and the decor (trees, signs) to kit art.
 - **Meadow rigs and rough base clips** (all on `main`, for Oded to fine-tune in the Studio):
   - **New rigs:** Ila and Tamsin (`rigs/npc_cut.py`); Field Mouse, Wool Sheep, Crow, Boar, Angry Bull and Wool-Shoulder (`rigs/mob_cut.py`, whole-frame hurt/dead/strike pictures).
   - **Hero:** head pictures `head_blink` and `head_hurt` (painted). New clips `run_1` (A B C B), `hit` and `idle_1` (Oded's idle plus one blink).
